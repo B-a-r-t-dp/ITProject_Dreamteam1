@@ -19,19 +19,15 @@ We bouwen bewust een haalbare MVP:
 | --- | --- |
 | [Opstartdocument](docs/opstartdocument.md) | Uitleg over opdracht, MVP, taakverdeling en werkwijze. |
 | [MVP-afbakening](docs/mvp-afbakening.md) | Wat we bouwen, beperkt bouwen en bewust niet bouwen. |
-| [Scope over 4 sprints](docs/scope-4-sprints.md) | Planning om de MVP in 4 sprints af te werken. |
 | [Koppelafspraken](docs/koppelafspraken.md) | Vaste functies, tabellen en outputformaten zodat de delen samenwerken. |
 
 ##  Scrum methode
 
 | Document | Doel |
 | --- | --- |
+| [Scope over 4 sprints](docs/scrum/scope-4-sprints.md) | voorbeeld planning om de MVP in 4 sprints af te werken. |
 | [Product backlog](docs/scrum/product-backlog.md) | backlog voor het project. |
-| [Sprint 1](docs/scrum/sprint-1.md) | Basis en taakverdeling. |
-| [Sprint 2](docs/scrum/sprint-2.md) | Flask en SQLite. |
-| [Sprint 3](docs/scrum/sprint-3.md) | Ansible en Docker koppelen. |
-| [Sprint 4](docs/scrum/sprint-4.md) | Integratie en oplevering. |
-
+| [Sprint 1](docs/scrum/sprint-1.md) | Basis en taakverdeling, Flask en SQLite. |
 
 ## Taakverdeling en bestandseigenaars
 
@@ -43,7 +39,7 @@ We bouwen bewust een haalbare MVP:
 
 Iedereen werkt aan een eigen deel, maar spreekt vaste afspraken af voor hoe de delen samenkomen.
 
-Belangrijk: iemand mag helpen in een ander deel, maar de eigenaar blijft verantwoordelijk dat het bestand begrijpbaar, getest en gedocumenteerd is.
+Belangrijk: we helpen elkaar indien nodig, maar de eigenaar blijft verantwoordelijk dat het bestand begrijpbaar, getest en gedocumenteerd is.
 
 ## Projectstructuur
 
