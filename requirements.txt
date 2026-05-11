@@ -1,0 +1,8 @@
+# Eigenaar: Lina + Joost + Bart
+# Doel:
+# - Python-packages oplijsten die nodig zijn voor Flask, SQLite-hulpfuncties en Ansible
+# - voeg alleen packages toe die iemand kan uitleggen
+
+flask
+werkzeug
+ansible

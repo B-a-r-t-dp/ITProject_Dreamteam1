@@ -1,0 +1,20 @@
+---
+# Eigenaar: Bart
+# Doel:
+# - basisconfiguratie voor minstens 1 switch
+# - hostname instellen
+# - minstens 2 VLANs aanmaken
+# - 1 accesspoort en 1 trunkpoort configureren
+#
+# Vaste afspraak:
+# - dit bestand blijft het switchplaybook voor de MVP
+# - run_setup(setup_id) mag dit playbook later starten
+# - zie docs/koppelafspraken.md
+
+- name: Switch basisconfiguratie
+  hosts: switches
+  gather_facts: false
+  tasks:
+    - name: Hier komt switchconfiguratie
+      ansible.builtin.debug:
+        msg: "TODO: hostname, 2 VLANs, accesspoort en trunkpoort"

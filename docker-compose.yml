@@ -1,0 +1,43 @@
+# Eigenaar: Bart
+# Doel:
+# - alle containers samen bouwen en starten
+# - Flask beschikbaar maken op poort 5000
+# - HTTP beschikbaar maken op poort 80
+# - HTTPS beschikbaar maken op poort 443
+# - FTP beschikbaar maken op poort 20/21
+#
+# Vaste services:
+# - flask
+# - http
+# - https
+# - ftp
+# Zie docs/koppelafspraken.md
+
+services:
+  flask:
+    build: .
+    container_name: itproject_flask
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+      - ./backups:/app/backups
+
+  http:
+    build: ./servers/http
+    container_name: itproject_http
+    ports:
+      - "80:80"
+
+  https:
+    build: ./servers/https
+    container_name: itproject_https
+    ports:
+      - "443:443"
+
+  ftp:
+    build: ./servers/ftp
+    container_name: itproject_ftp
+    ports:
+      - "21:21"
+      - "20:20"

@@ -1,0 +1,38 @@
+-- SQLite-schema voor dit project.
+-- Verantwoordelijke: Joost
+--
+-- Eigenaar: Joost
+-- Doel:
+-- - verplichte SQLite-tabellen aanmaken
+-- - users bewaren voor login
+-- - network_setups bewaren voor beschikbare opstellingen
+-- - deployment_logs bewaren voor Ansible-output/status
+--
+-- Dit bestand wordt later gebruikt om de SQLite-database aan te maken.
+-- SQLite is verplicht volgens de opdracht.
+--
+-- Joost werkt hier de verplichte tabellen uit.
+--
+-- Vaste structuur:
+-- - tabelnamen blijven: users, network_setups, deployment_logs
+-- - veldnamen blijven zoals hieronder beschreven
+-- - wijzig dit alleen na overleg met het team
+--
+-- Zie ook:
+-- docs/koppelafspraken.md
+
+-- Verplicht volgens de opdracht:
+--
+-- 1. users
+--    Doel: docenten opslaan.
+--    Velden: id, username, password_hash, role
+--
+-- 2. network_setups
+--    Doel: beschikbare netwerkopstellingen opslaan.
+--    Velden: id, name, description, playbook_data
+--
+-- 3. deployment_logs
+--    Doel: output/status van Ansible-uitvoeringen bewaren.
+--    Velden: id, user_id, setup_id, timestamp, status, output
+--
+-- Later komen hieronder de echte CREATE TABLE-statements.

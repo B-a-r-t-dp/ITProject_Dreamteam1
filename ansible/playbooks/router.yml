@@ -1,0 +1,20 @@
+---
+# Eigenaar: Bart
+# Doel:
+# - basisconfiguratie voor minstens 1 router
+# - hostname instellen
+# - minstens 1 interface/IP instellen
+# - routing en OSPF-basis voorzien
+#
+# Vaste afspraak:
+# - dit bestand blijft het routerplaybook voor de MVP
+# - run_setup(setup_id) mag dit playbook later starten
+# - zie docs/koppelafspraken.md
+
+- name: Router basisconfiguratie
+  hosts: routers
+  gather_facts: false
+  tasks:
+    - name: Hier komt routerconfiguratie
+      ansible.builtin.debug:
+        msg: "TODO: hostname, interface/IP, routing en OSPF-basis"

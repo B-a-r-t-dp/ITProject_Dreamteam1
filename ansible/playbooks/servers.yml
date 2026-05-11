@@ -1,0 +1,20 @@
+---
+# Eigenaar: Bart
+# Doel:
+# - serverconfiguratie via Ansible voorbereiden
+# - HTTP-, HTTPS- en FTP-container in de projectflow opnemen
+# - later output teruggeven aan Flask/SQLite
+#
+# Vaste afspraak:
+# - dit bestand blijft het serverplaybook voor de MVP
+# - output moet begrijpbaar zijn voor Flask/SQLite-logging
+# - zie docs/koppelafspraken.md
+
+- name: Servercontainers documenteren/configureren
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Hier komt serverconfiguratie
+      ansible.builtin.debug:
+        msg: "TODO: HTTP, HTTPS en FTP via Docker/Compose"
