@@ -1,20 +1,49 @@
 ---
-# Eigenaar: Bart
-# Doel:
-# - serverconfiguratie via Ansible voorbereiden
-# - HTTP-, HTTPS- en FTP-container in de projectflow opnemen
-# - later output teruggeven aan Flask/SQLite
+# Serverplaybook
+# Verantwoordelijke: Bart
 #
-# Vaste afspraak:
-# - dit bestand blijft het serverplaybook voor de MVP
-# - output moet begrijpbaar zijn voor Flask/SQLite-logging
-# - zie docs/koppelafspraken.md
+# Dit playbook hoort bij de serverkant van onze MVP.
+#
+# In onze opgave betekent "servers":
+# - HTTP-container
+# - HTTPS-container
+# - FTP-container
+#
+# De containers zelf worden gebouwd via Dockerfiles en docker-compose.yml.
+# Dit Ansible-playbook kan later gebruikt worden om de servercontainers
+# te starten, te controleren of hun status te tonen aan Flask.
+#
+# Voor Sprint 1 blijft dit een veilige basis:
+# - het verandert nog niets aan het systeem
+# - het documenteert welke services bij de MVP horen
+# - het is voorbereid om later Docker Compose aan te sturen
 
-- name: Servercontainers documenteren/configureren
+- name: Servercontainers voorbereiden
   hosts: localhost
   connection: local
   gather_facts: false
+
   tasks:
-    - name: Hier komt serverconfiguratie
+    # Deze taak toont welke serverdiensten bij de MVP horen.
+    # Zo is meteen duidelijk wat dit playbook later moet controleren/starten.
+    - name: Toon geplande serverdiensten
       ansible.builtin.debug:
-        msg: "TODO: HTTP, HTTPS en FTP via Docker/Compose"
+        msg:
+          - "HTTP-container: webserver op poort 80"
+          - "HTTPS-container: beveiligde webserver op poort 443"
+          - "FTP-container: FTP-service op poort 20/21"
+
+    # Deze taak blijft voorlopig informatief.
+    # In een latere sprint kan hier een echte docker compose check komen.
+    - name: Toon Docker Compose rol in het project
+      ansible.builtin.debug:
+        msg: "Docker Compose bouwt en start de Flask-, HTTP-, HTTPS- en FTP-containers."
+
+    # Deze taak geeft aan wat later getest moet worden.
+    # Dit helpt bij de Sprint 3-implementatie en demo.
+    - name: Toon toekomstige controles
+      ansible.builtin.debug:
+        msg:
+          - "Controleer later of HTTP bereikbaar is op poort 80."
+          - "Controleer later of HTTPS bereikbaar is op poort 443."
+          - "Controleer later of FTP bereikbaar is op poort 21."

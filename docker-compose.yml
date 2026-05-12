@@ -1,40 +1,69 @@
-# Eigenaar: Bart
-# Doel:
-# - alle containers samen bouwen en starten
-# - Flask beschikbaar maken op poort 5000
-# - HTTP beschikbaar maken op poort 80
-# - HTTPS beschikbaar maken op poort 443
-# - FTP beschikbaar maken op poort 20/21
+# Docker Compose configuratie
+# Verantwoordelijke: Bart
 #
-# Vaste services:
-# - flask
-# - http
-# - https
-# - ftp
-# Zie docs/koppelafspraken.md
+# Dit bestand beschrijft welke containers samen bij onze MVP horen.
+#
+# Met Docker Compose kunnen we alle onderdelen van het project samen bouwen
+# en starten met 1 commando:
+#
+# docker compose up --build
+#
+# Services in deze MVP:
+# - flask: centrale webapplicatie voor login/dashboard
+# - http: eenvoudige HTTP-server op poort 80
+# - https: eenvoudige HTTPS-server op poort 443
+# - ftp: FTP-server op poort 20/21
+#
+# De router en switch zitten hier niet in.
+# Die worden later via EVE-NG geëmuleerd en via Ansible aangesproken.
 
 services:
+  # Centrale Flask-applicatie.
+  # Deze container wordt gebouwd met de Dockerfile in de projectroot.
+  # De docent gebruikt deze webapp om in te loggen en later configuraties te starten.
   flask:
     build: .
     container_name: itproject_flask
     ports:
       - "5000:5000"
+
+    # data:
+    # - bevat later de SQLite-database.
+    #
+    # backups:
+    # - kan later gebruikt worden om exports/logs/backups te bewaren.
+    #
+    # Door deze mappen als volume te koppelen blijven gegevens zichtbaar
+    # buiten de container en gaan ze niet verloren bij een rebuild.
     volumes:
       - ./data:/app/data
       - ./backups:/app/backups
 
+  # HTTP-servercontainer.
+  # Wordt gebouwd vanuit servers/http.
+  # Deze container toont een eenvoudige webpagina op poort 80.
   http:
     build: ./servers/http
     container_name: itproject_http
     ports:
       - "80:80"
 
+  # HTTPS-servercontainer.
+  # Wordt gebouwd vanuit servers/https.
+  # Deze container gebruikt een self-signed certificaat
+  # en toont een eenvoudige webpagina op poort 443.
   https:
     build: ./servers/https
     container_name: itproject_https
     ports:
       - "443:443"
 
+  # FTP-servercontainer.
+  # Wordt gebouwd vanuit servers/ftp.
+  # Deze container voorziet een testgebruiker en testbestand.
+  #
+  # Poort 21 wordt gebruikt voor FTP-commando's.
+  # Poort 20 wordt traditioneel gebruikt voor FTP-data in active mode.
   ftp:
     build: ./servers/ftp
     container_name: itproject_ftp

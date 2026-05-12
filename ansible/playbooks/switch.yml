@@ -1,20 +1,76 @@
 ---
-# Eigenaar: Bart
-# Doel:
-# - basisconfiguratie voor minstens 1 switch
-# - hostname instellen
-# - minstens 2 VLANs aanmaken
-# - 1 accesspoort en 1 trunkpoort configureren
+# Switchplaybook
+# Verantwoordelijke: Bart
 #
-# Vaste afspraak:
-# - dit bestand blijft het switchplaybook voor de MVP
-# - run_setup(setup_id) mag dit playbook later starten
-# - zie docs/koppelafspraken.md
+# Dit playbook bevat de basisconfiguratie voor de switch uit onze MVP.
+#
+# Voor Sprint 1 bereiden we dit al zo voor dat het later testbaar is in EVE-NG.
+# De exacte poortnamen kunnen nog aangepast worden aan de gebruikte switchimage.
 
-- name: Switch basisconfiguratie
+- name: Switch basisconfiguratie voorbereiden
   hosts: switches
   gather_facts: false
+
   tasks:
-    - name: Hier komt switchconfiguratie
+    # Deze debug-taak verandert nog niets op de switch.
+    # Ze helpt ons controleren welke switch Ansible geselecteerd heeft.
+    - name: Controleer welke switch gebruikt wordt
       ansible.builtin.debug:
-        msg: "TODO: hostname, 2 VLANs, accesspoort en trunkpoort"
+        msg: "Switch {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
+
+    # Stelt de hostname van de switch in.
+    # Zo is de switch in de CLI herkenbaar als SW1.
+    - name: Hostname instellen
+      cisco.ios.ios_config:
+        lines:
+          - hostname SW1
+
+    # Maakt VLAN 10 aan voor bijvoorbeeld docenten.
+    # De naam helpt om later duidelijk te zien waarvoor het VLAN dient.
+    - name: VLAN 10 aanmaken
+      cisco.ios.ios_config:
+        parents:
+          - vlan 10
+        lines:
+          - name DOCENTEN
+
+    # Maakt VLAN 20 aan voor bijvoorbeeld studenten/labo.
+    - name: VLAN 20 aanmaken
+      cisco.ios.ios_config:
+        parents:
+          - vlan 20
+        lines:
+          - name STUDENTEN
+
+    # Voorbeeld van een accesspoort.
+    # Deze poort hoort bij 1 VLAN, hier VLAN 10.
+    # Pas GigabitEthernet0/1 later aan als de EVE-NG-switch andere poortnamen gebruikt.
+    - name: Accesspoort configureren
+      cisco.ios.ios_config:
+        parents:
+          - interface GigabitEthernet0/1
+        lines:
+          - description Accesspoort VLAN 10
+          - switchport mode access
+          - switchport access vlan 10
+          - no shutdown
+
+    # Voorbeeld van een trunkpoort.
+    # Een trunk kan meerdere VLANs doorgeven, hier VLAN 10 en 20.
+    # Dit is typisch de verbinding richting router of andere switch.
+    - name: Trunkpoort configureren
+      cisco.ios.ios_config:
+        parents:
+          - interface GigabitEthernet0/2
+        lines:
+          - description Trunk naar router of uplink
+          - switchport trunk encapsulation dot1q
+          - switchport mode trunk
+          - switchport trunk allowed vlan 10,20
+          - no shutdown
+
+    # Slaat de configuratie op als er iets gewijzigd is.
+    # Zo blijft de configuratie behouden na een herstart van de switch.
+    - name: Configuratie opslaan indien gewijzigd
+      cisco.ios.ios_config:
+        save_when: modified

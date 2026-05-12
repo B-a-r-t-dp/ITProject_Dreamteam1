@@ -128,6 +128,77 @@ Of bij fout:
 
 Belangrijk: de sleutels moeten altijd `status` en `output` zijn.
 
+### Afspraak outputformaat Ansible -> Flask -> SQLite
+
+`modules/ansible_tools.py` is verantwoordelijk voor het starten van de Ansible-flow.
+Flask mag dus niet zelf rechtstreeks `ansible-playbook` starten.
+
+Flask roept alleen deze functie aan:
+
+```python
+result = run_setup(setup_id)
+```
+
+Die functie geeft altijd een dictionary terug met exact deze sleutels:
+
+```python
+{
+    "status": "success",
+    "output": "tekstuele output van Ansible"
+}
+```
+
+Bij een fout geeft de functie:
+
+```python
+{
+    "status": "failed",
+    "output": "foutmelding of Ansible stderr"
+}
+```
+
+| Sleutel | Type | Toegelaten waarden | Betekenis |
+| --- | --- | --- | --- |
+| `status` | string | `success` of `failed` | Geeft aan of de Ansible-flow gelukt is. |
+| `output` | string | vrije tekst | Output of foutmelding die op het dashboard getoond en in SQLite opgeslagen wordt. |
+
+Belangrijk:
+
+- `status` gebruikt altijd kleine letters: `success` of `failed`;
+- gebruik dus geen `SUCCESS`, `FAILED` of `ERROR`;
+- `output` is altijd tekst, ook als Ansible geen output teruggeeft;
+- de sleutels `status` en `output` mogen niet gewijzigd worden zonder teamoverleg.
+
+Voorbeeld voor Flask:
+
+```python
+result = run_setup(setup_id)
+
+status = result["status"]
+output = result["output"]
+```
+
+Voorbeeld voor SQLite:
+
+```python
+save_deployment_log(
+    user_id=user_id,
+    setup_id=setup_id,
+    status=result["status"],
+    output=result["output"]
+)
+```
+
+De tabel `deployment_logs` verwacht dezelfde waarden.
+Daarom heeft `status` in SQLite alleen deze toegelaten waarden:
+
+```text
+success
+failed
+```
+
+Zo spreken Ansible, Flask en SQLite dezelfde taal.
+
 ## 3. Flask-template data
 
 Lina werkt in:

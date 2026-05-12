@@ -16,21 +16,21 @@ De projectbasis staat klaar en iedereen weet welk deel en welke bestanden van he
 | PB-06 | AI-logboek, changelog en koppelafspraken uitleggen | Team | `docs/personen/*/ai-logboek.md`, `docs/personen/*/changelog.md`, `docs/koppelafspraken.md` | To do |
 | PB-07 | Loginpagina als template klaarzetten | Lina | `templates/login.html` | Done |
 | PB-08 | Dashboardpagina als template klaarzetten | Lina | `templates/dashboard.html` | Done |
-| PB-09 | Plaats voorzien voor netwerkopstellingen op dashboard | Lina | `templates/dashboard.html` | done |
-| PB-10 | Plaats voorzien voor status/output op dashboard | Lina | `templates/dashboard.html` | done |
-| PB-11 | SQLite-schema voor `users` uitwerken | Joost | `database/schema.sql` | done |
-| PB-12 | SQLite-schema voor `network_setups` uitwerken | Joost | `database/schema.sql` | done |
-| PB-13 | SQLite-schema voor `deployment_logs` uitwerken | Joost | `database/schema.sql` | done |
-| PB-14 | Relaties tussen tabellen voorbereiden | Joost | `database/schema.sql` | done |
-| PB-15 | Ansible-inventory invullen met router en switch | Bart | `ansible/inventory.ini` | To do |
-| PB-16 | Routerplaybook als basis voorbereiden | Bart | `ansible/playbooks/router.yml` | To do |
-| PB-17 | Switchplaybook als basis voorbereiden | Bart | `ansible/playbooks/switch.yml` | To do |
-| PB-18 | Serverplaybook als basis voorbereiden | Bart | `ansible/playbooks/servers.yml` | To do |
-| PB-19 | Flask Dockerfile controleren | Bart | `Dockerfile` | To do |
-| PB-20 | Docker Compose controleren | Bart | `docker-compose.yml` | To do |
-| PB-21 | HTTP Dockerfile controleren | Bart | `servers/http/Dockerfile`, `servers/http/default.conf`, `servers/http/index.html` | To do |
-| PB-22 | HTTPS Dockerfile controleren | Bart | `servers/https/Dockerfile`, `servers/https/default.conf`, `servers/https/index.html` | To do |
-| PB-23 | FTP Dockerfile controleren | Bart | `servers/ftp/Dockerfile`, `servers/ftp/vsftpd.conf` | To do |
+| PB-09 | Plaats voorzien voor netwerkopstellingen op dashboard | Lina | `templates/dashboard.html` | Done |
+| PB-10 | Plaats voorzien voor status/output op dashboard | Lina | `templates/dashboard.html` | Done |
+| PB-11 | SQLite-schema voor `users` uitwerken | Joost | `database/schema.sql` | Done |
+| PB-12 | SQLite-schema voor `network_setups` uitwerken | Joost | `database/schema.sql` | Done |
+| PB-13 | SQLite-schema voor `deployment_logs` uitwerken | Joost | `database/schema.sql` | Done |
+| PB-14 | Relaties tussen tabellen voorbereiden | Joost | `database/schema.sql` | Done |
+| PB-15 | Ansible-inventory invullen met router en switch | Bart | `ansible/inventory.ini` | Done |
+| PB-16 | Routerplaybook als basis voorbereiden | Bart | `ansible/playbooks/router.yml` | Done |
+| PB-17 | Switchplaybook als basis voorbereiden | Bart | `ansible/playbooks/switch.yml` | Done |
+| PB-18 | Serverplaybook als basis voorbereiden | Bart | `ansible/playbooks/servers.yml` | Done |
+| PB-19 | Flask Dockerfile controleren | Bart | `Dockerfile` | Done |
+| PB-20 | Docker Compose controleren | Bart | `docker-compose.yml` | Done |
+| PB-21 | HTTP Dockerfile controleren | Bart | `servers/http/Dockerfile`, `servers/http/default.conf`, `servers/http/index.html` | Done |
+| PB-22 | HTTPS Dockerfile controleren | Bart | `servers/https/Dockerfile`, `servers/https/default.conf`, `servers/https/index.html` | Done |
+| PB-23 | FTP Dockerfile controleren | Bart | `servers/ftp/Dockerfile`, `servers/ftp/vsftpd.conf` | Done |
 | PB-24 | SQLite-database initialiseren vanuit schema | Joost | `modules/database_tools.py`, `database/schema.sql`, `data/` | To do |
 | PB-25 | Testdocent aanmaken | Joost | `modules/database_tools.py` | To do |
 | PB-26 | Password hashing toepassen voor testdocent | Joost | `modules/database_tools.py`, `requirements.txt` | To do |
@@ -42,7 +42,7 @@ De projectbasis staat klaar en iedereen weet welk deel en welke bestanden van he
 | PB-32 | Logout voorzien | Lina | `app.py`, `templates/dashboard.html` | To do |
 | PB-33 | Dashboard beschermen achter login | Lina | `app.py` | To do |
 | PB-34 | Netwerkopstelling tonen op dashboard | Lina + Joost | `app.py`, `templates/dashboard.html`, `modules/database_tools.py` | To do |
-| PB-35 | Ansible-helper voorbereiden met `status` en `output` | Bart | `modules/ansible_tools.py` | To do |
+| PB-35 | Ansible-helper voorbereiden met `status` en `output` | Bart | `modules/ansible_tools.py` | Done |
 | PB-36 | Afspraak maken over outputformaat tussen Ansible, Flask en SQLite | Team | `modules/ansible_tools.py`, `modules/database_tools.py`, `app.py` | To do |
 
 ## Daily Stand-ups

@@ -1,20 +1,63 @@
 ---
-# Eigenaar: Bart
-# Doel:
-# - basisconfiguratie voor minstens 1 router
-# - hostname instellen
-# - minstens 1 interface/IP instellen
-# - routing en OSPF-basis voorzien
+# Routerplaybook
+# Verantwoordelijke: Bart
 #
-# Vaste afspraak:
-# - dit bestand blijft het routerplaybook voor de MVP
-# - run_setup(setup_id) mag dit playbook later starten
-# - zie docs/koppelafspraken.md
+# Dit playbook bevat de basisconfiguratie voor de router uit onze MVP.
+#
+# Voor Sprint 1 bereiden we dit al zo voor dat het later testbaar is in EVE-NG.
+# De exacte IP-adressen en interfacenamen kunnen nog aangepast worden
+# aan de definitieve topologie.
 
-- name: Router basisconfiguratie
+- name: Router basisconfiguratie voorbereiden
   hosts: routers
   gather_facts: false
+
   tasks:
-    - name: Hier komt routerconfiguratie
+    # Deze debug-taak verandert nog niets op de router.
+    # Ze helpt ons controleren welke router Ansible geselecteerd heeft.
+    - name: Controleer welke router gebruikt wordt
       ansible.builtin.debug:
-        msg: "TODO: hostname, interface/IP, routing en OSPF-basis"
+        msg: "Router {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
+
+    # Stelt de hostname van de router in.
+    # Zo is de router in de CLI herkenbaar als R1.
+    - name: Hostname instellen
+      cisco.ios.ios_config:
+        lines:
+          - hostname R1
+
+    # Voorbeeldinterface voor de MVP.
+    # In EVE-NG kan deze naam verschillen per routerimage.
+    # Als de interface anders heet, passen we enkel deze parent aan.
+    - name: Interfacebeschrijving instellen
+      cisco.ios.ios_config:
+        parents:
+          - interface GigabitEthernet0/0
+        lines:
+          - description Link naar LAN of switch
+
+    # Zet een voorbeeld-IP op de interface en schakelt de interface aan.
+    # Dit is basisconfiguratie om later verkeer door de router mogelijk te maken.
+    - name: Interface IP-adres instellen
+      cisco.ios.ios_config:
+        parents:
+          - interface GigabitEthernet0/0
+        lines:
+          - ip address 192.168.10.1 255.255.255.0
+          - no shutdown
+
+    # Voorziet een eenvoudige OSPF-basis.
+    # OSPF wordt later gebruikt om routes tussen netwerken uit te wisselen.
+    - name: OSPF-basisconfiguratie instellen
+      cisco.ios.ios_config:
+        parents:
+          - router ospf 1
+        lines:
+          - router-id 1.1.1.1
+          - network 192.168.10.0 0.0.0.255 area 0
+
+    # Slaat de configuratie op als er iets gewijzigd is.
+    # Zo blijft de configuratie behouden na een herstart van de router.
+    - name: Configuratie opslaan indien gewijzigd
+      cisco.ios.ios_config:
+        save_when: modified
