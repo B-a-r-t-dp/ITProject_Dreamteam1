@@ -1,79 +1,148 @@
-from flask import Flask, render_template
-
-
-# Eigenaar: Lina
-# Doel:
-# - Flask-applicatie opstarten
-# - routes maken voor login en dashboard
-# - later login/logout en startknop voor Ansible koppelen
-# Koppelt later met:
-# - Joost: SQLite-functies uit modules/database_tools.py
-# - Bart: Ansible-functies uit modules/ansible_tools.py
-#
-# Vaste koppelafspraken staan in:
-# docs/koppelafspraken.md
+from flask import Flask, render_template, request, redirect, session
+import sqlite3
+from werkzeug.security import check_password_hash
+import subprocess
+import datetime
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"
 
 
-@app.route("/")
+# ------------------------
+# Database helper
+# ------------------------
+def get_db():
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row  # zodat je dict-style kan gebruiken
+    return conn
+
+
+# ------------------------
+# LOGIN
+# ------------------------
+@app.route("/", methods=["GET", "POST"])
 def login():
-    """
-    Loginpagina.
+    error = None
 
-    Verantwoordelijke: Lina
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
 
-    Later gebruikt deze route:
-    - verify_user(username, password) uit modules/database_tools.py
+        db = get_db()
 
-    Verwacht gedrag later:
-    - GET toont loginformulier;
-    - POST controleert username/password;
-    - bij succes naar dashboard;
-    - bij fout foutmelding tonen.
-    """
-    return render_template("login.html")
+        user = db.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+
+        if user and check_password_hash(user["password_hash"], password):
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+
+            return redirect("/dashboard")
+        else:
+            error = "Ongeldige login"
+
+    return render_template("login.html", error=error)
 
 
+# ------------------------
+# DASHBOARD
+# ------------------------
 @app.route("/dashboard")
 def dashboard():
-    """
-    Dashboardpagina.
+    if "user_id" not in session:
+        return redirect("/")
 
-    Verantwoordelijke: Lina
+    db = get_db()
 
-    Later gebruikt deze route:
-    - get_network_setups() uit modules/database_tools.py
-    - get_last_deployment_log() uit modules/database_tools.py
+    # Alle setups
+    setups = db.execute(
+        "SELECT * FROM network_setups"
+    ).fetchall()
 
-    Verwacht gedrag later:
-    - alleen toegankelijk na login;
-    - toont naam van docent;
-    - toont beschikbare netwerkopstellingen;
-    - toont laatste status/output.
-    """
-    return render_template("dashboard.html")
+    # Laatste deployment
+    last_log = db.execute("""
+        SELECT * FROM deployment_logs
+        WHERE user_id = ?
+        ORDER BY timestamp DESC
+        LIMIT 1
+    """, (session["user_id"],)).fetchone()
+
+    user = {
+        "username": session["username"]
+    }
+
+    return render_template(
+        "dashboard.html",
+        user=user,
+        network_setups=setups,
+        last_log=last_log
+    )
 
 
+# ------------------------
+# DEPLOY (Ansible trigger)
+# ------------------------
 @app.route("/deploy", methods=["POST"])
 def deploy():
-    """
-    Start configuratie voor een gekozen netwerkopstelling.
+    if "user_id" not in session:
+        return redirect("/")
 
-    Verantwoordelijke: Lina voor de route, Bart voor run_setup, Joost voor logging.
+    setup_id = request.form["setup_id"]
 
-    Later gebruikt deze route:
-    - run_setup(setup_id) uit modules/ansible_tools.py
-    - save_deployment_log(user_id, setup_id, status, output) uit modules/database_tools.py
+    db = get_db()
 
-    Verwacht gedrag later:
-    - setup_id lezen uit het formulier;
-    - Ansible-flow starten;
-    - status/output opslaan in SQLite;
-    - terugkeren naar dashboard.
-    """
-    return "TODO: deploy-route nog uitwerken."
+    setup = db.execute(
+        "SELECT * FROM network_setups WHERE id = ?",
+        (setup_id,)
+    ).fetchone()
+
+    playbook = setup["playbook_data"]
+
+    try:
+        result = subprocess.run(
+            ["ansible-playbook", playbook],
+            capture_output=True,
+            text=True
+        )
+
+        status = "SUCCESS" if result.returncode == 0 else "FAILED"
+        output = result.stdout
+
+    except Exception as e:
+        status = "ERROR"
+        output = str(e)
+
+    # Log opslaan
+    db.execute("""
+        INSERT INTO deployment_logs
+        (user_id, setup_id, timestamp, status, output)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        session["user_id"],
+        setup_id,
+        datetime.datetime.now(),
+        status,
+        output
+    ))
+
+    db.commit()
+
+    return redirect("/dashboard")
 
 
+# ------------------------
+# LOGOUT
+# ------------------------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
+# ------------------------
+# START APP
+# ------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
