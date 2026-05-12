@@ -2,71 +2,119 @@
 <html lang="nl">
 <head>
     <meta charset="utf-8">
-    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ITProject Dashboard</title>
 
-    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Jouw CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<body class="bg-light">
-
-<div class="container mt-4">
-
-    <h1 class="mb-4">Dashboard</h1>
-
-    <!-- Gebruiker -->
-    <div class="alert alert-primary">
-        Welkom, <strong>{{ user.username }}</strong>
-    </div>
-
-    <!-- Netwerkopstellingen -->
-    <h2>Beschikbare netwerkopstellingen</h2>
-
-    {% if network_setups %}
-        {% for setup in network_setups %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">{{ setup.name }}</h5>
-                    <p class="card-text">{{ setup.description }}</p>
-
-                    <!-- ✅ JUISTE FORM -->
-                    <form method="POST" action="/deploy">
-                        <input type="hidden" name="setup_id" value="{{ setup.id }}">
-                        <button class="btn btn-primary">Start configuratie</button>
-                    </form>
-
-                </div>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>Geen netwerkopstellingen beschikbaar.</p>
-    {% endif %}
-
-    <!-- Laatste log -->
-    <h2>Laatste configuratie</h2>
-
-    {% if last_log %}
-        <div class="alert alert-info">
-            <strong>Status:</strong> {{ last_log.status }} <br>
-            <strong>Tijdstip:</strong> {{ last_log.timestamp }}
+<body class="app-body">
+    <header class="app-header">
+        <div>
+            <p class="eyebrow">ITProject Dreamteam 1</p>
+            <h1>Netwerkbeheer dashboard</h1>
+            <p class="header-subtitle">Start een vaste MVP-opstelling en volg de laatste Ansible-uitvoering op.</p>
         </div>
 
-        <pre class="bg-dark text-white p-3">{{ last_log.output }}</pre>
-    {% else %}
-        <p>Er zijn nog geen configuraties uitgevoerd.</p>
-    {% endif %}
+        <div class="user-panel">
+            <div>
+                <span class="user-label">Aangemeld als</span>
+                <strong>{{ user.username }}</strong>
+            </div>
+            <a class="btn btn-outline-light btn-sm" href="/logout">Logout</a>
+        </div>
+    </header>
 
-    <hr>
+    <main class="dashboard-shell">
+        <section class="summary-grid" aria-label="Projectstatus">
+            <div class="summary-item">
+                <span class="summary-label">Gebruiker</span>
+                <strong>{{ user.role|default("teacher") }}</strong>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Opstellingen</span>
+                <strong>{{ network_setups|length }}</strong>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Laatste status</span>
+                {% if last_log %}
+                    <strong class="status-text status-{{ last_log.status }}">{{ last_log.status }}</strong>
+                {% else %}
+                    <strong>Nog geen run</strong>
+                {% endif %}
+            </div>
+        </section>
 
-    <!-- ✅ LOGOUT FIX -->
-    <form action="/logout">
-        <button class="btn btn-danger">Logout</button>
-    </form>
+        <section class="content-grid">
+            <div class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">Configuratie</p>
+                        <h2>Beschikbare netwerkopstellingen</h2>
+                    </div>
+                </div>
 
-</div>
+                {% if network_setups %}
+                    <div class="setup-list">
+                        {% for setup in network_setups %}
+                            <article class="setup-card">
+                                <div class="setup-card-body">
+                                    <div>
+                                        <span class="setup-id">Setup {{ setup.id }}</span>
+                                        <h3>{{ setup.name }}</h3>
+                                        <p>{{ setup.description }}</p>
+                                    </div>
 
+                                    <form method="POST" action="/deploy">
+                                        <input type="hidden" name="setup_id" value="{{ setup.id }}">
+                                        <button class="btn btn-primary" type="submit">Start configuratie</button>
+                                    </form>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>Geen netwerkopstellingen beschikbaar</h3>
+                        <p>Controleer of de database geinitialiseerd is en minstens een basisopstelling bevat.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <aside class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">Monitoring</p>
+                        <h2>Laatste configuratie</h2>
+                    </div>
+                </div>
+
+                {% if last_log %}
+                    <dl class="log-meta">
+                        <div>
+                            <dt>Status</dt>
+                            <dd><span class="status-pill status-{{ last_log.status }}">{{ last_log.status }}</span></dd>
+                        </div>
+                        <div>
+                            <dt>Tijdstip</dt>
+                            <dd>{{ last_log.timestamp }}</dd>
+                        </div>
+                        <div>
+                            <dt>Setup</dt>
+                            <dd>{{ last_log.setup_id }}</dd>
+                        </div>
+                    </dl>
+
+                    <pre class="output-box">{{ last_log.output }}</pre>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>Nog geen configuratie uitgevoerd</h3>
+                        <p>Start een netwerkopstelling om hier de Ansible-status en output te zien.</p>
+                    </div>
+                {% endif %}
+            </aside>
+        </section>
+    </main>
 </body>
 </html>
