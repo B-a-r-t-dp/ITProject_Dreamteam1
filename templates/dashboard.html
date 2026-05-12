@@ -2,23 +2,71 @@
 <html lang="nl">
 <head>
     <meta charset="utf-8">
-    <!--
-    Eigenaar: Lina
-    Doel:
-    - naam van aangemelde docent tonen
-    - netwerkopstellingen tonen
-    - knop voorzien om configuratie te starten
-    - laatste status/output tonen
-
-    Verwachte data vanuit app.py:
-    - user: dict met id, username, role
-    - network_setups: lijst van dicts met id, name, description
-    - last_log: dict met status, output, timestamp of None
-    -->
     <title>Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Jouw CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-    <h1>Dashboard</h1>
-    <p>Hier komt de lijst met netwerkopstellingen en de startknop voor Ansible.</p>
+
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <h1 class="mb-4">Dashboard</h1>
+
+    <!-- Gebruiker -->
+    <div class="alert alert-primary">
+        Welkom, <strong>{{ user.username }}</strong>
+    </div>
+
+    <!-- Netwerkopstellingen -->
+    <h2>Beschikbare netwerkopstellingen</h2>
+
+    {% if network_setups %}
+        {% for setup in network_setups %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ setup.name }}</h5>
+                    <p class="card-text">{{ setup.description }}</p>
+
+                    <!-- ✅ JUISTE FORM -->
+                    <form method="POST" action="/deploy">
+                        <input type="hidden" name="setup_id" value="{{ setup.id }}">
+                        <button class="btn btn-primary">Start configuratie</button>
+                    </form>
+
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Geen netwerkopstellingen beschikbaar.</p>
+    {% endif %}
+
+    <!-- Laatste log -->
+    <h2>Laatste configuratie</h2>
+
+    {% if last_log %}
+        <div class="alert alert-info">
+            <strong>Status:</strong> {{ last_log.status }} <br>
+            <strong>Tijdstip:</strong> {{ last_log.timestamp }}
+        </div>
+
+        <pre class="bg-dark text-white p-3">{{ last_log.output }}</pre>
+    {% else %}
+        <p>Er zijn nog geen configuraties uitgevoerd.</p>
+    {% endif %}
+
+    <hr>
+
+    <!-- ✅ LOGOUT FIX -->
+    <form action="/logout">
+        <button class="btn btn-danger">Logout</button>
+    </form>
+
+</div>
+
 </body>
 </html>
