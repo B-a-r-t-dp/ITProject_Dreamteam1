@@ -241,6 +241,80 @@ body.bg-light:not(.app-body) .card {
     color: var(--muted);
 }
 
+.setup-details {
+    border-top: 1px solid var(--border);
+    background: var(--surface-soft);
+}
+
+.setup-details summary {
+    cursor: pointer;
+    padding: 14px 18px;
+    color: var(--primary-dark);
+    font-weight: 750;
+}
+
+.setup-details summary:hover,
+.setup-details[open] summary {
+    color: var(--primary);
+}
+
+.device-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    padding: 0 18px 18px;
+}
+
+.device-block {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 14px;
+}
+
+.device-type {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 750;
+    text-transform: uppercase;
+}
+
+.device-block h4 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 750;
+}
+
+.device-block dl {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+}
+
+.device-block dl div {
+    display: grid;
+    gap: 2px;
+}
+
+.device-block dt {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.device-block dd {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.setup-info-empty {
+    padding: 0 18px 18px;
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
 .log-meta {
     display: grid;
     gap: 10px;
@@ -328,7 +402,8 @@ body.bg-light:not(.app-body) .card {
     }
 
     .summary-grid,
-    .content-grid {
+    .content-grid,
+    .device-grid {
         grid-template-columns: 1fr;
     }
 }

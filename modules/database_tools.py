@@ -13,12 +13,14 @@
 
 import sqlite3
 from pathlib import Path
+import yaml
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASE_PATH = BASE_DIR / "data" / "itproject.db"
 SCHEMA_PATH = BASE_DIR / "database" / "schema.sql"
+PLAYBOOK_DIR = BASE_DIR / "ansible" / "playbooks"
 
 
 def get_connection():
@@ -77,8 +79,17 @@ def init_database():
             1,
             "Basisopstelling",
             "1 router, 1 switch, HTTP, HTTPS en FTP",
-            "mvp_basis",
+            "setup1",
         ),
+    )
+
+    connection.execute(
+        """
+        UPDATE network_setups
+        SET playbook_data = ?
+        WHERE id = ?
+        """,
+        ("setup1", 1),
     )
 
     connection.commit()
@@ -140,7 +151,7 @@ def get_network_setups():
 
     rows = connection.execute(
         """
-        SELECT id, name, description
+        SELECT id, name, description, playbook_data
         FROM network_setups
         ORDER BY id
         """
@@ -151,15 +162,37 @@ def get_network_setups():
     network_setups = []
 
     for row in rows:
+        setup_info = get_setup_info(row["playbook_data"])
+
         network_setups.append(
             {
                 "id": row["id"],
                 "name": row["name"],
                 "description": row["description"],
+                "playbook_data": row["playbook_data"],
+                "info": setup_info,
             }
         )
 
     return network_setups
+
+
+def get_setup_info(setup_folder):
+    """
+    Leest extra informatie over een netwerkopstelling.
+
+    De playbooks voeren de configuratie uit.
+    info.yml beschrijft in mensentaal wat die opstelling doet,
+    zodat het dashboard dit kan tonen zonder hardcoded HTML.
+    """
+
+    info_path = PLAYBOOK_DIR / setup_folder / "info.yml"
+
+    if not info_path.exists():
+        return None
+
+    with open(info_path, "r", encoding="utf-8") as info_file:
+        return yaml.safe_load(info_file)
 
 
 def save_deployment_log(user_id, setup_id, status, output):

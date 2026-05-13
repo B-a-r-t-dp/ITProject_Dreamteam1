@@ -33,9 +33,9 @@ def run_setup(setup_id):
 
     Voor de MVP gebruiken we voorlopig setup_id 1.
     Die start:
-    - router.yml
-    - switch.yml
-    - servers.yml
+    - ansible/playbooks/setup1/router.yml
+    - ansible/playbooks/setup1/switch.yml
+    - ansible/playbooks/setup1/servers.yml
 
     Return:
     - altijd {"status": "...", "output": "..."}
@@ -73,17 +73,26 @@ def get_playbooks_for_setup(setup_id):
     """
     Koppelt een setup_id aan de juiste playbooks.
 
-    Voorlopig is alleen setup_id 1 voorzien.
-    Later kan dit uitgebreid worden met data uit SQLite.
+    Voorlopig is setup_id 1 gekoppeld aan de map setup1.
+    Later kan dit uitgebreid worden met data uit SQLite,
+    bijvoorbeeld via het veld playbook_data.
     """
 
-    if str(setup_id) != "1":
+    setup_folders = {
+        "1": "setup1",
+    }
+
+    setup_folder = setup_folders.get(str(setup_id))
+
+    if setup_folder is None:
         return []
 
+    setup_path = PLAYBOOK_DIR / setup_folder
+
     return [
-        PLAYBOOK_DIR / "router.yml",
-        PLAYBOOK_DIR / "switch.yml",
-        PLAYBOOK_DIR / "servers.yml",
+        setup_path / "router.yml",
+        setup_path / "switch.yml",
+        setup_path / "servers.yml",
     ]
 
 
@@ -119,7 +128,7 @@ def run_playbook(playbook_path):
     except FileNotFoundError:
         return {
             "status": "failed",
-            "output": "ansible-playbook is niet gevonden. Controleer of Ansible geïnstalleerd is.",
+            "output": "ansible-playbook is niet gevonden. Controleer of Ansible geinstalleerd is.",
         }
 
     except Exception as error:

@@ -71,6 +71,33 @@
                                         <button class="btn btn-primary" type="submit">Start configuratie</button>
                                     </form>
                                 </div>
+
+                                <details class="setup-details">
+                                    <summary>Meer informatie over deze opstelling</summary>
+
+                                    {% if setup.info and setup.info.devices %}
+                                        <div class="device-grid">
+                                            {% for device_type, device in setup.info.devices.items() %}
+                                                <section class="device-block">
+                                                    <span class="device-type">{{ device_type }}</span>
+                                                    <h4>{{ device.title }}</h4>
+                                                    <dl>
+                                                        {% for detail in device.details %}
+                                                            <div>
+                                                                <dt>{{ detail.label }}</dt>
+                                                                <dd>{{ detail.value }}</dd>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </dl>
+                                                </section>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="setup-info-empty">
+                                            Geen extra details beschikbaar voor deze opstelling.
+                                        </div>
+                                    {% endif %}
+                                </details>
                             </article>
                         {% endfor %}
                     </div>

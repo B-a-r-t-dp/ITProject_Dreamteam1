@@ -6,3 +6,5 @@
 flask
 werkzeug
 ansible
+paramiko==2.12.0
+pyyaml

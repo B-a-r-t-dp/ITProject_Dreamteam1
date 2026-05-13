@@ -48,7 +48,7 @@
     - name: Accesspoort configureren
       cisco.ios.ios_config:
         parents:
-          - interface GigabitEthernet0/1
+          - interface GigabitEthernet0/2
         lines:
           - description Accesspoort VLAN 10
           - switchport mode access
@@ -61,7 +61,7 @@
     - name: Trunkpoort configureren
       cisco.ios.ios_config:
         parents:
-          - interface GigabitEthernet0/2
+          - interface GigabitEthernet0/3
         lines:
           - description Trunk naar router of uplink
           - switchport trunk encapsulation dot1q

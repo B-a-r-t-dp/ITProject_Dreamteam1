@@ -26,23 +26,16 @@
         lines:
           - hostname R1
 
-    # Voorbeeldinterface voor de MVP.
-    # In EVE-NG kan deze naam verschillen per routerimage.
-    # Als de interface anders heet, passen we enkel deze parent aan.
-    - name: Interfacebeschrijving instellen
+    # Configureert een labinterface voor de MVP.
+    # GigabitEthernet0/0 blijft de managementinterface voor SSH/Ansible.
+    # Daarom gebruiken we hier GigabitEthernet0/1 voor de laboconfiguratie.
+    - name: Labinterface configureren
       cisco.ios.ios_config:
         parents:
-          - interface GigabitEthernet0/0
+          - interface GigabitEthernet0/1
         lines:
           - description Link naar LAN of switch
-
-    # Zet een voorbeeld-IP op de interface en schakelt de interface aan.
-    # Dit is basisconfiguratie om later verkeer door de router mogelijk te maken.
-    - name: Interface IP-adres instellen
-      cisco.ios.ios_config:
-        parents:
-          - interface GigabitEthernet0/0
-        lines:
+          - no ip address
           - ip address 192.168.10.1 255.255.255.0
           - no shutdown
 

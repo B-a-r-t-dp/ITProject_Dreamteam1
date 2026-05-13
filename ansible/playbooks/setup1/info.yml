@@ -1,0 +1,33 @@
+name: Basisopstelling
+description: 1 router, 1 switch, HTTP, HTTPS en FTP
+
+devices:
+  router:
+    title: R1
+    details:
+      - label: Management-IP
+        value: 192.168.0.215
+      - label: Labinterface
+        value: Gi0/1 - 192.168.10.1/24
+      - label: Routing
+        value: OSPF area 0
+
+  switch:
+    title: SW1
+    details:
+      - label: Management-IP
+        value: 192.168.0.216
+      - label: VLANs
+        value: 10 DOCENTEN, 20 STUDENTEN
+      - label: Poorten
+        value: Gi0/2 access, Gi0/3 trunk
+
+  servers:
+    title: HTTP, HTTPS en FTP
+    details:
+      - label: HTTP
+        value: nginx op poort 80
+      - label: HTTPS
+        value: nginx + self-signed certificaat op poort 443
+      - label: FTP
+        value: vsftpd op poort 20/21 met testbestand

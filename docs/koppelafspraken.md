@@ -95,10 +95,31 @@ None
     {
         "id": 1,
         "name": "Basisopstelling",
-        "description": "1 router, 1 switch, HTTP, HTTPS en FTP"
+        "description": "1 router, 1 switch, HTTP, HTTPS en FTP",
+        "playbook_data": "setup1",
+        "info": {
+            "name": "Basisopstelling",
+            "description": "1 router, 1 switch, HTTP, HTTPS en FTP",
+            "devices": {}
+        }
     }
 ]
 ```
+
+`playbook_data` verwijst voorlopig naar de map onder `ansible/playbooks/`.
+Voor de basisopstelling is dat dus:
+
+```text
+setup1
+```
+
+De extra sleutel `info` komt uit:
+
+```text
+ansible/playbooks/setup1/info.yml
+```
+
+Die informatie mag op het dashboard getoond worden. Zo moet Lina geen netwerkdetails hardcoded in HTML zetten.
 
 ### Bart - ansible_tools.py
 
@@ -245,9 +266,10 @@ Bart werkt in:
 
 ```text
 ansible/inventory.ini
-ansible/playbooks/router.yml
-ansible/playbooks/switch.yml
-ansible/playbooks/servers.yml
+ansible/playbooks/setup1/info.yml
+ansible/playbooks/setup1/router.yml
+ansible/playbooks/setup1/switch.yml
+ansible/playbooks/setup1/servers.yml
 ```
 
 Vaste afspraak:
@@ -255,9 +277,10 @@ Vaste afspraak:
 | Bestand | Doel |
 | --- | --- |
 | `inventory.ini` | Bevat groepen `routers` en `switches`. |
-| `router.yml` | Bevat routertaken. |
-| `switch.yml` | Bevat switchtaken. |
-| `servers.yml` | Bevat server/Docker-gerelateerde taken of demo-output. |
+| `setup1/info.yml` | Bevat toonbare setupinformatie en later configureerbare basiswaarden. |
+| `setup1/router.yml` | Bevat routertaken voor basisopstelling 1. |
+| `setup1/switch.yml` | Bevat switchtaken voor basisopstelling 1. |
+| `setup1/servers.yml` | Bevat server/Docker-gerelateerde taken of demo-output voor basisopstelling 1. |
 
 Groepen in inventory:
 
@@ -274,6 +297,39 @@ Voor de MVP gebruiken we minimaal:
 - 1 router;
 - 1 switch;
 - 1 setup-id uit SQLite.
+
+### Setupdata
+
+Voor Sprint 2 spreken we af dat `info.yml` de centrale plaats wordt voor:
+
+- de naam en beschrijving van de opstelling;
+- de apparaten die op het dashboard getoond worden;
+- basiswaarden zoals hostnames, VLANs, interfacenamen en IP-adressen.
+
+De playbooks mogen stap voor stap aangepast worden om die waarden als variabelen te gebruiken.
+
+Belangrijk:
+
+- `info.yml` is geen databasevervanger;
+- SQLite bepaalt welke setup bestaat;
+- `playbook_data` in SQLite verwijst naar de juiste setupmap;
+- `info.yml` beschrijft wat in die setup zit.
+
+### Backups
+
+Voor Sprint 2 voorzien we eenvoudige configuratiebackups.
+
+Doel:
+
+```text
+running-config van router/switch ophalen en bewaren in backups/
+```
+
+Dit is bewust beperkt:
+
+- wel configuratie exporteren;
+- geen volledig restoreplatform;
+- geen complexe versiebeheerlogica in de webinterface.
 
 ## 5. Docker-structuur
 
