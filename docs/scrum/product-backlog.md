@@ -4,16 +4,11 @@ De product backlog bevat de stappen die nodig zijn om een haalbare MVP op te lev
 
 Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daarom breiden we de MVP licht uit richting de opgave, maar zonder grote extra modules toe te voegen.
 
-De planning is afgestemd op:
-
-```text
-docs/scrum/scope-4-sprints.md
-```
 
 ## Must have
 
-| ID | Sprint | Taak | Eigenaar | Status |
-| --- | --- | --- | --- | --- |
+| ID | Taak | Eigenaar | Status |
+| --- | --- | --- | --- |
 | PB-01 | Projectstructuur controleren | Team | Done |
 | PB-02 | Opstartdocument bespreken | Team | Done |
 | PB-03 | MVP-afbakening bespreken | Team | Done |
@@ -52,35 +47,35 @@ docs/scrum/scope-4-sprints.md
 | PB-36 | Afspraak maken over outputformaat tussen Ansible, Flask en SQLite | Team | Done |
 | PB-67 | Playbooks groeperen per netwerkopstelling in `setup1` | Bart | Done |
 | PB-68 | Extra setupinformatie tonen op dashboard vanuit `setup1/info.yml` | Lina + Bart | Done |
-| PB-37 | Startknop koppelen aan Flask-route | Lina | To do |
-| PB-38 | Flask-route koppelen aan Ansible-helper | Lina + Bart | To do |
-| PB-39 | Ansible-output opslaan in `deployment_logs` | Joost + Bart | To do |
-| PB-40 | Laatste status/output tonen op dashboard | Lina + Joost | To do |
-| PB-41 | HTTP-container bereikbaar maken op poort 80 | Bart | To do |
-| PB-42 | HTTPS-container bereikbaar maken op poort 443 | Bart | To do |
-| PB-43 | Self-signed certificaat voor HTTPS voorzien | Bart | To do |
-| PB-44 | FTP-container bereikbaar maken op poort 20/21 | Bart | To do |
+| PB-37 | Startknop op het dashboard laten werken | Lina | To do |
+| PB-38 | Flask de Ansible-helper laten starten | Lina | To do |
+| PB-39 | Resultaat van Ansible opslaan in SQLite | Joost | To do |
+| PB-40 | Laatste run tonen op het dashboard | Lina | To do |
+| PB-41 | HTTP-container testen | Bart | To do |
+| PB-42 | HTTPS-container testen | Bart | To do |
+| PB-43 | Self-signed certificaat voorzien voor HTTPS | Bart | To do |
+| PB-44 | FTP-container testen | Bart | To do |
 | PB-45 | FTP-gebruiker en testbestand voorzien | Bart | To do |
-| PB-46 | Routerplaybook testen of aantoonbaar voorbereiden | Bart | To do |
-| PB-47 | Switchplaybook testen of aantoonbaar voorbereiden | Bart | To do |
-| PB-48 | Docker Compose build/start testen | Bart | To do |
-| PB-63 | IP-adresseringsschema opstellen voor de basisopstelling | Bart | To do |
-| PB-69 | `info.yml` uitbreiden met configureerbare setupvariabelen | Bart | To do |
-| PB-70 | Routerplaybook variabel maken op basis van setupdata | Bart | To do |
-| PB-71 | Switchplaybook variabel maken op basis van setupdata | Bart | To do |
-| PB-72 | Backupmap gebruiken voor router- en switchconfiguraties | Bart | To do |
-| PB-73 | Running-config backup van router ophalen via Ansible | Bart | To do |
-| PB-74 | Running-config backup van switch ophalen via Ansible | Bart | To do |
-| PB-75 | Dashboard tonen welke setupwaarden gebruikt worden | Lina + Bart | To do |
+| PB-46 | Routerplaybook testen in EVE-NG | Bart | To do |
+| PB-47 | Switchplaybook testen in EVE-NG | Bart | To do |
+| PB-48 | Docker Compose opnieuw bouwen en starten | Bart | To do |
+| PB-63 | IP-adressering van de basisopstelling uitschrijven | Bart | To do |
+| PB-69 | `info.yml` uitbreiden met basiswaarden | Bart | To do |
+| PB-70 | Routerplaybook laten werken met waarden uit de setup | Bart | To do |
+| PB-71 | Switchplaybook laten werken met waarden uit de setup | Bart | To do |
+| PB-72 | Backupmap gebruiken | Bart | To do |
+| PB-73 | Routerconfiguratie als backup bewaren | Bart | To do |
+| PB-74 | Switchconfiguratie als backup bewaren | Bart | To do |
+| PB-75 | Op dashboard tonen welke waarden gebruikt worden | Lina | To do |
 | PB-76 | Koppelafspraken bijwerken voor setupdata en backups | Team | To do |
-| PB-60 | Ansible-output duidelijker formatteren | Lina + Bart | To do |
-| PB-61 | Extra foutmelding tonen bij Ansible-fout | Lina + Bart | To do |
-| PB-64 | Netwerkschema/podschema opstellen | Team | To do |
-| PB-65 | Serverplaybook uitbreiden met eenvoudige servercontroles | Bart | To do |
-| PB-66 | Deployment logs per docent controleren | Joost + Lina | To do |
-| PB-77 | Frontendformulier voorzien om setupvariabelen aan te passen | Lina + Bart | To do |
-| PB-78 | Aangepaste setupwaarden doorgeven aan Ansible | Bart + Joost | To do |
-| PB-79 | Invoer controleren voor IP-adressen, VLANs en hostnames | Joost + Bart | To do |
+| PB-60 | Ansible-output leesbaarder maken | Lina | To do |
+| PB-61 | Fouten duidelijker tonen | Lina | To do |
+| PB-64 | Netwerkschema of podschema maken | Lina | To do |
+| PB-65 | Serverplaybook nuttiger maken | Bart | To do |
+| PB-66 | Logs per docent controleren | Joost | To do |
+| PB-77 | Klein formulier voorzien voor setupwaarden | Lina | To do |
+| PB-78 | Aangepaste waarden doorgeven aan Ansible | Joost | To do |
+| PB-79 | Invoer controleren | Joost | To do |
 | PB-49 | Volledige demo-flow testen | Team | To do |
 | PB-50 | Testen of `main` een werkende sprintversie bevat | Team | To do |
 | PB-51 | Docker Compose build/start documenteren | Bart | To do |
@@ -96,8 +91,8 @@ docs/scrum/scope-4-sprints.md
 
 Alleen opnemen als de Must have-taken van die sprint werken.
 
-| ID | Sprint | Taak | Eigenaar | Status |
-| --- | --- | --- | --- | --- |
+| ID | Taak | Eigenaar | Status |
+| --- | --- | --- | --- |
 | PB-59 | Dashboard iets mooier maken | Lina | To do |
 | PB-62 | Tweede netwerkopstelling als voorbeeld toevoegen | Joost + Lina | To do |
 
@@ -108,6 +103,4 @@ Alleen opnemen als de Must have-taken van die sprint werken.
 | Adminpagina | Te groot voor de basis. |
 | Realtime Ansible-output | Bonus en technisch complexer. |
 | CI/CD | Bonus, geen kern van de demo. |
-| Volledig labo tegelijk configureren | Te groot; focus op 1 router, 1 switch en 3 servercontainers. |
-| Productie-security | We doen basisveiligheid, geen productieplatform. |
 | Uitgebreide Ansible roles | Eenvoudige playbooks zijn beter uitlegbaar. |

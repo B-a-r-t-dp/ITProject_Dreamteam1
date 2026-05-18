@@ -21,13 +21,15 @@ We bouwen bewust een haalbare MVP:
 | [MVP-afbakening](docs/mvp-afbakening.md) | Wat we bouwen, beperkt bouwen en bewust niet bouwen. |
 | [Koppelafspraken](docs/koppelafspraken.md) | Vaste functies, tabellen en outputformaten zodat de delen samenwerken. |
 
-##  Scrum methode
+## Scrum methode
 
 | Document | Doel |
 | --- | --- |
-| [Scope over 4 sprints](docs/scrum/scope-4-sprints.md) | voorbeeld planning om de MVP in 4 sprints af te werken. |
-| [Product backlog](docs/scrum/product-backlog.md) | backlog voor het project. |
+| [Product backlog](docs/scrum/product-backlog.md) | Overzicht van alle backlogtaken voor het project. |
 | [Sprint 1](docs/scrum/sprint-1.md) | Basis en taakverdeling, Flask en SQLite. |
+| [Sprint 1 Retrospective](docs/scrum/retrospective-sprint-1.md) | Wat goed ging, wat moeilijk ging en wat we meenemen naar Sprint 2. |
+| [Sprint 2](docs/scrum/sprint-2.md) | Integratie en uitbreiding van de basisopstelling tot een werkende MVP. |
+
 
 ## Taakverdeling en bestandseigenaars
 
@@ -39,7 +41,7 @@ We bouwen bewust een haalbare MVP:
 
 Iedereen werkt aan een eigen deel, maar spreekt vaste afspraken af voor hoe de delen samenkomen.
 
-Belangrijk: we helpen elkaar indien nodig, maar de eigenaar blijft verantwoordelijk dat het bestand begrijpbaar, getest en gedocumenteerd is.
+Belangrijk: we helpen elkaar indien nodig. Volgens Scrum is iedereen mee verantwoordelijk voor de sprint, maar de aangeduide eigenaar zorgt dat zijn of haar deel begrijpbaar, getest en gedocumenteerd is. Zo kunnen we op korte tijd een duidelijke MVP afleveren.
 
 ## Projectstructuur
 

@@ -61,12 +61,15 @@ def init_database():
 
     password_hash = generate_password_hash("docent123")
 
-    connection.execute(
+    connection.executemany(
         """
         INSERT OR IGNORE INTO users (username, password_hash, role)
         VALUES (?, ?, ?)
         """,
-        ("docent", password_hash, "teacher"),
+        [
+            ("docent", password_hash, "teacher 1"),
+            ("docent2", password_hash, "teacher 2"),
+        ],
     )
 
     connection.execute(
