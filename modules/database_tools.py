@@ -256,3 +256,37 @@ def get_last_deployment_log():
         "status": row["status"],
         "output": row["output"],
     }
+def get_deployment_logs_for_user(user_id, limit=10):
+    """
+    Geeft de laatste deployment logs terug voor één gebruiker/docent.
+
+    Deze functie wordt gebruikt om te controleren welke docent
+    welke configuratie gestart heeft.
+    """
+
+    connection = get_connection()
+
+    rows = connection.execute(
+        """
+        SELECT id, user_id, setup_id, timestamp, status, output
+        FROM deployment_logs
+        WHERE user_id = ?
+        ORDER BY id DESC
+        LIMIT ?
+        """,
+        (user_id, limit),
+    ).fetchall()
+
+    connection.close()
+
+    return [
+        {
+            "id": row["id"],
+            "user_id": row["user_id"],
+            "setup_id": row["setup_id"],
+            "timestamp": row["timestamp"],
+            "status": row["status"],
+            "output": row["output"],
+        }
+        for row in rows
+    ]

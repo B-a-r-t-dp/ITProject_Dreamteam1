@@ -15,3 +15,6 @@
 | 2026-05-12 | Sprint 1 uitbreiding | Ik heb gevraagd hoe ik mijn databasefuncties stap voor stap kon testen via PowerShell. | ChatGPT | De functies `init_database()`, `verify_user()`, `get_network_setups()` en `get_last_deployment_log()` getest met korte Python-commando’s. | Ja, de testen gaven de verwachte resultaten terug. |
 | 2026-05-12 | Sprint 1 uitbreiding | Ik heb gevraagd of ik `save_deployment_log()` al volledig moest testen zonder definitieve network setup. | ChatGPT | Beslist om hiermee te wachten tot Bart zijn definitieve network setup klaar is, omdat `deployment_logs.setup_id` naar een bestaande setup moet verwijzen. | Ja, dit is logisch omdat de inhoud van de setup bij Bart zijn deel hoort. |
 | 2026-05-12 | Sprint 1 uitbreiding | `modules/database_tools.py` | SQLite-backendfuncties toegevoegd en gedeeltelijk getest. | Flask kan later via vaste functies met de database werken. |
+| 2026-05-19 | modules/database_tools.py | Functie get_deployment_logs_for_user toegevoegd om deployment logs per docent op te vragen. |
+| 2026-05-19 | database/logging | Getest dat deployment_logs correct gekoppeld worden aan user_id 1 en user_id 2. |
+| 2026-05-19 | `docs/personen/joost/ai-logboek.md` | AI-logboek aangevuld met de stappen rond het testen van logging per docent en het werken in de juiste projectmap. |
