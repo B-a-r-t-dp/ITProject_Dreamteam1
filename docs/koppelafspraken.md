@@ -62,15 +62,25 @@ Doel: Ansible-uitvoeringen bewaren.
 
 ### Joost - database_tools.py
 
-Deze functies moeten bestaan:
+### `get_deployment_logs_for_user(user_id, limit=10)`
+
+Deze functie geeft de laatste deployment logs terug voor één specifieke gebruiker/docent.
+
+Deze functie is toegevoegd voor PB-66, zodat we kunnen controleren welke docent welke configuratie gestart heeft.
+
+Returnformaat:
 
 ```python
-init_database()
-verify_user(username, password)
-get_network_setups()
-save_deployment_log(user_id, setup_id, status, output)
-get_last_deployment_log()
-```
+[
+    {
+        "id": 1,
+        "user_id": 1,
+        "setup_id": 1,
+        "timestamp": "2026-05-19 09:08:38",
+        "status": "success",
+        "output": "Ansible-output of foutmelding"
+    }
+]
 
 `verify_user()` geeft bij succes dit formaat terug:
 
