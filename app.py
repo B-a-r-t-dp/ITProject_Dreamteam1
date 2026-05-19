@@ -67,6 +67,12 @@ def deploy():
         return redirect("/")
 
     setup_id = request.form.get("setup_id")
+
+    try:
+        setup_id = int(setup_id)
+    except (TypeError, ValueError):
+        return redirect("/dashboard")
+
     result = run_setup(setup_id)
 
     save_deployment_log(
