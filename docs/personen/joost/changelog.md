@@ -18,3 +18,4 @@
 | 2026-05-19 | modules/database_tools.py | Functie get_deployment_logs_for_user toegevoegd om deployment logs per docent op te vragen. |
 | 2026-05-19 | database/logging | Getest dat deployment_logs correct gekoppeld worden aan user_id 1 en user_id 2. |
 | 2026-05-19 | `docs/personen/joost/ai-logboek.md` | AI-logboek aangevuld met de stappen rond het testen van logging per docent en het werken in de juiste projectmap. |
+| 2026-05-19 | `app.py` | Basiscontrole toegevoegd voor `setup_id` in de `/deploy`-route. Ongeldige of ontbrekende invoer wordt nu teruggestuurd naar het dashboard. |
