@@ -1,6 +1,77 @@
 name: Basisopstelling
 description: 1 router, 1 switch, HTTP, HTTPS en FTP
 
+# variables bevat de technische waarden die de playbooks gebruiken.
+# Zo staan de waarden van deze opstelling op 1 centrale plaats.
+#
+# Voordeel:
+# - de frontend kan dezelfde info tonen;
+# - Ansible gebruikt dezelfde waarden om te configureren;
+# - we vermijden dat info.yml iets anders zegt dan de playbooks doen.
+variables:
+  router:
+    hostname: R1
+    management_ip: 192.168.0.215
+
+    lab_interface: GigabitEthernet0/1
+    lab_interface_short: Gi0/1
+    lab_description: Link naar LAN of switch
+    lab_ip: 192.168.10.1
+    lab_prefix: 24
+    lab_mask: 255.255.255.0
+
+    ospf_process: 1
+    ospf_router_id: 1.1.1.1
+    ospf_network: 192.168.10.0
+    ospf_wildcard: 0.0.0.255
+    ospf_area: 0
+
+  switch:
+    hostname: SW1
+    management_ip: 192.168.0.216
+
+    vlans:
+      - id: 10
+        name: DOCENTEN
+      - id: 20
+        name: STUDENTEN
+
+    access_port: GigabitEthernet0/2
+    access_port_short: Gi0/2
+    access_description: Accesspoort VLAN 10
+    access_vlan: 10
+
+    trunk_port: GigabitEthernet0/3
+    trunk_port_short: Gi0/3
+    trunk_description: Trunk naar router of uplink
+    trunk_allowed_vlans: "10,20"
+
+  servers:
+    http:
+      service: http
+      scheme: http
+      port: 80
+      description: nginx op poort 80
+
+    https:
+      service: https
+      scheme: https
+      port: 443
+      certificate: self-signed
+      description: nginx + self-signed certificaat op poort 443
+
+    ftp:
+      service: ftp
+      ports: "20/21"
+      control_port: 21
+      user: ftpuser
+      password: itproject
+      test_directory: ftp
+      test_file: test.txt
+      description: vsftpd op poort 20/21 met testbestand
+
+# devices bevat de info die vandaag in de frontend getoond wordt.
+# Deze tekst blijft bewust menselijk leesbaar.
 devices:
   router:
     title: R1

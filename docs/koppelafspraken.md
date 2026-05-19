@@ -64,7 +64,7 @@ Doel: Ansible-uitvoeringen bewaren.
 
 ### `get_deployment_logs_for_user(user_id, limit=10)`
 
-Deze functie geeft de laatste deployment logs terug voor één specifieke gebruiker/docent.
+Deze functie geeft de laatste deployment logs terug voor een specifieke gebruiker/docent.
 
 Deze functie is toegevoegd voor PB-66, zodat we kunnen controleren welke docent welke configuratie gestart heeft.
 
@@ -81,7 +81,7 @@ Returnformaat:
         "output": "Ansible-output of foutmelding"
     }
 ]
-
+```
 `verify_user()` geeft bij succes dit formaat terug:
 
 ```python
@@ -110,7 +110,8 @@ None
         "info": {
             "name": "Basisopstelling",
             "description": "1 router, 1 switch, HTTP, HTTPS en FTP",
-            "devices": {}
+            "devices": {},
+            "variables": {}
         }
     }
 ]
@@ -136,7 +137,7 @@ Die informatie mag op het dashboard getoond worden. Zo moet Lina geen netwerkdet
 Deze functie moet bestaan:
 
 ```python
-run_setup(setup_id)
+run_setup(setup_id, backup_user=None)
 ```
 
 Die geeft altijd dit formaat terug:
@@ -159,6 +160,11 @@ Of bij fout:
 
 Belangrijk: de sleutels moeten altijd `status` en `output` zijn.
 
+`backup_user` is optioneel.
+Flask geeft hier de aangemelde username mee, bijvoorbeeld `docent` of `docent2`.
+Ansible gebruikt die waarde alleen om backupbestanden herkenbaar te maken.
+De echte koppeling met de gebruiker blijft in SQLite via `deployment_logs.user_id`.
+
 ### Afspraak outputformaat Ansible -> Flask -> SQLite
 
 `modules/ansible_tools.py` is verantwoordelijk voor het starten van de Ansible-flow.
@@ -167,7 +173,7 @@ Flask mag dus niet zelf rechtstreeks `ansible-playbook` starten.
 Flask roept alleen deze functie aan:
 
 ```python
-result = run_setup(setup_id)
+result = run_setup(setup_id, backup_user=username)
 ```
 
 Die functie geeft altijd een dictionary terug met exact deze sleutels:
@@ -203,7 +209,7 @@ Belangrijk:
 Voorbeeld voor Flask:
 
 ```python
-result = run_setup(setup_id)
+result = run_setup(setup_id, backup_user=session["username"])
 
 status = result["status"]
 output = result["output"]
@@ -316,7 +322,26 @@ Voor Sprint 2 spreken we af dat `info.yml` de centrale plaats wordt voor:
 - de apparaten die op het dashboard getoond worden;
 - basiswaarden zoals hostnames, VLANs, interfacenamen en IP-adressen.
 
-De playbooks mogen stap voor stap aangepast worden om die waarden als variabelen te gebruiken.
+`info.yml` bevat daarom twee soorten informatie:
+
+| Onderdeel | Doel |
+| --- | --- |
+| `devices` | Menselijke informatie voor het dashboard. |
+| `variables` | Technische waarden die de playbooks gebruiken. |
+
+Voorbeelden van waarden in `variables`:
+
+- routerhostname;
+- routerinterface;
+- router-IP en subnetmasker;
+- OSPF-waarden;
+- switchhostname;
+- VLAN-nummers en VLAN-namen;
+- accesspoort en trunkpoort;
+- serverpoorten en testgegevens.
+
+De router- en switchplaybooks halen hun waarden zoveel mogelijk uit `info.yml`.
+Daardoor blijft de informatie op het dashboard afgestemd op wat Ansible echt configureert.
 
 Belangrijk:
 
@@ -334,6 +359,38 @@ Doel:
 ```text
 running-config van router/switch ophalen en bewaren in backups/
 ```
+
+De map `backups/` staat op de hostmachine en wordt via Docker Compose gekoppeld aan:
+
+```text
+/app/backups
+```
+
+Daardoor kunnen de Ansible-playbooks vanuit de Flask-container backupbestanden schrijven,
+terwijl die bestanden ook zichtbaar blijven in de projectmap op de pc.
+
+Bestandsnaam:
+
+```text
+<toestel>-<docent>-<datumtijd>-running-config.txt
+```
+
+Voorbeeld:
+
+```text
+r1-docent-20260519-214122-running-config.txt
+sw1-docent-20260519-214218-running-config.txt
+```
+
+De datum/tijd in de bestandsnaam gebruikt Belgische tijd:
+
+```text
+Europe/Brussels
+```
+
+De docentnaam komt vanuit Flask.
+Flask geeft de aangemelde username mee aan `run_setup`.
+`ansible_tools.py` geeft die waarde aan Ansible door als extra variabele `backup_user`.
 
 Dit is bewust beperkt:
 
@@ -357,12 +414,30 @@ Vaste services in Docker Compose:
 
 | Service | Poort | Doel |
 | --- | --- | --- |
-| `flask` | `5000` | Centrale Flask-applicatie. |
+| `flask` | intern `5000`, extern `18080` | Centrale Flask-applicatie. |
 | `http` | `80` | HTTP-servercontainer. |
 | `https` | `443` | HTTPS-servercontainer. |
 | `ftp` | `20/21` | FTP-servercontainer. |
 
 Elke image is gebaseerd op Alpine Linux.
+
+### Docker CLI in de Flask-container
+
+De Flask-container bevat naast Python en Ansible ook Docker CLI en Docker Compose CLI.
+
+Reden:
+
+- Flask start via `run_setup(setup_id, backup_user=session["username"])` de Ansible-flow;
+- de Ansible-flow voert ook `servers.yml` uit;
+- `servers.yml` moet in Sprint 2 servercontainers kunnen starten of controleren;
+- daarvoor moet de Flask-container het commando `docker compose` kunnen gebruiken.
+
+Belangrijk:
+
+- Docker Compose blijft verantwoordelijk voor de servercontainers;
+- de knop **Start configuratie** start de configuratieflow van de basisopstelling;
+- binnen die flow kan het serverplaybook HTTP, HTTPS en FTP starten/controleren;
+- dit is een labo/MVP-keuze en geen productie-security aanpak.
 
 ## 6. Belangrijkste regel
 

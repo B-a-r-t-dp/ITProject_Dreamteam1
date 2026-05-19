@@ -27,7 +27,7 @@ PLAYBOOK_DIR = ANSIBLE_DIR / "playbooks"
 INVENTORY_PATH = ANSIBLE_DIR / "inventory.ini"
 
 
-def run_setup(setup_id):
+def run_setup(setup_id, backup_user=None):
     """
     Start de Ansible-flow voor een gekozen netwerkopstelling.
 
@@ -39,6 +39,10 @@ def run_setup(setup_id):
 
     Return:
     - altijd {"status": "...", "output": "..."}
+
+    backup_user:
+    - optionele naam van de aangemelde docent/gebruiker;
+    - wordt meegegeven aan Ansible zodat backupbestanden herkenbaar zijn.
     """
 
     playbooks = get_playbooks_for_setup(setup_id)
@@ -53,7 +57,7 @@ def run_setup(setup_id):
     has_failed = False
 
     for playbook_path in playbooks:
-        result = run_playbook(playbook_path)
+        result = run_playbook(playbook_path, backup_user=backup_user)
 
         all_output.append(f"--- {playbook_path.name} ---")
         all_output.append(result["output"])
@@ -96,12 +100,15 @@ def get_playbooks_for_setup(setup_id):
     ]
 
 
-def run_playbook(playbook_path):
+def run_playbook(playbook_path, backup_user=None):
     """
     Start 1 Ansible-playbook met de vaste inventory.
 
     Deze functie vangt fouten op en zet alles om naar
     het vaste status/output-formaat.
+
+    Als backup_user ingevuld is, geven we die door als extra variabele.
+    De router- en switchplaybooks gebruiken die naam in de backupbestanden.
     """
 
     if not playbook_path.exists():
@@ -116,6 +123,9 @@ def run_playbook(playbook_path):
         str(INVENTORY_PATH),
         str(playbook_path),
     ]
+
+    if backup_user:
+        command.extend(["-e", f"backup_user={backup_user}"])
 
     try:
         completed_process = subprocess.run(

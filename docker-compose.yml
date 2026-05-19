@@ -17,13 +17,15 @@
 # De router en switch zitten hier niet in.
 # Die worden later via EVE-NG geëmuleerd en via Ansible aangesproken.
 
+name: itproject     # naam van het gehele project
+
 services:
   # Centrale Flask-applicatie.
   # Deze container wordt gebouwd met de Dockerfile in de projectroot.
   # De docent gebruikt deze webapp om in te loggen en later configuraties te starten.
   flask:
     build: .
-    container_name: itproject_flask
+    container_name: itproject_flask   # Naam van Container
     ports:
       - "18080:5000"
 
@@ -35,16 +37,23 @@ services:
     #
     # Door deze mappen als volume te koppelen blijven gegevens zichtbaar
     # buiten de container en gaan ze niet verloren bij een rebuild.
+    #
+    # docker.sock:
+    # - laat de Flask-container Docker Compose aanroepen.
+    # - nodig zodat servers.yml HTTP/HTTPS/FTP kan starten of controleren
+    #   vanuit de configuratieflow.
+    # - dit is enkel bedoeld voor de labo/MVP-opstelling.
     volumes:
       - ./data:/app/data
       - ./backups:/app/backups
+      - /var/run/docker.sock:/var/run/docker.sock
 
   # HTTP-servercontainer.
   # Wordt gebouwd vanuit servers/http.
   # Deze container toont een eenvoudige webpagina op poort 80.
   http:
     build: ./servers/http
-    container_name: itproject_http
+    container_name: itproject_http     # Naam van Container
     ports:
       - "80:80"
 
@@ -54,7 +63,7 @@ services:
   # en toont een eenvoudige webpagina op poort 443.
   https:
     build: ./servers/https
-    container_name: itproject_https
+    container_name: itproject_https     # Naam van Container
     ports:
       - "443:443"
 
@@ -66,7 +75,7 @@ services:
   # Poort 20 wordt traditioneel gebruikt voor FTP-data in active mode.
   ftp:
     build: ./servers/ftp
-    container_name: itproject_ftp
+    container_name: itproject_ftp     # Naam van Container
     ports:
       - "21:21"
       - "20:20"

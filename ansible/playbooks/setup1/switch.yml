@@ -4,69 +4,82 @@
 #
 # Dit playbook bevat de basisconfiguratie voor de switch uit onze MVP.
 #
-# Voor Sprint 1 bereiden we dit al zo voor dat het later testbaar is in EVE-NG.
-# De exacte poortnamen kunnen nog aangepast worden aan de gebruikte switchimage.
+# De technische waarden komen uit info.yml.
+# Daardoor staan VLANs, poorten en hostnames op 1 centrale plaats
+# per opstelling.
 
 - name: Switch basisconfiguratie voorbereiden
   hosts: switches
   gather_facts: false
 
+  vars_files:
+    - info.yml
+
   tasks:
-    # Deze debug-taak verandert nog niets op de switch.
-    # Ze helpt ons controleren welke switch Ansible geselecteerd heeft.
+    # Deze debug-taak verandert niets op de switch.
+    # Ze helpt controleren welke switch Ansible geselecteerd heeft.
     - name: Controleer welke switch gebruikt wordt
       ansible.builtin.debug:
         msg: "Switch {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
 
     # Stelt de hostname van de switch in.
-    # Zo is de switch in de CLI herkenbaar als SW1.
+    # De waarde komt uit info.yml.
     - name: Hostname instellen
       cisco.ios.ios_config:
         lines:
-          - hostname SW1
+          - "hostname {{ variables.switch.hostname }}"
 
-    # Maakt VLAN 10 aan voor bijvoorbeeld docenten.
-    # De naam helpt om later duidelijk te zien waarvoor het VLAN dient.
-    - name: VLAN 10 aanmaken
+    # Maakt alle VLANs aan die in info.yml staan.
+    # Daardoor kunnen we later VLANs toevoegen zonder deze taak te herschrijven.
+    - name: VLANs aanmaken
       cisco.ios.ios_config:
         parents:
-          - vlan 10
+          - "vlan {{ item.id }}"
         lines:
-          - name DOCENTEN
+          - "name {{ item.name }}"
+      loop: "{{ variables.switch.vlans }}"
 
-    # Maakt VLAN 20 aan voor bijvoorbeeld studenten/labo.
-    - name: VLAN 20 aanmaken
+    # Zet de accesspoort eerst terug naar standaardconfiguratie.
+    #
+    # Dit vermijdt dat oude testconfiguratie blijft hangen.
+    # Daarna bouwen we de gewenste accesspoort opnieuw proper op.
+    - name: Accesspoort resetten
       cisco.ios.ios_config:
-        parents:
-          - vlan 20
         lines:
-          - name STUDENTEN
+          - "default interface {{ variables.switch.access_port }}"
 
-    # Voorbeeld van een accesspoort.
-    # Deze poort hoort bij 1 VLAN, hier VLAN 10.
-    # Pas GigabitEthernet0/1 later aan als de EVE-NG-switch andere poortnamen gebruikt.
+    # Configureert de accesspoort.
+    # De poort en VLAN komen uit info.yml.
     - name: Accesspoort configureren
       cisco.ios.ios_config:
         parents:
-          - interface GigabitEthernet0/2
+          - "interface {{ variables.switch.access_port }}"
         lines:
-          - description Accesspoort VLAN 10
+          - "description {{ variables.switch.access_description }}"
           - switchport mode access
-          - switchport access vlan 10
+          - "switchport access vlan {{ variables.switch.access_vlan }}"
           - no shutdown
 
-    # Voorbeeld van een trunkpoort.
-    # Een trunk kan meerdere VLANs doorgeven, hier VLAN 10 en 20.
-    # Dit is typisch de verbinding richting router of andere switch.
+    # Zet de trunkpoort eerst terug naar standaardconfiguratie.
+    #
+    # Zo vermijden we dat oude accessconfiguratie of testregels
+    # blijven staan op een poort die als trunk bedoeld is.
+    - name: Trunkpoort resetten
+      cisco.ios.ios_config:
+        lines:
+          - "default interface {{ variables.switch.trunk_port }}"
+
+    # Configureert de trunkpoort.
+    # De poort en toegelaten VLANs komen uit info.yml.
     - name: Trunkpoort configureren
       cisco.ios.ios_config:
         parents:
-          - interface GigabitEthernet0/3
+          - "interface {{ variables.switch.trunk_port }}"
         lines:
-          - description Trunk naar router of uplink
+          - "description {{ variables.switch.trunk_description }}"
           - switchport trunk encapsulation dot1q
           - switchport mode trunk
-          - switchport trunk allowed vlan 10,20
+          - "switchport trunk allowed vlan {{ variables.switch.trunk_allowed_vlans }}"
           - no shutdown
 
     # Slaat de configuratie op als er iets gewijzigd is.
@@ -74,3 +87,39 @@
     - name: Configuratie opslaan indien gewijzigd
       cisco.ios.ios_config:
         save_when: modified
+
+    # Maakt metadata voor de backupbestandsnaam.
+    #
+    # backup_timestamp:
+    # - zorgt dat elke backup een uniek tijdstip krijgt.
+    #
+    # backup_created_by:
+    # - kan later vanuit Flask meegegeven worden als docentnaam.
+    # - zolang dat nog niet gekoppeld is, gebruiken we "unknown".
+    - name: Backupmetadata voorbereiden
+      ansible.builtin.set_fact:
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
+        backup_created_by: "{{ backup_user | default('unknown') }}"
+
+    # Haalt de volledige running-config van de switch op.
+    # Dit gebruiken we als eenvoudige backup voor de MVP.
+    - name: Switch running-config ophalen voor backup
+      cisco.ios.ios_command:
+        commands:
+          - show running-config
+      register: switch_backup_config
+
+    # Bewaart de switchconfiguratie als tekstbestand in /app/backups.
+    #
+    # /app/backups is via Docker Compose gekoppeld aan de map backups/
+    # op onze eigen pc. Daardoor blijft de backup zichtbaar buiten de container.
+    #
+    # De bestandsnaam bevat:
+    # - het toestel uit de inventory;
+    # - de gebruiker/docent als die later wordt meegegeven;
+    # - de datum en tijd van de backup.
+    - name: Switchconfiguratie bewaren in backups-map
+      ansible.builtin.copy:
+        content: "{{ switch_backup_config.stdout[0] }}"
+        dest: "/app/backups/{{ inventory_hostname }}-{{ backup_created_by }}-{{ backup_timestamp }}-running-config.txt"
+      delegate_to: localhost

@@ -51,27 +51,27 @@ Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daaro
 | PB-38 | Flask de Ansible-helper laten starten | Lina | To do |
 | PB-39 | Resultaat van Ansible opslaan in SQLite | Joost | To do |
 | PB-40 | Laatste run tonen op het dashboard | Lina | To do |
-| PB-41 | HTTP-container testen | Bart | To do |
-| PB-42 | HTTPS-container testen | Bart | To do |
-| PB-43 | Self-signed certificaat voorzien voor HTTPS | Bart | To do |
-| PB-44 | FTP-container testen | Bart | To do |
-| PB-45 | FTP-gebruiker en testbestand voorzien | Bart | To do |
-| PB-46 | Routerplaybook testen in EVE-NG | Bart | To do |
-| PB-47 | Switchplaybook testen in EVE-NG | Bart | To do |
-| PB-48 | Docker Compose opnieuw bouwen en starten | Bart | To do |
-| PB-63 | IP-adressering van de basisopstelling uitschrijven | Bart | To do |
-| PB-69 | `info.yml` uitbreiden met basiswaarden | Bart | To do |
-| PB-70 | Routerplaybook laten werken met waarden uit de setup | Bart | To do |
-| PB-71 | Switchplaybook laten werken met waarden uit de setup | Bart | To do |
-| PB-72 | Backupmap gebruiken | Bart | To do |
-| PB-73 | Routerconfiguratie als backup bewaren | Bart | To do |
-| PB-74 | Switchconfiguratie als backup bewaren | Bart | To do |
+| PB-41 | HTTP-container starten en testen | Bart | Done |
+| PB-42 | HTTPS-container testen | Bart | Done |
+| PB-43 | Self-signed certificaat voorzien voor HTTPS | Bart | Done |
+| PB-44 | FTP-container testen | Bart | Done |
+| PB-45 | FTP-gebruiker en testbestand voorzien | Bart | Done |
+| PB-46 | Routerplaybook testen in EVE-NG | Bart | Done |
+| PB-47 | Switchplaybook testen in EVE-NG | Bart | Done |
+| PB-48 | Docker Compose opnieuw bouwen en starten | Bart | Done |
+| PB-63 | IP-adressering van de basisopstelling uitschrijven | Bart | Done |
+| PB-69 | `info.yml` uitbreiden met basiswaarden | Bart | Done |
+| PB-70 | Routerplaybook laten werken met waarden uit de setup | Bart | Done |
+| PB-71 | Switchplaybook laten werken met waarden uit de setup | Bart | Done |
+| PB-72 | Backupmap gebruiken | Bart | Done |
+| PB-73 | Routerconfiguratie als backup bewaren | Bart | Done |
+| PB-74 | Switchconfiguratie als backup bewaren | Bart | Done |
 | PB-75 | Op dashboard tonen welke waarden gebruikt worden | Lina | To do |
-| PB-76 | Koppelafspraken bijwerken voor setupdata en backups | Team | To do |
+| PB-76 | Koppelafspraken bijwerken voor setupdata en backups | Team | Done |
 | PB-60 | Ansible-output leesbaarder maken | Lina | To do |
 | PB-61 | Fouten duidelijker tonen | Lina | To do |
 | PB-64 | Netwerkschema of podschema maken | Lina | To do |
-| PB-65 | Serverplaybook nuttiger maken | Bart | To do |
+| PB-65 | Serverplaybook nuttiger maken | Bart | Done |
 | PB-66 | Logs per docent controleren | Joost | To do |
 | PB-77 | Klein formulier voorzien voor setupwaarden | Lina | To do |
 | PB-78 | Aangepaste waarden doorgeven aan Ansible | Joost | To do |

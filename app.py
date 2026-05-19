@@ -73,7 +73,10 @@ def deploy():
     except (TypeError, ValueError):
         return redirect("/dashboard")
 
-    result = run_setup(setup_id)
+    result = run_setup(
+        setup_id,
+        backup_user=session["username"],
+    )
 
     save_deployment_log(
         user_id=session["user_id"],

@@ -31,12 +31,15 @@ RUN mkdir -p /run/nginx /usr/share/nginx/html /etc/nginx/certs
 # maar het toont wel dat HTTPS technisch werkt.
 # server.key = private key
 # server.crt = certificaat
+# C=BE = landcode voor Belgie
+# O=Odisee = organisatie
+# OU=LaboDashboard ITProject = project/afdeling binnen het certificaat
 # CN=localhost = certificaatnaam voor lokale testomgeving
 RUN openssl req -x509 -nodes -days 365 \
     -newkey rsa:2048 \
     -keyout /etc/nginx/certs/server.key \
     -out /etc/nginx/certs/server.crt \
-    -subj "/CN=localhost"
+    -subj "/C=BE/O=Odisee/OU=LaboDashboard ITProject/CN=localhost"
 
 # Kopieert onze eenvoudige HTTPS-testpagina naar de nginx webroot.
 COPY index.html /usr/share/nginx/html/index.html

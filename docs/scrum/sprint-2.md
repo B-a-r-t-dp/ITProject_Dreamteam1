@@ -29,27 +29,27 @@ Een docent logt in
 | PB-39 | Resultaat van Ansible opslaan in SQLite | Joost zorgt dat `success` of `failed` plus de tekstoutput correct in `deployment_logs` terechtkomt. | Joost | `modules/database_tools.py`, `app.py` | To do |
 | PB-40 | Laatste run tonen op het dashboard | Lina toont de laatste status/output op het dashboard met de data die uit `database_tools.py` komt. | Lina | `app.py`, `templates/dashboard.html` | To do |
 | PB-66 | Logs per docent controleren | Joost controleert of logs gekoppeld zijn aan de aangemelde docent. Hiervoor voorzien we ook een tweede testdocent. Dit is belangrijk om later te weten wie wat gestart heeft. | Joost | `modules/database_tools.py`, `app.py` | To do |
-| PB-41 | HTTP-container testen | Controleren of de gewone webserver start en bereikbaar is op poort 80. | Bart | `servers/http/`, `docker-compose.yml` | To do |
-| PB-42 | HTTPS-container testen | Controleren of de beveiligde webserver start en bereikbaar is op poort 443. | Bart | `servers/https/`, `docker-compose.yml` | To do |
-| PB-43 | Self-signed certificaat voorzien voor HTTPS | Voor de MVP mag dit een self-signed certificaat zijn. | Bart | `servers/https/Dockerfile`, `servers/https/default.conf` | To do |
-| PB-44 | FTP-container testen | Controleren of de FTP-service start en bereikbaar is op poort 20/21 | Bart | `servers/ftp/`, `docker-compose.yml` | To do |
-| PB-45 | FTP-gebruiker en testbestand voorzien | Er moet een eenvoudige FTP-gebruiker en testbestand zijn, zodat we kunnen aantonen dat FTP werkt. | Bart | `servers/ftp/Dockerfile`, `servers/ftp/vsftpd.conf` | To do |
-| PB-65 | Serverplaybook nuttiger maken | Het serverplaybook mag niet alleen tekst tonen, maar ook eenvoudige checks uitvoeren of duidelijk tonen wat getest wordt. | Bart | `ansible/playbooks/setup1/servers.yml`, `docker-compose.yml` | To do |
-| PB-46 | Routerplaybook testen in EVE-NG | Controleren of Ansible de router kan bereiken en de basisconfiguratie kan uitvoeren. | Bart | `ansible/playbooks/setup1/router.yml`, `ansible/inventory.ini` | To do |
-| PB-47 | Switchplaybook testen in EVE-NG | Controleren of Ansible de switch kan bereiken en VLANs/poorten kan configureren. | Bart | `ansible/playbooks/setup1/switch.yml`, `ansible/inventory.ini` | To do |
-| PB-48 | Docker Compose opnieuw bouwen en starten | Controleren of de Flask-container en servercontainers opnieuw correct bouwen en starten. | Bart | `docker-compose.yml`, `Dockerfile`, `servers/` | To do |
-| PB-63 | IP-adressering van de basisopstelling uitschrijven | We documenteren welke IP's gebruikt worden voor management, routerinterface, VLANs en servers. | Bart | `docs/`, `ansible/inventory.ini`, `ansible/playbooks/setup1/info.yml` | To do |
-| PB-69 | `info.yml` uitbreiden met variabelen | `info.yml` bevat niet alleen tekst voor het dashboard, maar ook waarden zoals hostname, interface, VLAN en IP. | Bart | `ansible/playbooks/setup1/info.yml` | To do |
-| PB-70 | Routerplaybook laten werken met variabelen uit de setup | De routerconfiguratie wordt minder hardcoded. Waarden zoals hostname en interface-IP komen uit setupdata. | Bart | `ansible/playbooks/setup1/router.yml`, `ansible/playbooks/setup1/info.yml` | To do |
-| PB-71 | Switchplaybook laten werken met variabelen uit de setup | VLAN-nummers, VLAN-namen en poorten worden duidelijker gekoppeld aan de setupdata. | Bart | `ansible/playbooks/setup1/switch.yml`, `ansible/playbooks/setup1/info.yml` | To do |
-| PB-75 | Op dashboard tonen welke waarden gebruikt worden | Lina toont de waarden uit `info.yml` duidelijk op het dashboard. Bart zorgt dat de inhoud van `info.yml` klopt. | Lina | `templates/dashboard.html`, `modules/database_tools.py`, `ansible/playbooks/setup1/info.yml` | To do |
-| PB-72 | Backupmap gebruiken | We gebruiken de map `backups/` om configuratiebestanden uit router en switch te bewaren. | Bart | `backups/`, `docker-compose.yml` | To do |
-| PB-73 | Routerconfiguratie als backup bewaren | Ansible haalt de running-config van de router op en bewaart die als tekstbestand. | Bart | `ansible/playbooks/setup1/router.yml`, `backups/` | To do |
-| PB-74 | Switchconfiguratie als backup bewaren | Ansible haalt de running-config van de switch op en bewaart die als tekstbestand. | Bart | `ansible/playbooks/setup1/switch.yml`, `backups/` | To do |
+| PB-41 | HTTP-container starten en testen | Controleren of de gewone webserver via Docker Compose kan starten en bereikbaar is op poort 80. | Bart | `servers/http/`, `docker-compose.yml`, `ansible/playbooks/setup1/servers.yml` | Done |
+| PB-42 | HTTPS-container testen | Controleren of de beveiligde webserver start en bereikbaar is op poort 443. | Bart | `servers/https/`, `docker-compose.yml`, `ansible/playbooks/setup1/servers.yml` | Done |
+| PB-43 | Self-signed certificaat voorzien voor HTTPS | Voor de MVP mag dit een self-signed certificaat zijn. | Bart | `servers/https/Dockerfile`, `servers/https/default.conf` | Done  |
+| PB-44 | FTP-container testen | Controleren of de FTP-service start en bereikbaar is op poort 20/21 | Bart | `servers/ftp/`, `docker-compose.yml` | Done |
+| PB-45 | FTP-gebruiker en testbestand voorzien | Er moet een eenvoudige FTP-gebruiker en testbestand zijn, zodat we kunnen aantonen dat FTP werkt. | Bart | `servers/ftp/Dockerfile`, `servers/ftp/vsftpd.conf` | Done |
+| PB-65 | Serverplaybook nuttiger maken | Het serverplaybook mag niet alleen tekst tonen, maar ook eenvoudige checks uitvoeren of duidelijk tonen wat getest wordt. | Bart | `ansible/playbooks/setup1/servers.yml`, `docker-compose.yml` | Done |
+| PB-46 | Routerplaybook testen in EVE-NG | Controleren of Ansible de router kan bereiken en de basisconfiguratie kan uitvoeren. | Bart | `ansible/playbooks/setup1/router.yml`, `ansible/inventory.ini` | Done |
+| PB-47 | Switchplaybook testen in EVE-NG | Controleren of Ansible de switch kan bereiken en VLANs/poorten kan configureren. | Bart | `ansible/playbooks/setup1/switch.yml`, `ansible/inventory.ini` | Done |
+| PB-48 | Docker Compose opnieuw bouwen en starten | Controleren of de Flask-container en servercontainers opnieuw correct bouwen en starten. | Bart | `docker-compose.yml`, `Dockerfile`, `servers/` | Done |
+| PB-63 | IP-adressering van de basisopstelling uitschrijven | We documenteren welke IP's gebruikt worden voor management, routerinterface, VLANs en servers. | Bart | `docs/`, `ansible/inventory.ini`, `ansible/playbooks/setup1/info.yml` | Done |
+| PB-69 | `info.yml` uitbreiden met variabelen | `info.yml` bevat niet alleen tekst voor het dashboard, maar ook waarden zoals hostname, interface, VLAN en IP. | Bart | `ansible/playbooks/setup1/info.yml` |Done |
+| PB-70 | Routerplaybook laten werken met variabelen uit de setup | De routerconfiguratie wordt minder hardcoded. Waarden zoals hostname en interface-IP komen uit setupdata. | Bart | `ansible/playbooks/setup1/router.yml`, `ansible/playbooks/setup1/info.yml` | Done |
+| PB-71 | Switchplaybook laten werken met variabelen uit de setup | VLAN-nummers, VLAN-namen en poorten worden duidelijker gekoppeld aan de setupdata. | Bart | `ansible/playbooks/setup1/switch.yml`, `ansible/playbooks/setup1/info.yml` | Done |
+| PB-75 | Op dashboard tonen welke variabelen gebruikt worden | Lina toont de waarden uit `info.yml` duidelijk op het dashboard. Bart zorgt dat de inhoud van `info.yml` klopt. | Lina | `templates/dashboard.html`, `modules/database_tools.py`, `ansible/playbooks/setup1/info.yml` | To do |
+| PB-72 | Backupmap gebruiken | We gebruiken de map `backups/` om configuratiebestanden uit router en switch te bewaren. | Bart | `backups/`, `docker-compose.yml` | Done |
+| PB-73 | Routerconfiguratie als backup bewaren | Ansible haalt de running-config van de router op en bewaart die als tekstbestand. | Bart | `ansible/playbooks/setup1/router.yml`, `backups/` | Done |
+| PB-74 | Switchconfiguratie als backup bewaren | Ansible haalt de running-config van de switch op en bewaart die als tekstbestand. | Bart | `ansible/playbooks/setup1/switch.yml`, `backups/` | Done |
 | PB-60 | Ansible-output leesbaarder maken | Lina zorgt dat de output op het dashboard overzichtelijker wordt weergegeven. Bart blijft verantwoordelijk voor de ruwe Ansible-output. | Lina | `templates/dashboard.html`, `static/style.css` | To do |
 | PB-61 | Fouten duidelijker tonen | Lina toont fouten duidelijker in de webinterface. De technische fouttekst blijft uit `modules/ansible_tools.py` komen. | Lina | `app.py`, `templates/dashboard.html` | To do |
 | PB-64 | Netwerkschema of podschema maken | We tekenen of documenteren hoe router, switch, managementnetwerk en containers samenhangen. | Lina | `docs/` | To do |
-| PB-76 | Koppelafspraken bijwerken | Als we `info.yml`, backups of outputformaat aanpassen, moet dit ook in de teamafspraken staan. | Team | `docs/koppelafspraken.md`, `docs/mvp-afbakening.md` | To do |
+| PB-76 | Koppelafspraken bijwerken | Als we `info.yml`, backups of outputformaat aanpassen, moet dit ook in de teamafspraken staan. | Team | `docs/koppelafspraken.md`, `docs/mvp-afbakening.md` | Done |
 
 ### Doorschuifbare taken
 

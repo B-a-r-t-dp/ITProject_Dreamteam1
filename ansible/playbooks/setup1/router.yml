@@ -4,53 +4,99 @@
 #
 # Dit playbook bevat de basisconfiguratie voor de router uit onze MVP.
 #
-# Voor Sprint 1 bereiden we dit al zo voor dat het later testbaar is in EVE-NG.
-# De exacte IP-adressen en interfacenamen kunnen nog aangepast worden
-# aan de definitieve topologie.
+# De technische waarden komen uit info.yml.
+# Daardoor staan hostnames, interfaces, IP-adressen en OSPF-waarden
+# op 1 centrale plaats per opstelling.
 
 - name: Router basisconfiguratie voorbereiden
   hosts: routers
   gather_facts: false
 
+  vars_files:
+    - info.yml
+
   tasks:
-    # Deze debug-taak verandert nog niets op de router.
-    # Ze helpt ons controleren welke router Ansible geselecteerd heeft.
+    # Deze debug-taak verandert niets op de router.
+    # Ze helpt controleren welke router Ansible geselecteerd heeft.
     - name: Controleer welke router gebruikt wordt
       ansible.builtin.debug:
         msg: "Router {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
 
     # Stelt de hostname van de router in.
-    # Zo is de router in de CLI herkenbaar als R1.
+    # De waarde komt uit info.yml.
     - name: Hostname instellen
       cisco.ios.ios_config:
         lines:
-          - hostname R1
+          - "hostname {{ variables.router.hostname }}"
 
-    # Configureert een labinterface voor de MVP.
-    # GigabitEthernet0/0 blijft de managementinterface voor SSH/Ansible.
-    # Daarom gebruiken we hier GigabitEthernet0/1 voor de laboconfiguratie.
-    - name: Labinterface configureren
+    # Bereidt de labinterface voor.
+    # Het IP-adres staat bewust in een aparte taak,
+    # omdat dit betrouwbaarder bleek tijdens de EVE-NG-test.
+    - name: Labinterface voorbereiden
       cisco.ios.ios_config:
         parents:
-          - interface GigabitEthernet0/1
+          - "interface {{ variables.router.lab_interface }}"
         lines:
-          - description Link naar LAN of switch
-          - no ip address
-          - ip address 192.168.10.1 255.255.255.0
+          - "description {{ variables.router.lab_description }}"
           - no shutdown
 
+    # Zet het IP-adres op de labinterface.
+    # De interface, het IP en het subnetmasker komen uit info.yml.
+    - name: Labinterface IP-adres instellen
+      cisco.ios.ios_config:
+        parents:
+          - "interface {{ variables.router.lab_interface }}"
+        lines:
+          - "ip address {{ variables.router.lab_ip }} {{ variables.router.lab_mask }}"
+
     # Voorziet een eenvoudige OSPF-basis.
-    # OSPF wordt later gebruikt om routes tussen netwerken uit te wisselen.
+    # Alle OSPF-waarden komen uit info.yml.
     - name: OSPF-basisconfiguratie instellen
       cisco.ios.ios_config:
         parents:
-          - router ospf 1
+          - "router ospf {{ variables.router.ospf_process }}"
         lines:
-          - router-id 1.1.1.1
-          - network 192.168.10.0 0.0.0.255 area 0
+          - "router-id {{ variables.router.ospf_router_id }}"
+          - "network {{ variables.router.ospf_network }} {{ variables.router.ospf_wildcard }} area {{ variables.router.ospf_area }}"
 
     # Slaat de configuratie op als er iets gewijzigd is.
     # Zo blijft de configuratie behouden na een herstart van de router.
     - name: Configuratie opslaan indien gewijzigd
       cisco.ios.ios_config:
         save_when: modified
+
+    # Maakt metadata voor de backupbestandsnaam.
+    #
+    # backup_timestamp:
+    # - zorgt dat elke backup een uniek tijdstip krijgt.
+    #
+    # backup_created_by:
+    # - kan later vanuit Flask meegegeven worden als docentnaam.
+    # - zolang dat nog niet gekoppeld is, gebruiken we "unknown".
+    - name: Backupmetadata voorbereiden
+      ansible.builtin.set_fact:
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
+        backup_created_by: "{{ backup_user | default('unknown') }}"
+
+    # Haalt de volledige running-config van de router op.
+    # Dit gebruiken we als eenvoudige backup voor de MVP.
+    - name: Router running-config ophalen voor backup
+      cisco.ios.ios_command:
+        commands:
+          - show running-config
+      register: router_backup_config
+
+    # Bewaart de routerconfiguratie als tekstbestand in /app/backups.
+    #
+    # /app/backups is via Docker Compose gekoppeld aan de map backups/
+    # op onze eigen pc. Daardoor blijft de backup zichtbaar buiten de container.
+    #
+    # De bestandsnaam bevat:
+    # - het toestel uit de inventory;
+    # - de gebruiker/docent als die later wordt meegegeven;
+    # - de datum en tijd van de backup.
+    - name: Routerconfiguratie bewaren in backups-map
+      ansible.builtin.copy:
+        content: "{{ router_backup_config.stdout[0] }}"
+        dest: "/app/backups/{{ inventory_hostname }}-{{ backup_created_by }}-{{ backup_timestamp }}-running-config.txt"
+      delegate_to: localhost

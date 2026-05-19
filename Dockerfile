@@ -15,7 +15,7 @@ FROM python:3.12-alpine
 
 WORKDIR /app
 
-# Deze pakketten zijn nodig voor de Ansible/SSH-kant van het project.
+# Deze pakketten zijn nodig voor de Ansible-, SSH- en Docker-kant van het project.
 #
 # openssh-client:
 # - nodig om via SSH met routers/switches te verbinden.
@@ -24,11 +24,20 @@ WORKDIR /app
 # - handig voor testopstellingen waar met username/password gewerkt wordt,
 #   zoals vaak in EVE-NG-labo's.
 #
+# docker-cli:
+# - nodig zodat de Flask-container Docker-commando's kan uitvoeren.
+#   Dat gebruiken we in Sprint 2 om servercontainers vanuit de
+#   configuratieflow te kunnen starten/controleren.
+#
+# docker-cli-compose:
+# - voegt ondersteuning toe voor `docker compose`.
+#   Zo kan het serverplaybook later bijvoorbeeld de HTTP-container starten.
+#
 # --no-cache:
 # - zorgt dat Alpine geen onnodige package-cache bewaart,
 #   waardoor de image kleiner blijft.
 
-RUN apk add --no-cache openssh-client sshpass
+RUN apk add --no-cache openssh-client sshpass docker-cli docker-cli-compose
 
 # Eerst kopiëren we alleen requirements.txt.
 # Daarna installeren we de Python-packages.

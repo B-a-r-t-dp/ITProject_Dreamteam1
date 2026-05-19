@@ -9,41 +9,157 @@
 # - HTTPS-container
 # - FTP-container
 #
-# De containers zelf worden gebouwd via Dockerfiles en docker-compose.yml.
-# Dit Ansible-playbook kan later gebruikt worden om de servercontainers
-# te starten, te controleren of hun status te tonen aan Flask.
-#
-# Voor Sprint 1 blijft dit een veilige basis:
-# - het verandert nog niets aan het systeem
-# - het documenteert welke services bij de MVP horen
-# - het is voorbereid om later Docker Compose aan te sturen
+# Docker Compose bouwt en beheert deze containers.
+# Vanuit de configuratieflow starten en controleren we stap voor stap
+# of de serverdiensten bereikbaar zijn.
 
-- name: Servercontainers voorbereiden
+- name: Servercontainers starten en controleren
   hosts: localhost
   connection: local
   gather_facts: false
 
+  vars_files:
+    - info.yml
+
+  vars:
+    # playbook_dir wijst naar ansible/playbooks/setup1.
+    # Met ../../.. komen we terug in de projectroot,
+    # waar docker-compose.yml staat.
+    #
+    # Daardoor werkt dit ook als de projectmap bij iemand anders
+    # een andere naam heeft.
+    project_root: "{{ playbook_dir }}/../../.."
+
   tasks:
-    # Deze taak toont welke serverdiensten bij de MVP horen.
-    # Zo is meteen duidelijk wat dit playbook later moet controleren/starten.
     - name: Toon geplande serverdiensten
       ansible.builtin.debug:
         msg:
-          - "HTTP-container: webserver op poort 80"
-          - "HTTPS-container: beveiligde webserver op poort 443"
-          - "FTP-container: FTP-service op poort 20/21"
+          - "HTTP-container: webserver op poort {{ variables.servers.http.port }}"
+          - "HTTPS-container: beveiligde webserver op poort {{ variables.servers.https.port }}"
+          - "FTP-container: FTP-service op poort {{ variables.servers.ftp.ports }}"
 
-    # Deze taak blijft voorlopig informatief.
-    # In een latere sprint kan hier een echte docker compose check komen.
-    - name: Toon Docker Compose rol in het project
-      ansible.builtin.debug:
-        msg: "Docker Compose bouwt en start de Flask-, HTTP-, HTTPS- en FTP-containers."
 
-    # Deze taak geeft aan wat later getest moet worden.
-    # Dit helpt bij de Sprint 3-implementatie en demo.
-    - name: Toon toekomstige controles
+
+    # Start de HTTP-container via Docker Compose.
+    # Deze service hoort bij PB-41.
+    - name: HTTP-container starten via Docker Compose
+      ansible.builtin.command:
+        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.http.service }}"
+        chdir: "{{ project_root }}"
+      register: http_start_result
+      changed_when: >
+        'Started' in http_start_result.stdout or
+        'Created' in http_start_result.stdout or
+        'Started' in http_start_result.stderr or
+        'Created' in http_start_result.stderr
+
+    # Controleert of de HTTP-container bereikbaar is binnen het Docker-netwerk.
+    # Vanuit de Flask-container is de service bereikbaar via de servicenaam "http".
+    - name: HTTP-container controleren
+      ansible.builtin.uri:
+        url: "{{ variables.servers.http.scheme }}://{{ variables.servers.http.service }}"
+        method: GET
+        status_code: 200
+      register: http_check_result
+
+    - name: HTTP-testresultaat tonen
       ansible.builtin.debug:
-        msg:
-          - "Controleer later of HTTP bereikbaar is op poort 80."
-          - "Controleer later of HTTPS bereikbaar is op poort 443."
-          - "Controleer later of FTP bereikbaar is op poort 21."
+        msg: "HTTP-container is gestart en bereikbaar met status {{ http_check_result.status }}."
+
+
+
+
+
+    # Start de HTTPS-container via Docker Compose.
+    # Deze service hoort bij PB-42.
+    - name: HTTPS-container starten via Docker Compose
+      ansible.builtin.command:
+        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.https.service }}"
+        chdir: "{{ project_root }}"
+      register: https_start_result
+      changed_when: >
+        'Started' in https_start_result.stdout or
+        'Created' in https_start_result.stdout or
+        'Started' in https_start_result.stderr or
+        'Created' in https_start_result.stderr
+
+    # Controleert of de HTTPS-container bereikbaar is binnen het Docker-netwerk.
+    #
+    # Omdat onze HTTPS-container een self-signed certificaat gebruikt,
+    # zetten we validate_certs op false.
+    # Dat is normaal voor een labo/MVP-test.
+    - name: HTTPS-container controleren
+      ansible.builtin.uri:
+        url: "{{ variables.servers.https.scheme }}://{{ variables.servers.https.service }}"
+        method: GET
+        status_code: 200
+        validate_certs: false
+      register: https_check_result
+
+    - name: HTTPS-testresultaat tonen
+      ansible.builtin.debug:
+        msg: "HTTPS-container is gestart en bereikbaar met status {{ https_check_result.status }}."
+
+
+
+
+    # Start de FTP-container via Docker Compose.
+    # Deze service hoort bij PB-44.
+    #
+    # De FTP-container gebruikt vsftpd en bevat een testgebruiker:
+    # - gebruiker: ftpuser
+    # - wachtwoord: itproject
+    #
+    # Docker Compose zorgt ervoor dat de container gestart wordt.
+    - name: FTP-container starten via Docker Compose
+      ansible.builtin.command:
+        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.ftp.service }}"
+        chdir: "{{ project_root }}"
+      register: ftp_start_result
+      changed_when: >
+        'Started' in ftp_start_result.stdout or
+        'Created' in ftp_start_result.stdout or
+        'Started' in ftp_start_result.stderr or
+        'Created' in ftp_start_result.stderr
+
+    # Controleert of de FTP-server bereikbaar is op poort 21.
+    #
+    # Poort 21 is het commandokanaal van FTP.
+    # Daarmee weten we dat de FTP-service effectief luistert.
+    #
+    # Poort 20 hoort bij klassieke active FTP-data.
+    # Die poort testen we niet apart als luisterende poort,
+    # omdat FTP-data afhankelijk is van de gebruikte FTP-modus.
+    - name: FTP-poort controleren
+      ansible.builtin.wait_for:
+        host: "{{ variables.servers.ftp.service }}"
+        port: "{{ variables.servers.ftp.control_port }}"
+        timeout: 10
+      register: ftp_port_check_result
+
+    # Controleert of aanmelden op FTP ook echt lukt.
+    #
+    # We gebruiken Python ftplib omdat Python al aanwezig is
+    # in de Flask-container.
+    #
+    # De test logt in als ftpuser, gaat naar de ftp-map
+    # en kijkt of test.txt zichtbaar is.
+    # Daardoor testen we niet enkel of de poort openstaat,
+    # maar ook of de FTP-server bruikbaar is.
+    - name: FTP-login en testbestand controleren
+      ansible.builtin.command:
+        cmd: >
+          python -c "from ftplib import FTP;
+          ftp = FTP('{{ variables.servers.ftp.service }}', timeout=10);
+          ftp.login('{{ variables.servers.ftp.user }}', '{{ variables.servers.ftp.password }}');
+          ftp.cwd('{{ variables.servers.ftp.test_directory }}');
+          files = ftp.nlst();
+          ftp.quit();
+          assert '{{ variables.servers.ftp.test_file }}' in files;
+          print('FTP-login werkt en {{ variables.servers.ftp.test_file }} is gevonden.')"
+      register: ftp_login_check_result
+      changed_when: false
+
+    - name: FTP-testresultaat tonen
+      ansible.builtin.debug:
+        msg: "{{ ftp_login_check_result.stdout }}"
