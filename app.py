@@ -72,6 +72,11 @@ def deploy():
         setup_id = int(setup_id)
     except (TypeError, ValueError):
         return redirect("/dashboard")
+    
+    valid_setup_ids = [setup["id"] for setup in get_network_setups()]
+
+    if setup_id not in valid_setup_ids:
+        return redirect("/dashboard")
 
     result = run_setup(
         setup_id,
