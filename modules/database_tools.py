@@ -223,25 +223,37 @@ def save_deployment_log(user_id, setup_id, status, output):
     connection.commit()
     connection.close()
 
-
-def get_last_deployment_log():
+def get_last_deployment_log(user_id=None):
     """
     Geeft de laatste deployment log terug.
 
-    app.py gebruikt deze functie om de laatste status/output
-    op het dashboard te tonen.
+    Indien user_id meegegeven wordt,
+    krijgt de gebruiker enkel zijn eigen logs te zien.
     """
 
     connection = get_connection()
 
-    row = connection.execute(
-        """
-        SELECT id, user_id, setup_id, timestamp, status, output
-        FROM deployment_logs
-        ORDER BY id DESC
-        LIMIT 1
-        """
-    ).fetchone()
+    if user_id:
+        row = connection.execute(
+            """
+            SELECT id, user_id, setup_id, timestamp, status, output
+            FROM deployment_logs
+            WHERE user_id = ?
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (user_id,),
+        ).fetchone()
+
+    else:
+        row = connection.execute(
+            """
+            SELECT id, user_id, setup_id, timestamp, status, output
+            FROM deployment_logs
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        ).fetchone()
 
     connection.close()
 
@@ -256,6 +268,40 @@ def get_last_deployment_log():
         "status": row["status"],
         "output": row["output"],
     }
+
+# def get_last_deployment_log():
+#     """
+#     Geeft de laatste deployment log terug.
+
+#     app.py gebruikt deze functie om de laatste status/output
+#     op het dashboard te tonen.
+#     """
+
+#     connection = get_connection()
+
+#     row = connection.execute(
+#         """
+#         SELECT id, user_id, setup_id, timestamp, status, output
+#         FROM deployment_logs
+#         ORDER BY id DESC
+#         LIMIT 1
+#         """
+#     ).fetchone()
+
+#     connection.close()
+
+#     if row is None:
+#         return None
+
+#     return {
+#         "id": row["id"],
+#         "user_id": row["user_id"],
+#         "setup_id": row["setup_id"],
+#         "timestamp": row["timestamp"],
+#         "status": row["status"],
+#         "output": row["output"],
+#     }
+
 def get_deployment_logs_for_user(user_id, limit=10):
     """
     Geeft de laatste deployment logs terug voor één gebruiker/docent.

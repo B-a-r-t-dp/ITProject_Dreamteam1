@@ -51,7 +51,7 @@ def dashboard():
     }
 
     network_setups = get_network_setups()
-    last_log = get_last_deployment_log()
+    last_log = get_last_deployment_log(session["user_id"])
 
     return render_template(
         "dashboard.html",
