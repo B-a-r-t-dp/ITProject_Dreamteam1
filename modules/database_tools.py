@@ -15,6 +15,8 @@ import sqlite3
 from pathlib import Path
 import yaml
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -213,12 +215,12 @@ def save_deployment_log(user_id, setup_id, status, output):
     connection = get_connection()
 
     connection.execute(
-        """
-        INSERT INTO deployment_logs (user_id, setup_id, status, output)
-        VALUES (?, ?, ?, ?)
-        """,
-        (user_id, setup_id, status, output),
-    )
+    """
+    INSERT INTO deployment_logs (user_id, setup_id, status, output)
+    VALUES (?, ?, ?, ?)
+    """,
+    (user_id, setup_id, status, output),
+)
 
     connection.commit()
     connection.close()
