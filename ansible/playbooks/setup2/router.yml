@@ -1,0 +1,64 @@
+---
+# Routerplaybook setup2
+# Verantwoordelijke: Bart
+#
+# Dit playbook configureert de router van 1 labo-pod.
+# De router gebruikt subinterfaces, zodat VLAN 10 en VLAN 20
+# via 1 fysieke link naar de pod-switch kunnen lopen.
+
+- name: Router configureren voor podopstelling
+  hosts: routers
+  gather_facts: false
+
+  vars_files:
+    - info.yml
+
+  tasks:
+    - name: Controleer welke router gebruikt wordt
+      ansible.builtin.debug:
+        msg: "Router {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
+
+    - name: Hostname instellen
+      cisco.ios.ios_config:
+        lines:
+          - "hostname {{ variables.router.hostname }}"
+
+    - name: Fysieke trunkinterface voorbereiden
+      cisco.ios.ios_config:
+        parents:
+          - "interface {{ variables.router.trunk_interface }}"
+        lines:
+          - "description {{ variables.router.trunk_description }}"
+          - no ip address
+          - no shutdown
+
+    - name: Router subinterfaces configureren
+      cisco.ios.ios_config:
+        parents:
+          - "interface {{ variables.router.trunk_interface }}.{{ item.vlan }}"
+        lines:
+          - "description {{ item.description }}"
+          - "encapsulation dot1Q {{ item.vlan }}"
+          - "ip address {{ item.ip }} {{ item.mask }}"
+      loop: "{{ variables.router.subinterfaces }}"
+
+    - name: Configuratie opslaan indien gewijzigd
+      cisco.ios.ios_config:
+        save_when: modified
+
+    - name: Backupmetadata voorbereiden
+      ansible.builtin.set_fact:
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
+        backup_created_by: "{{ logged_user | default('unknown') }}"
+
+    - name: Router running-config ophalen voor backup
+      cisco.ios.ios_command:
+        commands:
+          - show running-config
+      register: router_backup_config
+
+    - name: Routerconfiguratie bewaren in backups-map
+      ansible.builtin.copy:
+        content: "{{ router_backup_config.stdout[0] }}"
+        dest: "/app/backups/{{ inventory_hostname }}-{{ backup_created_by }}-{{ backup_timestamp }}-running-config.txt"
+      delegate_to: localhost

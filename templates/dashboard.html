@@ -11,6 +11,38 @@
 
 <body class="app-body">
 
+{% macro show_variable_value(value) %}
+    {% if value is mapping %}
+        <div class="nested-variable-list">
+            {% for nested_key, nested_value in value.items() %}
+                {% if nested_value is mapping %}
+                    <div class="nested-variable-card">
+                        <div class="nested-card-title">{{ nested_key|replace("_", " ") }}</div>
+                        {{ show_variable_value(nested_value) }}
+                    </div>
+                {% else %}
+                    <div class="nested-variable-row">
+                        <div class="nested-key">{{ nested_key|replace("_", " ") }}</div>
+                        <div class="nested-value">{{ show_variable_value(nested_value) }}</div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    {% elif value is sequence and value is not string %}
+        <div class="nested-variable-list">
+            {% for item in value %}
+                <div class="nested-variable-item">
+                    {{ show_variable_value(item) }}
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+        <span class="plain-variable-value">{{ value }}</span>
+    {% endif %}
+{% endmacro %}
+
 <header class="app-header">
     <div>
         <p class="eyebrow">ITProject Dreamteam 1</p>
@@ -161,10 +193,17 @@
                                                     {% if values is mapping %}
                                                         <ul>
                                                             {% for key, value in values.items() %}
-                                                                <li>
-                                                                    <span class="var-key">{{ key }}</span>
-                                                                    <span class="var-value">{{ value }}</span>
-                                                                </li>
+                                                                {% if value is mapping or (value is sequence and value is not string) %}
+                                                                    <li class="variable-row-complex">
+                                                                        <div class="var-key">{{ key|replace("_", " ") }}</div>
+                                                                        <div class="var-value full-value">{{ show_variable_value(value) }}</div>
+                                                                    </li>
+                                                                {% else %}
+                                                                    <li>
+                                                                        <span class="var-key">{{ key|replace("_", " ") }}</span>
+                                                                        <span class="var-value">{{ show_variable_value(value) }}</span>
+                                                                    </li>
+                                                                {% endif %}
                                                             {% endfor %}
                                                         </ul>
 
@@ -172,7 +211,7 @@
                                                         <ul>
                                                             {% for item in values %}
                                                                 <li>
-                                                                    <span class="var-value full-value">{{ item }}</span>
+                                                                    <span class="var-value full-value">{{ show_variable_value(item) }}</span>
                                                                 </li>
                                                             {% endfor %}
                                                         </ul>

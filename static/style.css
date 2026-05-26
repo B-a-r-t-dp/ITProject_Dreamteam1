@@ -379,13 +379,17 @@ body.bg-light:not(.app-body) .card {
 
 .variables-grid {
     display: grid;
-    grid-template-columns:
-        minmax(250px, 1fr)
-        minmax(250px, 1fr)
-        minmax(360px, 1.55fr);
-
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 14px;
     align-items: start;
+}
+
+.variable-card:has(.nested-variable-card) {
+    grid-column: 1 / -1;
+}
+
+.variable-card:has(.nested-variable-card) .nested-variable-list {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 .variable-card {
@@ -425,6 +429,21 @@ body.bg-light:not(.app-body) .card {
     border-bottom: none;
 }
 
+.variable-card .variable-row-complex {
+    display: block;
+}
+
+.variable-row-complex .var-key {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.variable-row-complex .var-value {
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+
 .var-key {
     color: var(--muted);
     font-weight: 600;
@@ -436,6 +455,8 @@ body.bg-light:not(.app-body) .card {
     font-family: Consolas, monospace;
     font-size: 0.84rem;
     text-align: right;
+    min-width: 0;
+    max-width: 100%;
     overflow-wrap: anywhere;
     word-break: break-word;
 }
@@ -443,7 +464,7 @@ body.bg-light:not(.app-body) .card {
 .full-value {
     width: 100%;
     text-align: left;
-    white-space: pre-wrap;
+    white-space: normal;
 }
 
 
@@ -549,6 +570,84 @@ body.bg-light:not(.app-body) .card {
     font-size: 0.84rem;
     line-height: 1.65;
     white-space: pre-wrap;
+}
+
+.plain-variable-value {
+    font-family: Consolas, monospace;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: normal;
+}
+
+.nested-variable-list {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px;
+    align-items: start;
+    white-space: normal;
+}
+
+.nested-variable-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 0;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.nested-variable-row:last-child {
+    border-bottom: none;
+}
+
+.nested-key {
+    color: var(--muted);
+    font-family: "Segoe UI", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: left;
+}
+
+.nested-value {
+    min-width: 0;
+    max-width: 100%;
+    text-align: left;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.nested-variable-item {
+    padding: 10px;
+    background: var(--surface-soft);
+    border: 1px solid #e8eef5;
+    border-radius: 7px;
+    overflow: hidden;
+    white-space: normal;
+}
+
+.nested-variable-card {
+    padding: 12px;
+    background: var(--surface-soft);
+    border: 1px solid #e8eef5;
+    border-radius: 7px;
+    min-width: 0;
+    align-self: start;
+}
+
+.nested-variable-card .nested-variable-list {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    align-items: start;
+}
+
+.nested-card-title {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: #004aad;
+    font-family: "Segoe UI", sans-serif;
+    font-size: 0.84rem;
+    font-weight: 800;
+    text-transform: uppercase;
 }
 
 .summary-box {

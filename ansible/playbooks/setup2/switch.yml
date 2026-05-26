@@ -1,0 +1,106 @@
+---
+# Switchplaybook setup2
+# Verantwoordelijke: Bart
+#
+# Dit playbook configureert de switches van 1 labo-pod.
+# Het doel is om VLANs vanuit de pod tot aan de classroomswitch te brengen.
+# Tussen DISTSW en CLASSSW gebruiken we EtherChannel + trunk.
+
+- name: Switches configureren voor podopstelling
+  hosts: switches
+  gather_facts: false
+
+  vars_files:
+    - info.yml
+
+  tasks:
+    - name: Controleer welke switch gebruikt wordt
+      ansible.builtin.debug:
+        msg: "Switch {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
+
+    - name: Setupdata voor deze switch ophalen
+      ansible.builtin.set_fact:
+        switch_config: "{{ variables.switches[inventory_hostname] }}"
+
+    - name: Hostname instellen
+      cisco.ios.ios_config:
+        lines:
+          - "hostname {{ switch_config.hostname }}"
+
+    - name: VLANs aanmaken
+      cisco.ios.ios_config:
+        parents:
+          - "vlan {{ item.id }}"
+        lines:
+          - "name {{ item.name }}"
+      loop: "{{ variables.vlans }}"
+
+    - name: Gewone trunkpoorten configureren
+      cisco.ios.ios_config:
+        parents:
+          - "interface {{ item.interface }}"
+        lines:
+          - "description {{ item.description }}"
+          - switchport trunk encapsulation dot1q
+          - switchport mode trunk
+          - "switchport trunk allowed vlan {{ variables.switches.trunk_allowed_vlans }}"
+          - no shutdown
+      loop: "{{ switch_config.trunk_ports | default([]) }}"
+
+    - name: EtherChannel memberpoorten configureren
+      cisco.ios.ios_config:
+        parents:
+          - "interface {{ item.interface }}"
+        lines:
+          - "description {{ item.description }}"
+          - switchport trunk encapsulation dot1q
+          - switchport mode trunk
+          - "switchport trunk allowed vlan {{ variables.switches.trunk_allowed_vlans }}"
+          - "channel-group {{ switch_config.etherchannel.port_channel }} mode {{ switch_config.etherchannel.mode }}"
+          - no shutdown
+      loop: "{{ switch_config.etherchannel.member_ports | default([]) }}"
+      when: switch_config.etherchannel is defined
+
+    - name: Port-channel trunk configureren
+      cisco.ios.ios_config:
+        parents:
+          - "interface Port-channel{{ switch_config.etherchannel.port_channel }}"
+        lines:
+          - "description EtherChannel trunk tussen pod en klaslokaal"
+          - switchport trunk encapsulation dot1q
+          - switchport mode trunk
+          - "switchport trunk allowed vlan {{ variables.switches.trunk_allowed_vlans }}"
+          - no shutdown
+      when: switch_config.etherchannel is defined
+
+    - name: Classroom accesspoorten configureren
+      cisco.ios.ios_config:
+        parents:
+          - "interface {{ item.interface }}"
+        lines:
+          - "description {{ item.description }}"
+          - switchport mode access
+          - "switchport access vlan {{ item.vlan }}"
+          - no shutdown
+      loop: "{{ switch_config.access_ports | default([]) }}"
+
+    - name: Configuratie opslaan indien gewijzigd
+      cisco.ios.ios_config:
+        save_when: modified
+
+    - name: Backupmetadata voorbereiden
+      ansible.builtin.set_fact:
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
+        backup_created_by: "{{ logged_user | default('unknown') }}"
+
+    - name: Switch running-config ophalen voor backup
+      cisco.ios.ios_command:
+        commands:
+          - show running-config
+      register: switch_backup_config
+
+    - name: Switchconfiguratie bewaren in backups-map
+      ansible.builtin.copy:
+        content: "{{ switch_backup_config.stdout[0] }}"
+        dest: "/app/backups/{{ inventory_hostname }}-{{ backup_created_by }}-{{ backup_timestamp }}-running-config.txt"
+      delegate_to: localhost

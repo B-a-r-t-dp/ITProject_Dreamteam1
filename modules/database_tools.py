@@ -75,27 +75,40 @@ def init_database():
         ],
     )
 
-    connection.execute(
-        """
-        INSERT OR IGNORE INTO network_setups
-        (id, name, description, playbook_data)
-        VALUES (?, ?, ?, ?)
-        """,
+    network_setups = [
         (
             1,
             "Basisopstelling",
             "1 router, 1 switch, HTTP, HTTPS en FTP",
             "setup1",
         ),
+        (
+            2,
+            "Podopstelling Brussel",
+            "1 pod met router, 2 pod-switches, distributieswitch en classroomswitch",
+            "setup2",
+        ),
+    ]
+
+    connection.executemany(
+        """
+        INSERT OR IGNORE INTO network_setups
+        (id, name, description, playbook_data)
+        VALUES (?, ?, ?, ?)
+        """,
+        network_setups,
     )
 
-    connection.execute(
+    connection.executemany(
         """
         UPDATE network_setups
-        SET playbook_data = ?
+        SET name = ?, description = ?, playbook_data = ?
         WHERE id = ?
         """,
-        ("setup1", 1),
+        [
+            (setup[1], setup[2], setup[3], setup[0])
+            for setup in network_setups
+        ],
     )
 
     connection.commit()
