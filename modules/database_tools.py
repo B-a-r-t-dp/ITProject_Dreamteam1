@@ -226,6 +226,37 @@ def save_deployment_log(user_id, setup_id, status, output):
     connection.commit()
     connection.close()
 
+
+def split_deployment_output(output):
+    """
+    Splitst de Ansible-output in 2 stukken:
+    - een korte samenvatting;
+    - de technische output.
+
+    ansible_tools.py zet bewust "TECHNISCHE OUTPUT" tussen die delen.
+    Zo blijft deze functie simpel en moet dashboard.html geen moeilijke
+    tekstlogica doen.
+    """
+
+    marker = "TECHNISCHE OUTPUT"
+
+    if not output or marker not in output:
+        return {
+            "summary": output,
+            "technical_output": "",
+        }
+
+    summary, technical_output = output.split(marker, 1)
+
+    summary = summary.replace("SAMENVATTING CONFIGURATIE", "").strip()
+    technical_output = technical_output.strip()
+
+    return {
+        "summary": summary,
+        "technical_output": technical_output,
+    }
+
+
 def get_last_deployment_log(user_id=None):
     """
     Geeft de laatste deployment log terug.
@@ -263,6 +294,8 @@ def get_last_deployment_log(user_id=None):
     if row is None:
         return None
 
+    split_output = split_deployment_output(row["output"])
+
     return {
         "id": row["id"],
         "user_id": row["user_id"],
@@ -270,6 +303,8 @@ def get_last_deployment_log(user_id=None):
         "timestamp": row["timestamp"],
         "status": row["status"],
         "output": row["output"],
+        "summary": split_output["summary"],
+        "technical_output": split_output["technical_output"],
     }
 
 # def get_last_deployment_log():
@@ -328,14 +363,20 @@ def get_deployment_logs_for_user(user_id, limit=10):
 
     connection.close()
 
-    return [
-        {
+    logs = []
+
+    for row in rows:
+        split_output = split_deployment_output(row["output"])
+
+        logs.append({
             "id": row["id"],
             "user_id": row["user_id"],
             "setup_id": row["setup_id"],
             "timestamp": row["timestamp"],
             "status": row["status"],
             "output": row["output"],
-        }
-        for row in rows
-    ]
+            "summary": split_output["summary"],
+            "technical_output": split_output["technical_output"],
+        })
+
+    return logs

@@ -510,6 +510,28 @@ body.bg-light:not(.app-body) .card {
     color: #334155;
 }
 
+.run-message {
+    margin: 0 0 14px;
+    padding: 14px 16px;
+
+    border-radius: 8px;
+
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.run-message-success {
+    background: #e7f6ef;
+    border: 1px solid #b7e1ca;
+    color: var(--success);
+}
+
+.run-message-failed {
+    background: #fff0ed;
+    border: 1px solid #f2b8ae;
+    color: var(--failed);
+}
+
 .output-box {
     max-height: 560px;
     margin: 0;
@@ -527,6 +549,35 @@ body.bg-light:not(.app-body) .card {
     font-size: 0.84rem;
     line-height: 1.65;
     white-space: pre-wrap;
+}
+
+.summary-box {
+    background: #f8fafc;
+    color: var(--text);
+}
+
+.technical-details {
+    margin-top: 14px;
+}
+
+.technical-details summary {
+    cursor: pointer;
+    padding: 12px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    color: #004aad;
+    font-weight: 700;
+    background: #f8fafc;
+}
+
+.technical-details summary:hover {
+    color: var(--primary);
+}
+
+.technical-details .output-box {
+    margin-top: 10px;
 }
 
 

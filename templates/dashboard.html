@@ -229,8 +229,25 @@
                         </div>
                     </dl>
 
-                    <div class="output-title">Output</div>
-                    <pre class="output-box">{{ last_log.output }}</pre>
+                    {% if last_log.status == "success" %}
+                        <div class="run-message run-message-success">
+                            De laatste configuratie is succesvol uitgevoerd.
+                        </div>
+                    {% elif last_log.status == "failed" %}
+                        <div class="run-message run-message-failed">
+                            De laatste configuratie is mislukt. Bekijk de samenvatting hieronder.
+                        </div>
+                    {% endif %}
+
+                    <div class="output-title">Samenvatting</div>
+                    <pre class="output-box summary-box">{{ last_log.summary }}</pre>
+
+                    {% if last_log.technical_output %}
+                        <details class="technical-details">
+                            <summary>Technische output bekijken</summary>
+                            <pre class="output-box">{{ last_log.technical_output }}</pre>
+                        </details>
+                    {% endif %}
 
                 </div>
             {% else %}

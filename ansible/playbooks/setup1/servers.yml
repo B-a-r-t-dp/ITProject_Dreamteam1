@@ -127,9 +127,8 @@
     # Poort 21 is het commandokanaal van FTP.
     # Daarmee weten we dat de FTP-service effectief luistert.
     #
-    # Poort 20 hoort bij klassieke active FTP-data.
-    # Die poort testen we niet apart als luisterende poort,
-    # omdat FTP-data afhankelijk is van de gebruikte FTP-modus.
+    # Passive FTP gebruikt daarnaast extra datapoorten.
+    # Die staan in docker-compose.yml open voor clients zoals WinSCP.
     - name: FTP-poort controleren
       ansible.builtin.wait_for:
         host: "{{ variables.servers.ftp.service }}"

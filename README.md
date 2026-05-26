@@ -29,6 +29,8 @@ We bouwen bewust een haalbare MVP:
 | [Sprint 1](docs/scrum/sprint-1.md) | Basis en taakverdeling, Flask en SQLite. |
 | [Sprint 1 Retrospective](docs/scrum/retrospective-sprint-1.md) | Wat goed ging, wat moeilijk ging en wat we meenemen naar Sprint 2. |
 | [Sprint 2](docs/scrum/sprint-2.md) | Integratie en uitbreiding van de basisopstelling tot een werkende MVP. |
+| [Sprint 2 Retrospective](docs/scrum/retrospective-sprint-2.md) | Wat goed ging, wat moeilijk ging en wat we meenemen naar Sprint 3. |
+| [Sprint 3](docs/scrum/sprint-3.md) | Alle functionaliteiten benutten in de mvp tot de finale versie. |
 
 
 ## Taakverdeling en bestandseigenaars

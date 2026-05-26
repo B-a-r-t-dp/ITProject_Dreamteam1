@@ -137,7 +137,7 @@ Die informatie mag op het dashboard getoond worden. Zo moet Lina geen netwerkdet
 Deze functie moet bestaan:
 
 ```python
-run_setup(setup_id, backup_user=None)
+run_setup(setup_id, logged_user=None)
 ```
 
 Die geeft altijd dit formaat terug:
@@ -160,7 +160,7 @@ Of bij fout:
 
 Belangrijk: de sleutels moeten altijd `status` en `output` zijn.
 
-`backup_user` is optioneel.
+`logged_user` is optioneel.
 Flask geeft hier de aangemelde username mee, bijvoorbeeld `docent` of `docent2`.
 Ansible gebruikt die waarde alleen om backupbestanden herkenbaar te maken.
 De echte koppeling met de gebruiker blijft in SQLite via `deployment_logs.user_id`.
@@ -173,7 +173,7 @@ Flask mag dus niet zelf rechtstreeks `ansible-playbook` starten.
 Flask roept alleen deze functie aan:
 
 ```python
-result = run_setup(setup_id, backup_user=username)
+result = run_setup(setup_id, logged_user=username)
 ```
 
 Die functie geeft altijd een dictionary terug met exact deze sleutels:
@@ -209,7 +209,7 @@ Belangrijk:
 Voorbeeld voor Flask:
 
 ```python
-result = run_setup(setup_id, backup_user=session["username"])
+result = run_setup(setup_id, logged_user=session["username"])
 
 status = result["status"]
 output = result["output"]
@@ -390,7 +390,7 @@ Europe/Brussels
 
 De docentnaam komt vanuit Flask.
 Flask geeft de aangemelde username mee aan `run_setup`.
-`ansible_tools.py` geeft die waarde aan Ansible door als extra variabele `backup_user`.
+`ansible_tools.py` geeft die waarde aan Ansible door als extra variabele `logged_user`.
 
 Dit is bewust beperkt:
 
@@ -414,7 +414,7 @@ Vaste services in Docker Compose:
 
 | Service | Poort | Doel |
 | --- | --- | --- |
-| `flask` | intern `5000`, extern `18080` | Centrale Flask-applicatie. |
+| `flask` | intern `5000`, extern `5000` | Centrale Flask-applicatie. |
 | `http` | `80` | HTTP-servercontainer. |
 | `https` | `443` | HTTPS-servercontainer. |
 | `ftp` | `20/21` | FTP-servercontainer. |
@@ -427,7 +427,7 @@ De Flask-container bevat naast Python en Ansible ook Docker CLI en Docker Compos
 
 Reden:
 
-- Flask start via `run_setup(setup_id, backup_user=session["username"])` de Ansible-flow;
+- Flask start via `run_setup(setup_id, logged_user=session["username"])` de Ansible-flow;
 - de Ansible-flow voert ook `servers.yml` uit;
 - `servers.yml` moet in Sprint 2 servercontainers kunnen starten of controleren;
 - daarvoor moet de Flask-container het commando `docker compose` kunnen gebruiken.

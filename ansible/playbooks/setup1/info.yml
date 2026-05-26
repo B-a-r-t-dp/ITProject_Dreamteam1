@@ -1,4 +1,4 @@
-name: Basisopstelling
+setup_name: Basisopstelling
 description: 1 router, 1 switch, HTTP, HTTPS en FTP
 
 # variables bevat de technische waarden die de playbooks gebruiken.
@@ -62,8 +62,9 @@ variables:
 
     ftp:
       service: ftp
-      ports: "20/21"
+      ports: "20/21 en passive 30000-30010"
       control_port: 21
+      passive_ports: "30000-30010"
       user: ftpuser
       password: itproject
       test_directory: ftp

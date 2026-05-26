@@ -47,10 +47,10 @@ Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daaro
 | PB-36 | Afspraak maken over outputformaat tussen Ansible, Flask en SQLite | Team | Done |
 | PB-67 | Playbooks groeperen per netwerkopstelling in `setup1` | Bart | Done |
 | PB-68 | Extra setupinformatie tonen op dashboard vanuit `setup1/info.yml` | Lina + Bart | Done |
-| PB-37 | Startknop op het dashboard laten werken | Lina | To do |
-| PB-38 | Flask de Ansible-helper laten starten | Lina | To do |
-| PB-39 | Resultaat van Ansible opslaan in SQLite | Joost | To do |
-| PB-40 | Laatste run tonen op het dashboard | Lina | To do |
+| PB-37 | Startknop op het dashboard laten werken | Lina | Done |
+| PB-38 | Flask de Ansible-helper laten starten | Lina | Done |
+| PB-39 | Resultaat van Ansible opslaan in SQLite | Joost | Done |
+| PB-40 | Laatste run tonen op het dashboard | Lina | Done |
 | PB-41 | HTTP-container starten en testen | Bart | Done |
 | PB-42 | HTTPS-container testen | Bart | Done |
 | PB-43 | Self-signed certificaat voorzien voor HTTPS | Bart | Done |
@@ -68,14 +68,27 @@ Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daaro
 | PB-74 | Switchconfiguratie als backup bewaren | Bart | Done |
 | PB-75 | Op dashboard tonen welke waarden gebruikt worden | Lina | To do |
 | PB-76 | Koppelafspraken bijwerken voor setupdata en backups | Team | Done |
-| PB-60 | Ansible-output leesbaarder maken | Lina | To do |
-| PB-61 | Fouten duidelijker tonen | Lina | To do |
+| PB-60 | Ansible-output leesbaarder maken | Lina | Done |
+| PB-61 | Fouten duidelijker tonen | Lina | Done |
 | PB-64 | Netwerkschema of podschema maken | Lina | To do |
 | PB-65 | Serverplaybook nuttiger maken | Bart | Done |
-| PB-66 | Logs per docent controleren | Joost | To do |
+| PB-66 | Logs per docent controleren | Joost | Done |
 | PB-77 | Klein formulier voorzien voor setupwaarden | Lina | To do |
 | PB-78 | Aangepaste waarden doorgeven aan Ansible | Joost | To do |
 | PB-79 | Invoer controleren | Joost | To do |
+| PB-80 | Deployment log timestamps in Belgische tijd tonen | Lina | To do |
+| PB-81 | Configuratiegeschiedenis tonen op dashboard | Lina | To do |
+| PB-82 | Samenvatting en technische output per log bekijken | Lina | To do |
+| PB-83 | Tweede netwerkopstelling toevoegen volgens labo Brussel | Bart | To do |
+| PB-84 | Inventory per netwerkopstelling voorzien | Bart | To do |
+| PB-85 | Ansible-helper uitbreiden voor meerdere setupmappen | Bart | To do |
+| PB-86 | Dashboard meerdere opstellingen laten tonen en starten | Bart | To do |
+| PB-87 | Volledige configuratieflow debuggen | Team | To do |
+| PB-91 | Alleen veilige variabelen aanpasbaar maken | Joost | To do |
+| PB-92 | Backupbestanden tonen bij succesvolle configuraties | Lina | To do |
+| PB-93 | Backupbestanden logisch ordenen | Bart | To do |
+| PB-94 | Sprint 3 eindflow testen | Team | To do |
+| PB-95 | Restpunten voor Sprint 4 oplijsten | Team | To do |
 | PB-49 | Volledige demo-flow testen | Team | To do |
 | PB-50 | Testen of `main` een werkende sprintversie bevat | Team | To do |
 | PB-51 | Docker Compose build/start documenteren | Bart | To do |
@@ -94,7 +107,9 @@ Alleen opnemen als de Must have-taken van die sprint werken.
 | ID | Taak | Eigenaar | Status |
 | --- | --- | --- | --- |
 | PB-59 | Dashboard iets mooier maken | Lina | To do |
-| PB-62 | Tweede netwerkopstelling als voorbeeld toevoegen | Joost + Lina | To do |
+| PB-62 | Extra netwerkopstelling als bonus toevoegen | Joost + Lina | To do |
+| PB-88 | Backupbestanden downloadbaar maken | Lina + Bart | To do |
+| PB-89 | Output nog verder opdelen per playbook | Lina + Bart | To do |
 
 ## Niet in MVP
 

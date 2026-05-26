@@ -20,6 +20,12 @@ init_database()
 
 @app.route("/", methods=["GET", "POST"])
 def login():
+    # Als de gebruiker al aangemeld is en opnieuw naar / gaat,
+    # sturen we hem meteen naar het dashboard.
+    # Zo komt een ingelogde gebruiker niet terug op de loginpagina.
+    if request.method == "GET" and "user_id" in session:
+        return redirect("/dashboard")
+
     error = None
 
     if request.method == "POST":
@@ -80,7 +86,7 @@ def deploy():
 
     result = run_setup(
         setup_id,
-        backup_user=session["username"],
+        logged_user=session["username"],
     )
 
     save_deployment_log(

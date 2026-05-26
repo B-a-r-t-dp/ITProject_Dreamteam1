@@ -12,7 +12,7 @@
 # - flask: centrale webapplicatie voor login/dashboard
 # - http: eenvoudige HTTP-server op poort 80
 # - https: eenvoudige HTTPS-server op poort 443
-# - ftp: FTP-server op poort 20/21
+# - ftp: FTP-server op poort 20/21 en passive poorten 30000-30010
 #
 # De router en switch zitten hier niet in.
 # Die worden later via EVE-NG geëmuleerd en via Ansible aangesproken.
@@ -27,7 +27,7 @@ services:
     build: .
     container_name: itproject_flask   # Naam van Container
     ports:
-      - "18080:5000"
+      - "5000:5000"
 
     # data:
     # - bevat later de SQLite-database.
@@ -73,9 +73,12 @@ services:
   #
   # Poort 21 wordt gebruikt voor FTP-commando's.
   # Poort 20 wordt traditioneel gebruikt voor FTP-data in active mode.
+  # Poorten 30000-30010 worden gebruikt voor passive FTP.
+  # Dat is nodig voor clients zoals WinSCP en FileZilla.
   ftp:
     build: ./servers/ftp
     container_name: itproject_ftp     # Naam van Container
     ports:
       - "21:21"
       - "20:20"
+      - "30000-30010:30000-30010"

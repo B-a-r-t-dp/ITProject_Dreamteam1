@@ -8,7 +8,7 @@
 # - vsftpd installeren
 # - een testgebruiker voorzien
 # - een testbestand klaarzetten
-# - FTP beschikbaar maken op poort 20 en 21
+# - FTP beschikbaar maken op poort 20, 21 en passive poorten
 
 FROM alpine:latest
 
@@ -45,7 +45,10 @@ COPY vsftpd.conf /etc/vsftpd/vsftpd.conf
 # - commandokanaal voor FTP.
 # Poort 20:
 # - traditioneel datakanaal bij active FTP.
-EXPOSE 20 21
+# Poort 30000-30010:
+# - datapoorten voor passive FTP.
+# - nodig voor clients zoals WinSCP en FileZilla.
+EXPOSE 20 21 30000-30010
 
 # Start de FTP-server met onze configuratie.
 CMD ["vsftpd", "/etc/vsftpd/vsftpd.conf"]

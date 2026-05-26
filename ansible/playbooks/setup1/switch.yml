@@ -99,7 +99,7 @@
     - name: Backupmetadata voorbereiden
       ansible.builtin.set_fact:
         backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
-        backup_created_by: "{{ backup_user | default('unknown') }}"
+        backup_created_by: "{{ logged_user | default('unknown') }}"
 
     # Haalt de volledige running-config van de switch op.
     # Dit gebruiken we als eenvoudige backup voor de MVP.
