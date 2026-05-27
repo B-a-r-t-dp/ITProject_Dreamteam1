@@ -8,7 +8,9 @@
 
 import os                       # Wordt gebruikt om paden te maken die op elke pc werken.
 import subprocess               # Wordt gebruikt om ansible-playbook vanuit Python te starten.
-
+import copy                     # Wordt gebruikt om de setupdata veilig te kopiëren.
+import json                     # Wordt gebruikt om de aangepaste waarden als extra variables aan Ansible door te geven.
+import yaml                     # Wordt gebruikt om info.yml te lezen.
 
 
 ###############################################################################
@@ -33,7 +35,7 @@ ALGEMENE_INVENTORY = os.path.join(ANSIBLE_DIR, "inventory.ini")
 ###############################################################################
 
 
-def run_setup(setup_id, logged_user=None):
+def run_setup(setup_id, logged_user=None,custom_variables=None):
     """
     Start de Ansible-flow voor een gekozen netwerkopstelling.
 
@@ -51,7 +53,7 @@ def run_setup(setup_id, logged_user=None):
         return setup_info_status
 
     playbooks = get_playbooks_for_setup(setup_info)  # Playbooks opvragen volgens de setupinfo.
-
+    runtime_variables = build_runtime_variables(setup_info, custom_variables)
     if not playbooks:
         playbooks_status = {
             "status": "failed",
@@ -69,7 +71,7 @@ def run_setup(setup_id, logged_user=None):
     for playbook_pad in playbooks:
         playbook_naam = os.path.basename(playbook_pad)
 
-        ansible_resultaat = run_playbook(playbook_pad, setup_info["inventory"], logged_user)
+        ansible_resultaat = run_playbook(playbook_pad, setup_info["inventory"], logged_user,runtime_variables,)
 
         if ansible_resultaat["status"] == "success":
             samenvatting_regels.append("[OK] " + playbook_naam + " is succesvol uitgevoerd.")
@@ -163,7 +165,91 @@ def get_playbooks_for_setup(setup_info):
     return bestaande_playbooks
 
 
-def run_playbook(playbook_pad, inventory_pad, logged_user=None):
+def build_runtime_variables(setup_info, custom_variables=None):
+    """
+    Bouwt de variabelen op die naar Ansible gestuurd worden.
+
+    We vertrekken altijd van info.yml.
+    Daarna overschrijven we enkel veilige demo-waarden uit het formulier.
+    Zo blijven alle andere technische waarden bestaan.
+    """
+
+    info_pad = os.path.join(setup_info["pad"], "info.yml")
+
+    with open(info_pad, "r", encoding="utf-8") as info_file:
+        info_data = yaml.safe_load(info_file)
+
+    runtime_data = copy.deepcopy(info_data)
+
+    if not custom_variables:
+        return runtime_data
+
+    setup_id = str(setup_info["id"])
+    variables = runtime_data.get("variables", {})
+
+    if setup_id == "1":
+        router = variables.get("router", {})
+        switch = variables.get("switch", {})
+
+        router["hostname"] = custom_variables.get("router_hostname", router.get("hostname"))
+        router["lab_description"] = custom_variables.get("router_lab_description", router.get("lab_description"))
+        router["lab_ip"] = custom_variables.get("router_lab_ip", router.get("lab_ip"))
+        router["lab_mask"] = custom_variables.get("router_lab_mask", router.get("lab_mask"))
+        router["ospf_router_id"] = custom_variables.get("router_ospf_router_id", router.get("ospf_router_id"))
+
+        switch["hostname"] = custom_variables.get("switch_hostname", switch.get("hostname"))
+        switch["access_description"] = custom_variables.get("switch_access_description", switch.get("access_description"))
+        switch["access_vlan"] = custom_variables.get("switch_access_vlan", switch.get("access_vlan"))
+        switch["trunk_description"] = custom_variables.get("switch_trunk_description", switch.get("trunk_description"))
+        switch["trunk_allowed_vlans"] = custom_variables.get("switch_trunk_allowed_vlans", switch.get("trunk_allowed_vlans"))
+
+        if "vlans" in switch and len(switch["vlans"]) >= 2:
+            switch["vlans"][0]["name"] = custom_variables.get("switch_vlan_10_name", switch["vlans"][0]["name"])
+            switch["vlans"][1]["name"] = custom_variables.get("switch_vlan_20_name", switch["vlans"][1]["name"])
+
+    if setup_id == "2":
+        router = variables.get("router", {})
+        vlans = variables.get("vlans", [])
+        switches = variables.get("switches", {})
+
+        router["hostname"] = custom_variables.get("router_hostname", router.get("hostname"))
+        router["trunk_description"] = custom_variables.get("router_trunk_description", router.get("trunk_description"))
+
+        if len(vlans) >= 2:
+            vlans[0]["name"] = custom_variables.get("vlan_10_name", vlans[0]["name"])
+            vlans[1]["name"] = custom_variables.get("vlan_20_name", vlans[1]["name"])
+
+        switches["trunk_allowed_vlans"] = custom_variables.get(
+            "switches_trunk_allowed_vlans",
+            switches.get("trunk_allowed_vlans"),
+        )
+
+        if "sw11" in switches:
+            switches["sw11"]["hostname"] = custom_variables.get("sw11_hostname", switches["sw11"].get("hostname"))
+
+        if "sw12" in switches:
+            switches["sw12"]["hostname"] = custom_variables.get("sw12_hostname", switches["sw12"].get("hostname"))
+
+        if "distsw" in switches:
+            switches["distsw"]["hostname"] = custom_variables.get("distsw_hostname", switches["distsw"].get("hostname"))
+
+        if "classsw" in switches:
+            switches["classsw"]["hostname"] = custom_variables.get("classsw_hostname", switches["classsw"].get("hostname"))
+
+            access_ports = switches["classsw"].get("access_ports", [])
+            if len(access_ports) >= 1:
+                access_ports[0]["description"] = custom_variables.get(
+                    "classsw_access_description",
+                    access_ports[0].get("description"),
+                )
+                access_ports[0]["vlan"] = custom_variables.get(
+                    "classsw_access_vlan",
+                    access_ports[0].get("vlan"),
+                )
+
+    return runtime_data
+
+def run_playbook(playbook_pad, inventory_pad, logged_user=None,runtime_variables=None):
     """
     Start 1 Ansible-playbook.
     Deze functie wordt per playbook opgeroepen vanuit run_setup().
@@ -197,6 +283,12 @@ def run_playbook(playbook_pad, inventory_pad, logged_user=None):
         # Die naam wordt gebruikt in de backupbestanden.
         command.append("-e")
         command.append("logged_user=" + logged_user)
+
+    if runtime_variables:
+        command.append("-e")
+        command.append(json.dumps(runtime_variables))  
+
+    
 
     try:
         # Hier doen we een poging om het Ansible-commando te starten.

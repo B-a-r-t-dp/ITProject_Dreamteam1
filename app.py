@@ -119,9 +119,12 @@ def deploy():
     if setup_id not in valid_setup_ids:
         return redirect("/dashboard")
 
-    result = run_setup(
+    custom_variables = request.form.to_dict()
+
+    result = run_setup( 
         setup_id,
         logged_user=session["username"],
+        custom_variables=custom_variables,
     )
 
     save_deployment_log(
