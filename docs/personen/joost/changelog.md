@@ -35,3 +35,8 @@
 | 2026-05-27 | Sprint 3 | Test | Joost | Getest dat setup1 en setup2 zichtbaar blijven op het dashboard. Ook getest dat formulierwaarden correct binnenkomen in Flask en worden meegegeven aan het Ansible-commando. |
 | 2026-05-27 | Sprint 3 | Opmerking | Joost | De volledige Ansible-test op echte of geëmuleerde toestellen kon nog niet volledig uitgevoerd worden omdat de labo-opstelling via de pc van een collega beheerd wordt. |
 | 2026-05-27 | Sprint 3 | Volgende stap | Joost | PB-79 uitvoeren: eenvoudige validatie toevoegen voor foutieve invoer, zoals lege hostnames, ongeldige VLAN-nummers, foutieve IP-adressen of lege trunk VLAN-lijsten. |
+| 2026-05-27 | Sprint 3 | PB-79 | Joost | Eenvoudige validatie toegevoegd voor aanpasbare demo-waarden in `app.py`. De applicatie controleert nu invoer vóór Ansible gestart wordt. |
+| 2026-05-27 | Sprint 3 | PB-79 | Joost | Validatie toegevoegd voor lege hostnames, VLAN-nummers, VLAN-lijsten en IP-adressen. Foutieve invoer wordt tegengehouden en als duidelijke validatiefout getoond op het dashboard. |
+| 2026-05-27 | Sprint 3 | PB-79 | Joost | Getest met foutieve invoer bij Access VLAN. Bij waarde `abc` werd correct de melding `Access VLAN moet een getal zijn.` getoond. |
+| 2026-05-27 | Sprint 3 | Documentatie | Joost | AI-logboek en changelog aangevuld met de uitgevoerde Sprint 3-taken rond PB-77, PB-78 en PB-79. |
+| 2026-05-27 | Sprint 3 | GitHub | Joost | Wijzigingen voor PB-77, PB-78, PB-79 en de documentatie zijn gecommit en gepusht naar GitHub. |
