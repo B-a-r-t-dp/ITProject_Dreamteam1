@@ -164,68 +164,183 @@
             {% if network_setups %}
                 <div class="setup-list">
                     {% for setup in network_setups %}
-                        <article class="setup-card">
-                            <div class="setup-card-body">
-                                <div class="setup-content">
-                                    <span class="setup-id">Setup {{ setup.id }}</span>
-                                    <h3>{{ setup.name }}</h3>
-                                    <p>{{ setup.description }}</p>
-                                </div>
+                       <article class="setup-card">
+    {% set variables = setup.info.variables if setup.info and setup.info.variables else {} %}
+    {% set router = variables.get("router", {}) %}
+    {% set switch = variables.get("switch", {}) %}
+    {% set switches = variables.get("switches", {}) %}
+    {% set vlans = variables.get("vlans", []) %}
 
-                                <form method="POST" action="/deploy">
-                                    <input type="hidden" name="setup_id" value="{{ setup.id }}">
-                                    <button class="btn btn-primary" type="submit">Start configuratie</button>
-                                </form>
-                            </div>
+    <form method="POST" action="/deploy" class="setup-form">
+        <input type="hidden" name="setup_id" value="{{ setup.id }}">
 
-                            <details class="setup-details">
-                                <summary>Meer informatie over deze opstelling</summary>
+        <div class="setup-card-body">
+            <div class="setup-content">
+                <span class="setup-id">Setup {{ setup.id }}</span>
+                <h3>{{ setup.name }}</h3>
+                <p>{{ setup.description }}</p>
+            </div>
 
-                                {% if setup.info and setup.info.variables %}
-                                    <div class="variables-section">
-                                        <h4>Configuratievariabelen</h4>
+            <button class="btn btn-primary" type="submit">Start configuratie</button>
+        </div>
 
-                                        <div class="variables-grid">
-                                            {% for group, values in setup.info.variables.items() %}
-                                                <div class="variable-card">
-                                                    <h5>{{ group|capitalize }}</h5>
+        <details class="setup-details">
+            <summary>Aanpasbare demo-waarden</summary>
 
-                                                    {% if values is mapping %}
-                                                        <ul>
-                                                            {% for key, value in values.items() %}
-                                                                {% if value is mapping or (value is sequence and value is not string) %}
-                                                                    <li class="variable-row-complex">
-                                                                        <div class="var-key">{{ key|replace("_", " ") }}</div>
-                                                                        <div class="var-value full-value">{{ show_variable_value(value) }}</div>
-                                                                    </li>
-                                                                {% else %}
-                                                                    <li>
-                                                                        <span class="var-key">{{ key|replace("_", " ") }}</span>
-                                                                        <span class="var-value">{{ show_variable_value(value) }}</span>
-                                                                    </li>
-                                                                {% endif %}
-                                                            {% endfor %}
-                                                        </ul>
+            <div class="variables-section">
+                <p class="variables-help">
+                    Alleen waarden die veilig en nuttig zijn voor de demo worden hier getoond.
+                </p>
 
-                                                    {% elif values is sequence and values is not string %}
-                                                        <ul>
-                                                            {% for item in values %}
-                                                                <li>
-                                                                    <span class="var-value full-value">{{ show_variable_value(item) }}</span>
-                                                                </li>
-                                                            {% endfor %}
-                                                        </ul>
+                {% if setup.id|string == "1" %}
+                    <div class="editable-variables-grid">
 
-                                                    {% else %}
-                                                        <div class="var-value">{{ values }}</div>
-                                                    {% endif %}
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            </details>
-                        </article>
+                        <div class="editable-variable-card">
+                            <h4>Router</h4>
+
+                            <label>
+                                Hostname
+                                <input type="text" name="router_hostname" value="{{ router.get('hostname', '') }}">
+                            </label>
+
+                            <label>
+                                Beschrijving LAN-interface
+                                <input type="text" name="router_lab_description" value="{{ router.get('lab_description', '') }}">
+                            </label>
+
+                            <label>
+                                Lab IP-adres
+                                <input type="text" name="router_lab_ip" value="{{ router.get('lab_ip', '') }}">
+                            </label>
+
+                            <label>
+                                Lab subnetmasker
+                                <input type="text" name="router_lab_mask" value="{{ router.get('lab_mask', '') }}">
+                            </label>
+
+                            <label>
+                                OSPF router-id
+                                <input type="text" name="router_ospf_router_id" value="{{ router.get('ospf_router_id', '') }}">
+                            </label>
+                        </div>
+
+                        <div class="editable-variable-card">
+                            <h4>Switch</h4>
+
+                            <label>
+                                Hostname
+                                <input type="text" name="switch_hostname" value="{{ switch.get('hostname', '') }}">
+                            </label>
+
+                            <label>
+                                VLAN 10 naam
+                                <input type="text" name="switch_vlan_10_name" value="{{ switch.get('vlans', [])[0].get('name', '') }}">
+                            </label>
+
+                            <label>
+                                VLAN 20 naam
+                                <input type="text" name="switch_vlan_20_name" value="{{ switch.get('vlans', [])[1].get('name', '') }}">
+                            </label>
+
+                            <label>
+                                Accesspoort beschrijving
+                                <input type="text" name="switch_access_description" value="{{ switch.get('access_description', '') }}">
+                            </label>
+
+                            <label>
+                                Access VLAN
+                                <input type="text" name="switch_access_vlan" value="{{ switch.get('access_vlan', '') }}">
+                            </label>
+
+                            <label>
+                                Trunk beschrijving
+                                <input type="text" name="switch_trunk_description" value="{{ switch.get('trunk_description', '') }}">
+                            </label>
+
+                            <label>
+                                Toegelaten VLANs op trunk
+                                <input type="text" name="switch_trunk_allowed_vlans" value="{{ switch.get('trunk_allowed_vlans', '') }}">
+                            </label>
+                        </div>
+
+                    </div>
+
+                {% elif setup.id|string == "2" %}
+                    <div class="editable-variables-grid">
+
+                        <div class="editable-variable-card">
+                            <h4>Router</h4>
+
+                            <label>
+                                Hostname
+                                <input type="text" name="router_hostname" value="{{ router.get('hostname', '') }}">
+                            </label>
+
+                            <label>
+                                Trunk beschrijving
+                                <input type="text" name="router_trunk_description" value="{{ router.get('trunk_description', '') }}">
+                            </label>
+                        </div>
+
+                        <div class="editable-variable-card">
+                            <h4>VLANs</h4>
+
+                            <label>
+                                VLAN 10 naam
+                                <input type="text" name="vlan_10_name" value="{{ vlans[0].get('name', '') }}">
+                            </label>
+
+                            <label>
+                                VLAN 20 naam
+                                <input type="text" name="vlan_20_name" value="{{ vlans[1].get('name', '') }}">
+                            </label>
+
+                            <label>
+                                Toegelaten VLANs op trunks
+                                <input type="text" name="switches_trunk_allowed_vlans" value="{{ switches.get('trunk_allowed_vlans', '') }}">
+                            </label>
+                        </div>
+
+                        <div class="editable-variable-card">
+                            <h4>Switches</h4>
+
+                            <label>
+                                SW11 hostname
+                                <input type="text" name="sw11_hostname" value="{{ switches.get('sw11', {}).get('hostname', '') }}">
+                            </label>
+
+                            <label>
+                                SW12 hostname
+                                <input type="text" name="sw12_hostname" value="{{ switches.get('sw12', {}).get('hostname', '') }}">
+                            </label>
+
+                            <label>
+                                DISTSW hostname
+                                <input type="text" name="distsw_hostname" value="{{ switches.get('distsw', {}).get('hostname', '') }}">
+                            </label>
+
+                            <label>
+                                CLASSSW hostname
+                                <input type="text" name="classsw_hostname" value="{{ switches.get('classsw', {}).get('hostname', '') }}">
+                            </label>
+
+                            <label>
+                                Classroom accesspoort beschrijving
+                                <input type="text" name="classsw_access_description" value="{{ switches.get('classsw', {}).get('access_ports', [])[0].get('description', '') }}">
+                            </label>
+
+                            <label>
+                                Classroom access VLAN
+                                <input type="text" name="classsw_access_vlan" value="{{ switches.get('classsw', {}).get('access_ports', [])[0].get('vlan', '') }}">
+                            </label>
+                        </div>
+
+                    </div>
+                {% endif %}
+            </div>
+        </details>
+    </form>
+</article>
                     {% endfor %}
                 </div>
             {% else %}
