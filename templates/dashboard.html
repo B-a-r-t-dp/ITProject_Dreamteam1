@@ -298,6 +298,81 @@
         </aside>
 
     </section>
+
+    <section class="history-grid">
+
+    <div class="panel">
+        <div class="panel-heading">
+            <div>
+                <p class="eyebrow blue">Geschiedenis</p>
+                <h2>Configuratiegeschiedenis</h2>
+            </div>
+        </div>
+
+        {% if deployment_logs %}
+            <div class="history-list">
+                {% for log in deployment_logs %}
+
+                    <details class="history-dropdown">
+
+                    <summary class="history-summary">
+                        <div>
+                            <strong>Setup {{ log.setup_id }}</strong>
+                            <span>{{ log.timestamp }}</span>
+                        </div>
+
+                        <span class="status-text status-{{ log.status }}">
+                            {{ log.status }}
+                        </span>
+                    </summary>
+
+                    <div class="history-content">
+                        <div class="output-title">Samenvatting</div>
+
+                        <pre class="output-box summary-box small-output">
+                    {{ log.summary }}
+                        </pre>
+                    </div>
+
+                    </details>
+
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>Nog geen geschiedenis</h3>
+                <p>Wanneer je een configuratie start, verschijnt die hier.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <div>
+                <p class="eyebrow blue">Backups</p>
+                <h2>Backupbestanden</h2>
+            </div>
+        </div>
+
+        {% if backup_files %}
+            <div class="backup-list">
+                {% for backup in backup_files %}
+                    <div class="backup-card">
+                        <strong>{{ backup.name }}</strong>
+                        <span>{{ backup.modified }}</span>
+                        <small>{{ backup.path }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>Nog geen backups gevonden</h3>
+                <p>Na een router- of switchconfiguratie verschijnen de backupbestanden hier.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</section>
 </main>
 
 </body>

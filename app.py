@@ -1,11 +1,21 @@
 from flask import Flask, render_template, request, redirect, session
 
+# from modules.database_tools import (
+#     init_database,
+#     verify_user,
+#     get_network_setups,
+#     save_deployment_log,
+#     get_last_deployment_log,
+# )
+
 from modules.database_tools import (
     init_database,
     verify_user,
     get_network_setups,
     save_deployment_log,
     get_last_deployment_log,
+    get_deployment_logs_for_user,
+    get_backup_files,
 )
 
 from modules.ansible_tools import run_setup
@@ -45,6 +55,27 @@ def login():
     return render_template("login.html", error=error)
 
 
+# @app.route("/dashboard")
+# def dashboard():
+#     if "user_id" not in session:
+#         return redirect("/")
+
+#     user = {
+#         "id": session["user_id"],
+#         "username": session["username"],
+#         "role": session["role"],
+#     }
+
+#     network_setups = get_network_setups()
+#     last_log = get_last_deployment_log(session["user_id"])
+
+#     return render_template(
+#         "dashboard.html",
+#         user=user,
+#         network_setups=network_setups,
+#         last_log=last_log,
+#     )
+
 @app.route("/dashboard")
 def dashboard():
     if "user_id" not in session:
@@ -58,12 +89,16 @@ def dashboard():
 
     network_setups = get_network_setups()
     last_log = get_last_deployment_log(session["user_id"])
+    deployment_logs = get_deployment_logs_for_user(session["user_id"], limit=10)
+    backup_files = get_backup_files()
 
     return render_template(
         "dashboard.html",
         user=user,
         network_setups=network_setups,
         last_log=last_log,
+        deployment_logs=deployment_logs,
+        backup_files=backup_files,
     )
 
 

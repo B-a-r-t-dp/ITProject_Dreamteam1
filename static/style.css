@@ -819,4 +819,112 @@ body.bg-light:not(.app-body) .card {
         padding-top: 10px;
     }
 
+    
+        /* GESCHIEDENIS EN BACKUPS */
+    .history-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 22px;
+        margin-top: 22px;
+    }
+
+    .history-list,
+    .backup-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+    }
+
+    .history-card,
+    .backup-card {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 16px;
+    }
+
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 14px;
+    }
+
+    .history-header span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.85rem;
+    }
+
+    .small-output {
+        max-height: 260px;
+        font-size: 0.78rem;
+    }
+
+    .backup-card strong {
+        display: block;
+        color: var(--text);
+        margin-bottom: 4px;
+        overflow-wrap: anywhere;
+    }
+
+    .backup-card span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.85rem;
+    }
+
+    .backup-card small {
+        display: block;
+        margin-top: 6px;
+        color: #64748b;
+        overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 1200px) {
+        .history-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* CONFIGURATIEGESCHIEDENIS DROPDOWN */
+    .history-dropdown {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #ffffff;
+        overflow: hidden;
+    }
+
+    .history-summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .history-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .history-summary:hover {
+        background: #f8fafc;
+    }
+
+    .history-summary strong {
+        display: block;
+        color: var(--text);
+    }
+
+    .history-summary span {
+        color: var(--muted);
+        font-size: 0.85rem;
+    }
+
+    .history-content {
+        padding: 0 16px 16px 16px;
+    }
+
 }
