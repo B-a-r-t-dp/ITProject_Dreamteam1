@@ -1,4 +1,4 @@
-setup_name: Podopstelling Brussel
+﻿setup_name: Podopstelling Brussel
 description: 1 pod met router, 2 pod-switches, distributieswitch en classroomswitch
 
 # variables bevat de technische waarden die de setup2-playbooks gebruiken.
@@ -81,3 +81,33 @@ variables:
         - interface: GigabitEthernet0/3
           description: Studentpoort VLAN 10
           vlan: 10
+# technical_documentation wordt enkel gebruikt door de frontend.
+# Dit is gewone tekst voor de docent/student.
+technical_documentation:
+  title: Technische documentatie
+  intro: Deze info toont hoe 1 pod uit het labo in Brussel aangesloten en geconfigureerd wordt.
+  sections:
+    - title: Management-IP's voor ssh
+      items:
+        - R1 gebruikt management-IP 192.168.0.221.
+        - SW11 gebruikt management-IP 192.168.0.222.
+        - SW12 gebruikt management-IP 192.168.0.223.
+        - DISTSW gebruikt management-IP 192.168.0.224.
+        - CLASSSW gebruikt management-IP 192.168.0.225.
+
+    - title: Labo-aansluitingen
+      items:
+        - R1 Gi0/0 -> SW11 Gi0/1.
+        - SW11 Gi0/2 -> SW12 Gi0/1.
+        - SW12 Gi0/2 -> DISTSW Gi0/1.
+        - DISTSW Gi0/2 -> CLASSSW Gi0/1.
+        - DISTSW Gi0/3 -> CLASSSW Gi0/2.
+        - CLASSSW Gi0/3 is de studentpoort op VLAN 10.
+
+    - title: Wat configureert de setup?
+      items:
+        - R1 krijgt subinterfaces voor VLAN 10 en VLAN 20.
+        - De switches krijgen VLAN 10 DOCENTEN en VLAN 20 STUDENTEN.
+        - De links tussen DISTSW en CLASSSW worden als EtherChannel trunk ingesteld.
+        - CLASSSW krijgt een accesspoort voor de studentenkant.
+

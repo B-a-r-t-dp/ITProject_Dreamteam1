@@ -103,6 +103,11 @@ CREATE TABLE IF NOT EXISTS network_setups (
 --
 -- output:
 --   De tekstuele output of foutmelding van Ansible.
+--
+-- run_reference:
+--   Unieke naam voor 1 configuratierun.
+--   Die naam wordt ook gebruikt als mapnaam in backups/.
+--   Zo kunnen we later de juiste running-config backups tonen bij de juiste log.
 CREATE TABLE IF NOT EXISTS deployment_logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
@@ -110,6 +115,7 @@ CREATE TABLE IF NOT EXISTS deployment_logs (
     timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status TEXT NOT NULL CHECK (status IN ('success', 'failed')),
     output TEXT NOT NULL,
+    run_reference TEXT,
 
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (setup_id) REFERENCES network_setups(id)

@@ -35,12 +35,15 @@ ALGEMENE_INVENTORY = os.path.join(ANSIBLE_DIR, "inventory.ini")
 ###############################################################################
 
 
-def run_setup(setup_id, logged_user=None,custom_variables=None):
+def run_setup(setup_id, logged_user=None, custom_variables=None, run_reference=None):
     """
     Start de Ansible-flow voor een gekozen netwerkopstelling.
 
     logged_user is de username van de ingelogde docent.
     Die naam gebruiken we in de backupbestanden van router en switch.
+
+    run_reference is de unieke naam van deze configuratierun.
+    Die gebruiken we als backupmap.
     """
 
     setup_info = get_setup_info(setup_id)        # Setupinfo opvragen volgens setup_id.
@@ -71,7 +74,13 @@ def run_setup(setup_id, logged_user=None,custom_variables=None):
     for playbook_pad in playbooks:
         playbook_naam = os.path.basename(playbook_pad)
 
-        ansible_resultaat = run_playbook(playbook_pad, setup_info["inventory"], logged_user,runtime_variables,)
+        ansible_resultaat = run_playbook(
+            playbook_pad,
+            setup_info["inventory"],
+            logged_user,
+            runtime_variables,
+            run_reference,
+        )
 
         if ansible_resultaat["status"] == "success":
             samenvatting_regels.append("[OK] " + playbook_naam + " is succesvol uitgevoerd.")
@@ -249,7 +258,7 @@ def build_runtime_variables(setup_info, custom_variables=None):
 
     return runtime_data
 
-def run_playbook(playbook_pad, inventory_pad, logged_user=None,runtime_variables=None):
+def run_playbook(playbook_pad, inventory_pad, logged_user=None, runtime_variables=None, run_reference=None):
     """
     Start 1 Ansible-playbook.
     Deze functie wordt per playbook opgeroepen vanuit run_setup().
@@ -283,6 +292,11 @@ def run_playbook(playbook_pad, inventory_pad, logged_user=None,runtime_variables
         # Die naam wordt gebruikt in de backupbestanden.
         command.append("-e")
         command.append("logged_user=" + logged_user)
+
+    if run_reference:
+        # Deze referentie koppelt de Ansible-run aan de juiste backupmap.
+        command.append("-e")
+        command.append("run_reference=" + run_reference)
 
     if runtime_variables:
         command.append("-e")

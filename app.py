@@ -1,5 +1,9 @@
 import ipaddress
-from flask import Flask, render_template, request, redirect, session
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from flask import Flask, render_template, request, redirect, session, send_from_directory
 
 # from modules.database_tools import (
 #     init_database,
@@ -16,7 +20,6 @@ from modules.database_tools import (
     save_deployment_log,
     get_last_deployment_log,
     get_deployment_logs_for_user,
-    get_backup_files,
 )
 
 from modules.ansible_tools import run_setup
@@ -27,6 +30,22 @@ app.secret_key = "supersecretkey"
 
 
 init_database()
+
+
+def maak_run_referentie(setup_id, username):
+    """
+    Maakt een unieke naam voor 1 configuratierun.
+
+    Die naam gebruiken we:
+    - in SQLite bij de deployment log;
+    - als mapnaam in backups/.
+    """
+
+    tijdstip = datetime.now(ZoneInfo("Europe/Brussels")).strftime("%Y%m%d-%H%M%S")
+
+    run_referentie = "run-" + tijdstip + "-" + username + "-setup" + str(setup_id)
+
+    return run_referentie
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -91,7 +110,6 @@ def dashboard():
     network_setups = get_network_setups()
     last_log = get_last_deployment_log(session["user_id"])
     deployment_logs = get_deployment_logs_for_user(session["user_id"], limit=10)
-    backup_files = get_backup_files()
 
     return render_template(
         "dashboard.html",
@@ -99,7 +117,6 @@ def dashboard():
         network_setups=network_setups,
         last_log=last_log,
         deployment_logs=deployment_logs,
-        backup_files=backup_files,
     )
 def validate_custom_variables(setup_id, custom_variables):
     """
@@ -222,6 +239,7 @@ def deploy():
         return redirect("/dashboard")
 
     custom_variables = request.form.to_dict()
+    run_reference = maak_run_referentie(setup_id, session["username"])
 
     validation_errors = validate_custom_variables(setup_id, custom_variables)
 
@@ -236,6 +254,7 @@ def deploy():
             setup_id=setup_id,
             status=result["status"],
             output=result["output"],
+            run_reference=run_reference,
         )
 
         return redirect("/dashboard")
@@ -244,6 +263,7 @@ def deploy():
         setup_id,
         logged_user=session["username"],
         custom_variables=custom_variables,
+        run_reference=run_reference,
     )
 
     save_deployment_log(
@@ -251,9 +271,36 @@ def deploy():
         setup_id=setup_id,
         status=result["status"],
         output=result["output"],
+        run_reference=run_reference,
     )
 
     return redirect("/dashboard")
+
+
+@app.route("/backup/<run_reference>/<filename>")
+def download_backup(run_reference, filename):
+    """
+    Downloadt een backupbestand dat bij 1 configuratierun hoort.
+
+    We werken bewust met een run-map:
+    backups/<run_reference>/<bestand>
+    Daardoor moet de frontend niet gokken welke backup bij welke run hoort.
+    """
+
+    if "user_id" not in session:
+        return redirect("/")
+
+    backup_root = Path(app.root_path) / "backups"
+    backup_map = backup_root / run_reference
+
+    # Simpele beveiliging: alleen bestanden uit de backups-map toelaten.
+    backup_root = backup_root.resolve()
+    backup_map = backup_map.resolve()
+
+    if backup_root not in backup_map.parents:
+        return redirect("/dashboard")
+
+    return send_from_directory(backup_map, filename, as_attachment=True)
 
 
 @app.route("/logout")

@@ -51,6 +51,16 @@
         backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
         backup_created_by: "{{ logged_user | default('unknown') }}"
 
+    - name: Backupmapnaam voorbereiden
+      ansible.builtin.set_fact:
+        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup2') }}"
+
+    - name: Backupmap voor deze run maken
+      ansible.builtin.file:
+        path: "/app/backups/{{ backup_run_reference }}"
+        state: directory
+      delegate_to: localhost
+
     - name: Router running-config ophalen voor backup
       cisco.ios.ios_command:
         commands:
@@ -60,5 +70,5 @@
     - name: Routerconfiguratie bewaren in backups-map
       ansible.builtin.copy:
         content: "{{ router_backup_config.stdout[0] }}"
-        dest: "/app/backups/{{ inventory_hostname }}-{{ backup_created_by }}-{{ backup_timestamp }}-running-config.txt"
+        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"
       delegate_to: localhost

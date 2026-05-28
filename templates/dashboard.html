@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="nl">
 <head>
     <meta charset="utf-8">
@@ -339,6 +339,32 @@
                 {% endif %}
             </div>
         </details>
+        {% if setup.info and setup.info.technical_documentation %}
+            {% set technical_documentation = setup.info.technical_documentation %}
+            <details class="setup-details technical-documentation-section">
+                <summary>Technische documentatie</summary>
+
+                <div class="technical-documentation-content">
+                    <p class="variables-help">
+                        {{ technical_documentation.intro }}
+                    </p>
+
+                    <div class="technical-documentation-grid">
+                        {% for section in technical_documentation.sections %}
+                            <div class="technical-documentation-card">
+                                <h4>{{ section.title }}</h4>
+
+                                <ul>
+                                    {% for item in section["items"] %}
+                                        <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </details>
+        {% endif %}
     </form>
 </article>
                     {% endfor %}
@@ -349,6 +375,84 @@
                     <p>Controleer of de database geinitialiseerd is en minstens een basisopstelling bevat.</p>
                 </div>
             {% endif %}
+
+            <div class="history-section">
+                <div class="panel-heading history-heading">
+                    <div>
+                        <p class="eyebrow blue">Geschiedenis</p>
+                        <h2>Configuratiegeschiedenis</h2>
+                    </div>
+                </div>
+
+                {% if deployment_logs %}
+                    <div class="history-list">
+                        {% for log in deployment_logs %}
+
+                            <details class="history-dropdown">
+
+                            <summary class="history-summary">
+                                <div>
+                                    <strong>Setup {{ log.setup_id }} - {{ log.setup_name }}</strong>
+                                    <span>{{ log.timestamp }} door {{ log.username }}</span>
+                                </div>
+
+                                <span class="status-text status-{{ log.status }}">
+                                    {{ log.status }}
+                                </span>
+                            </summary>
+
+                            <div class="history-content">
+                                <div class="history-output-grid">
+                                    <div>
+                                        <div class="output-title">Samenvatting</div>
+                                        <pre class="output-box summary-box small-output">{{ log.summary }}</pre>
+                                    </div>
+
+                                    <div>
+                                        <div class="output-title">Technische output</div>
+
+                                        {% if log.technical_output %}
+                                            <pre class="output-box small-output">{{ log.technical_output }}</pre>
+                                        {% else %}
+                                            <pre class="output-box small-output">Geen technische output gevonden.</pre>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                {% if log.status == "success" and log.backups %}
+                                    <div class="history-backups">
+                                        <div class="output-title">Running-config backups</div>
+
+                                        <div class="backup-list backup-list-inline">
+                                            {% for backup in log.backups %}
+                                                <a class="backup-card backup-download-card" href="/backup/{{ log.run_reference }}/{{ backup.name }}">
+                                                    <strong>{{ backup.name }}</strong>
+                                                    <span>{{ backup.modified }}</span>
+                                                    <small>Download running-config</small>
+                                                </a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% elif log.status == "success" %}
+                                    <div class="history-backups">
+                                        <div class="empty-state small-empty-state">
+                                            <p>Geen backups gevonden voor deze run.</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            </details>
+
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>Nog geen geschiedenis</h3>
+                        <p>Wanneer je een configuratie start, verschijnt die hier.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
 
         <aside class="panel log-panel">
@@ -379,7 +483,7 @@
 
                         <div>
                             <dt>Setup</dt>
-                            <dd>{{ last_log.setup_id }}</dd>
+                            <dd>Setup {{ last_log.setup_id }} - {{ last_log.setup_name }}</dd>
                         </div>
                     </dl>
 
@@ -413,82 +517,11 @@
         </aside>
 
     </section>
-
-    <section class="history-grid">
-
-    <div class="panel">
-        <div class="panel-heading">
-            <div>
-                <p class="eyebrow blue">Geschiedenis</p>
-                <h2>Configuratiegeschiedenis</h2>
-            </div>
-        </div>
-
-        {% if deployment_logs %}
-            <div class="history-list">
-                {% for log in deployment_logs %}
-
-                    <details class="history-dropdown">
-
-                    <summary class="history-summary">
-                        <div>
-                            <strong>Setup {{ log.setup_id }}</strong>
-                            <span>{{ log.timestamp }}</span>
-                        </div>
-
-                        <span class="status-text status-{{ log.status }}">
-                            {{ log.status }}
-                        </span>
-                    </summary>
-
-                    <div class="history-content">
-                        <div class="output-title">Samenvatting</div>
-
-                        <pre class="output-box summary-box small-output">
-                    {{ log.summary }}
-                        </pre>
-                    </div>
-
-                    </details>
-
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <h3>Nog geen geschiedenis</h3>
-                <p>Wanneer je een configuratie start, verschijnt die hier.</p>
-            </div>
-        {% endif %}
-    </div>
-
-    <div class="panel">
-        <div class="panel-heading">
-            <div>
-                <p class="eyebrow blue">Backups</p>
-                <h2>Backupbestanden</h2>
-            </div>
-        </div>
-
-        {% if backup_files %}
-            <div class="backup-list">
-                {% for backup in backup_files %}
-                    <div class="backup-card">
-                        <strong>{{ backup.name }}</strong>
-                        <span>{{ backup.modified }}</span>
-                        <small>{{ backup.path }}</small>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <h3>Nog geen backups gevonden</h3>
-                <p>Na een router- of switchconfiguratie verschijnen de backupbestanden hier.</p>
-            </div>
-        {% endif %}
-    </div>
-
-</section>
 </main>
 
 </body>
 </html>
+
+
+
+

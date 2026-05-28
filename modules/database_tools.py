@@ -1,4 +1,4 @@
-# SQLite-hulpfuncties
+﻿# SQLite-hulpfuncties
 # Verantwoordelijke: Joost
 #
 # Dit bestand vormt de brug tussen Flask en SQLite.
@@ -61,6 +61,13 @@ def init_database():
         schema_sql = schema_file.read()
 
     connection.executescript(schema_sql)
+
+    # Bestaande databases krijgen deze kolom niet automatisch via schema.sql.
+    # Daarom voegen we ze hier veilig toe als ze nog ontbreekt.
+    try:
+        connection.execute("ALTER TABLE deployment_logs ADD COLUMN run_reference TEXT")
+    except sqlite3.OperationalError:
+        pass
 
     password_hash = generate_password_hash("docent123")
 
@@ -239,10 +246,12 @@ def get_setup_info(setup_folder):
 #     connection.commit()
 #     connection.close()
 
-def save_deployment_log(user_id, setup_id, status, output):
+def save_deployment_log(user_id, setup_id, status, output, run_reference=None):
     """
     Slaat het resultaat van een Ansible-uitvoering op.
     De timestamp wordt bewust in Belgische tijd opgeslagen.
+
+    run_reference koppelt deze log aan de juiste backupmap.
     """
 
     if status not in ("success", "failed"):
@@ -254,10 +263,10 @@ def save_deployment_log(user_id, setup_id, status, output):
 
     connection.execute(
         """
-        INSERT INTO deployment_logs (user_id, setup_id, timestamp, status, output)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO deployment_logs (user_id, setup_id, timestamp, status, output, run_reference)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (user_id, setup_id, belgian_time, status, output),
+        (user_id, setup_id, belgian_time, status, output, run_reference),
     )
 
     connection.commit()
@@ -307,10 +316,12 @@ def get_last_deployment_log(user_id=None):
     if user_id:
         row = connection.execute(
             """
-            SELECT id, user_id, setup_id, timestamp, status, output
+            SELECT deployment_logs.id, user_id, setup_id, network_setups.name AS setup_name, timestamp, status, output, run_reference, users.username
             FROM deployment_logs
+            JOIN users ON users.id = deployment_logs.user_id
+            JOIN network_setups ON network_setups.id = deployment_logs.setup_id
             WHERE user_id = ?
-            ORDER BY id DESC
+            ORDER BY deployment_logs.id DESC
             LIMIT 1
             """,
             (user_id,),
@@ -319,9 +330,11 @@ def get_last_deployment_log(user_id=None):
     else:
         row = connection.execute(
             """
-            SELECT id, user_id, setup_id, timestamp, status, output
+            SELECT deployment_logs.id, user_id, setup_id, network_setups.name AS setup_name, timestamp, status, output, run_reference, users.username
             FROM deployment_logs
-            ORDER BY id DESC
+            JOIN users ON users.id = deployment_logs.user_id
+            JOIN network_setups ON network_setups.id = deployment_logs.setup_id
+            ORDER BY deployment_logs.id DESC
             LIMIT 1
             """
         ).fetchone()
@@ -336,18 +349,22 @@ def get_last_deployment_log(user_id=None):
     return {
         "id": row["id"],
         "user_id": row["user_id"],
+        "username": row["username"],
         "setup_id": row["setup_id"],
+        "setup_name": row["setup_name"],
         "timestamp": row["timestamp"],
         "status": row["status"],
         "output": row["output"],
+        "run_reference": row["run_reference"],
         "summary": split_output["summary"],
         "technical_output": split_output["technical_output"],
+        "backups": get_backup_files_for_run(row["run_reference"]),
     }
 
 
 def get_deployment_logs_for_user(user_id, limit=10):
     """
-    Geeft de laatste deployment logs terug voor één gebruiker/docent.
+    Geeft de laatste deployment logs terug voor Ã©Ã©n gebruiker/docent.
 
     Deze functie wordt gebruikt om te controleren welke docent
     welke configuratie gestart heeft.
@@ -357,10 +374,12 @@ def get_deployment_logs_for_user(user_id, limit=10):
 
     rows = connection.execute(
         """
-        SELECT id, user_id, setup_id, timestamp, status, output
+        SELECT deployment_logs.id, user_id, setup_id, network_setups.name AS setup_name, timestamp, status, output, run_reference, users.username
         FROM deployment_logs
+        JOIN users ON users.id = deployment_logs.user_id
+        JOIN network_setups ON network_setups.id = deployment_logs.setup_id
         WHERE user_id = ?
-        ORDER BY id DESC
+        ORDER BY deployment_logs.id DESC
         LIMIT ?
         """,
         (user_id, limit),
@@ -376,20 +395,64 @@ def get_deployment_logs_for_user(user_id, limit=10):
         logs.append({
             "id": row["id"],
             "user_id": row["user_id"],
+            "username": row["username"],
             "setup_id": row["setup_id"],
+            "setup_name": row["setup_name"],
             "timestamp": row["timestamp"],
             "status": row["status"],
             "output": row["output"],
+            "run_reference": row["run_reference"],
             "summary": split_output["summary"],
             "technical_output": split_output["technical_output"],
+            "backups": get_backup_files_for_run(row["run_reference"]),
         })
 
     return logs
 
+
+def get_backup_files_for_run(run_reference):
+    """
+    Geeft de backupbestanden terug voor 1 configuratierun.
+
+    De backups staan in:
+    backups/<run_reference>/
+
+    Zo blijven backups gekoppeld aan de juiste geschiedenisregel.
+    """
+
+    if not run_reference:
+        return []
+
+    backup_dir = BASE_DIR / "backups"
+    run_backup_dir = backup_dir / run_reference
+
+    if not run_backup_dir.exists():
+        return []
+
+    backup_files = []
+
+    for file_path in run_backup_dir.iterdir():
+        if file_path.is_file() and file_path.name != ".gitkeep":
+            backup_files.append({
+                "name": file_path.name,
+                "path": str(file_path.relative_to(BASE_DIR)),
+                "modified": datetime.fromtimestamp(
+                    file_path.stat().st_mtime,
+                    ZoneInfo("Europe/Brussels")
+                ).strftime("%Y-%m-%d %H:%M:%S"),
+            })
+
+    backup_files.sort(key=lambda item: item["modified"], reverse=True)
+
+    return backup_files
+
+
 def get_backup_files():
     """
-    Geeft de backupbestanden terug uit de map backups/.
-    Dit wordt gebruikt om backups zichtbaar te maken op het dashboard.
+    Geeft alle backupbestanden terug uit de map backups/.
+
+    Deze functie blijft bestaan als fallback,
+    maar de geschiedenis gebruikt vooral get_backup_files_for_run().
     """
 
     backup_dir = BASE_DIR / "backups"
@@ -413,4 +476,8 @@ def get_backup_files():
     backup_files.sort(key=lambda item: item["modified"], reverse=True)
 
     return backup_files
+
+
+
+
 

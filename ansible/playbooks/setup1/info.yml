@@ -1,4 +1,4 @@
-setup_name: Basisopstelling
+﻿setup_name: Basisopstelling
 description: 1 router, 1 switch, HTTP, HTTPS en FTP
 
 # variables bevat de technische waarden die de playbooks gebruiken.
@@ -71,3 +71,28 @@ variables:
       test_directory: ftp
       test_file: test.txt
       description: vsftpd op poort 20/21 met testbestand
+# technical_documentation wordt enkel gebruikt door de frontend.
+# Dit is gewone tekst voor de docent/student.
+technical_documentation:
+  title: Technische documentatie
+  intro: Deze info toont welke toestellen, management-IP's en poorten bij setup1 horen.
+  sections:
+    - title: Management-IP's
+      items:
+        - R1 gebruikt management-IP 192.168.0.215.
+        - SW1 gebruikt management-IP 192.168.0.216.
+        - Deze IP's worden door Ansible gebruikt om via SSH te verbinden.
+
+    - title: Verwachte aansluitingen
+      items:
+        - R1 Gi0/0 is de managementinterface voor SSH en Ansible.
+        - R1 Gi0/1 wordt gebruikt als labinterface richting de switch.
+        - SW1 Gi0/2 is de accesspoort voor VLAN 10.
+        - SW1 Gi0/3 is de trunkpoort voor VLAN 10 en VLAN 20.
+
+    - title: Wat configureert de setup?
+      items:
+        - Router R1 krijgt een lab-IP 192.168.10.1/24 op Gi0/1.
+        - Switch SW1 krijgt VLAN 10 DOCENTEN en VLAN 20 STUDENTEN.
+        - HTTP draait op poort 80, HTTPS op poort 443 en FTP op poort 21.
+
