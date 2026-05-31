@@ -40,3 +40,11 @@
 | 2026-05-27 | Sprint 3 | PB-79 | Joost | Getest met foutieve invoer bij Access VLAN. Bij waarde `abc` werd correct de melding `Access VLAN moet een getal zijn.` getoond. |
 | 2026-05-27 | Sprint 3 | Documentatie | Joost | AI-logboek en changelog aangevuld met de uitgevoerde Sprint 3-taken rond PB-77, PB-78 en PB-79. |
 | 2026-05-27 | Sprint 3 | GitHub | Joost | Wijzigingen voor PB-77, PB-78, PB-79 en de documentatie zijn gecommit en gepusht naar GitHub. |
+| 2026-05-31 | Sprint 3 | `app.py` | Oude uitgecommentarieerde code verwijderd en `app.py` opgeschoond. | Zo blijft `app.py` overzichtelijker en makkelijker uit te leggen tijdens de demo. |
+| 2026-05-31 | Sprint 3 | `app.py` / `modules/ansible_tools.py` | De functie `validate_custom_variables()` verplaatst van `app.py` naar `modules/ansible_tools.py`. | De validatie hoort dichter bij de Ansible-logica omdat deze waarden uiteindelijk aan Ansible worden doorgegeven. |
+| 2026-05-31 | Sprint 3 | `ansible/playbooks/setup2/info.yml` | Setup 2 uitgebreid met VLAN 30 en VLAN 40. Ook extra router-subinterfaces en classroom accesspoorten toegevoegd. | De demo-opstelling voor Brussel is zo vollediger en toont meerdere VLANs en accesspoorten. |
+| 2026-05-31 | Sprint 3 | `templates/dashboard.html` | VLAN-velden voor Setup 2 dynamisch gemaakt met een Jinja-loop. | Het dashboard toont nu automatisch alle VLANs uit `info.yml`, dus niet meer enkel VLAN 10 en VLAN 20. |
+| 2026-05-31 | Sprint 3 | `modules/ansible_tools.py` | Verwerking van VLAN-namen dynamisch gemaakt in `build_runtime_variables()`. | Aangepaste VLAN-namen zoals VLAN 30 en VLAN 40 worden nu ook correct verwerkt voor Ansible. |
+| 2026-05-31 | Sprint 3 | `modules/ansible_tools.py` | Validatie van VLAN-namen dynamisch gemaakt. | Nieuwe VLAN-velden worden automatisch gecontroleerd op lege waarden. Dit werd getest door VLAN 30 leeg te maken. |
+| 2026-05-31 | Sprint 3 | `templates/dashboard.html` / `modules/ansible_tools.py` | Classroom accesspoorten dynamisch gemaakt op basis van de lijst in `info.yml`. | Meerdere accesspoorten kunnen nu via het dashboard aangepast en daarna verwerkt worden. |
+| 2026-05-31 | Sprint 3 | Test | `router.yml` en `switch.yml` gecontroleerd met Ansible syntax-check. | De playbooks bevatten geen syntaxfouten. Een volledige test op geëmuleerde toestellen moet nog via de pc van de collega gebeuren. |

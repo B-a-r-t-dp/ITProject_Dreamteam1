@@ -12,7 +12,7 @@ variables:
 
     trunk_interface: GigabitEthernet0/0
     trunk_interface_short: Gi0/0
-    trunk_description: Trunk naar SW11 voor VLAN 10 en VLAN 20
+    trunk_description: Trunk naar SW11 voor VLAN 10 en VLAN 20,VLAN 30 en VLAN 40
 
     subinterfaces:
       - vlan: 10
@@ -23,15 +23,27 @@ variables:
         description: Gateway VLAN 20 STUDENTEN
         ip: 192.168.20.1
         mask: 255.255.255.0
+      - vlan: 30
+        description: Gateway VLAN 30 SERVERS
+        ip: 192.168.30.1
+        mask: 255.255.255.0
+      - vlan: 40
+        description: Gateway VLAN 40 GASTEN
+        ip: 192.168.40.1
+        mask: 255.255.255.0
 
   vlans:
     - id: 10
       name: DOCENTEN
     - id: 20
       name: STUDENTEN
+    - id: 30
+      name: SERVERS
+    - id: 40
+      name: GASTEN
 
   switches:
-    trunk_allowed_vlans: "10,20"
+    trunk_allowed_vlans: "10,20,30,40"
 
     sw11:
       hostname: SW11
@@ -78,9 +90,18 @@ variables:
           - interface: GigabitEthernet0/2
             description: EtherChannel naar DISTSW link 2
       access_ports:
-        - interface: GigabitEthernet0/3
-          description: Studentpoort VLAN 10
-          vlan: 10
+          - interface: GigabitEthernet0/3
+            description: Docentenpoort VLAN 10
+            vlan: 10
+          - interface: GigabitEthernet0/4
+            description: Studentenpoort VLAN 20
+            vlan: 20
+          - interface: GigabitEthernet0/5
+            description: Serverpoort VLAN 30
+            vlan: 30
+          - interface: GigabitEthernet0/6
+            description: Gastpoort VLAN 40
+            vlan: 40
 # technical_documentation wordt enkel gebruikt door de frontend.
 # Dit is gewone tekst voor de docent/student.
 technical_documentation:

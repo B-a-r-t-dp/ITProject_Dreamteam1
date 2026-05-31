@@ -11,7 +11,7 @@ import subprocess               # Wordt gebruikt om ansible-playbook vanuit Pyth
 import copy                     # Wordt gebruikt om de setupdata veilig te kopiëren.
 import json                     # Wordt gebruikt om de aangepaste waarden als extra variables aan Ansible door te geven.
 import yaml                     # Wordt gebruikt om info.yml te lezen.
-
+import ipaddress
 
 ###############################################################################
 #                              Path variabelen                                #
@@ -28,7 +28,120 @@ PLAYBOOK_DIR = os.path.join(ANSIBLE_DIR, "playbooks")
 # Als een setup eigen inventory.ini heeft, gebruiken we die.
 ALGEMENE_INVENTORY = os.path.join(ANSIBLE_DIR, "inventory.ini")
 
+def validate_custom_variables(setup_id, custom_variables):
+    """
+    Controleert eenvoudige formulierwaarden voordat Ansible gestart wordt.
 
+    We houden de controles bewust simpel:
+    - hostnames mogen niet leeg zijn;
+    - VLANs moeten getallen zijn tussen 1 en 4094;
+    - IP-adressen moeten geldig zijn;
+    - trunk VLAN-lijsten mogen niet leeg zijn.
+    """
+
+    errors = []
+
+    def check_required(field_name, label):
+        value = custom_variables.get(field_name, "").strip()
+        if value == "":
+            errors.append(label + " mag niet leeg zijn.")
+        return value
+
+    def check_vlan(field_name, label):
+        value = custom_variables.get(field_name, "").strip()
+
+        if value == "":
+            errors.append(label + " mag niet leeg zijn.")
+            return
+
+        if not value.isdigit():
+            errors.append(label + " moet een getal zijn.")
+            return
+
+        vlan_id = int(value)
+
+        if vlan_id < 1 or vlan_id > 4094:
+            errors.append(label + " moet tussen 1 en 4094 liggen.")
+
+    def check_vlan_list(field_name, label):
+        value = custom_variables.get(field_name, "").strip()
+
+        if value == "":
+            errors.append(label + " mag niet leeg zijn.")
+            return
+
+        vlan_values = value.split(",")
+
+        for vlan in vlan_values:
+            vlan = vlan.strip()
+
+            if not vlan.isdigit():
+                errors.append(label + " mag alleen VLAN-nummers bevatten, gescheiden door komma's.")
+                return
+
+            vlan_id = int(vlan)
+
+            if vlan_id < 1 or vlan_id > 4094:
+                errors.append(label + " bevat een VLAN buiten bereik 1-4094.")
+                return
+
+    def check_ip(field_name, label):
+        value = custom_variables.get(field_name, "").strip()
+
+        if value == "":
+            errors.append(label + " mag niet leeg zijn.")
+            return
+
+        try:
+            ipaddress.ip_address(value)
+        except ValueError:
+            errors.append(label + " moet een geldig IP-adres zijn.")
+
+    setup_id = str(setup_id)
+
+    if setup_id == "1":
+        check_required("router_hostname", "Router hostname")
+        check_required("switch_hostname", "Switch hostname")
+        check_required("router_lab_description", "Router LAN-beschrijving")
+        check_required("switch_access_description", "Switch accesspoort beschrijving")
+        check_required("switch_trunk_description", "Switch trunk beschrijving")
+        check_required("switch_vlan_10_name", "VLAN 10 naam")
+        check_required("switch_vlan_20_name", "VLAN 20 naam")
+
+        check_ip("router_lab_ip", "Router lab IP-adres")
+        check_required("router_lab_mask", "Router lab subnetmasker")
+        check_ip("router_ospf_router_id", "OSPF router-id")
+
+        check_vlan("switch_access_vlan", "Access VLAN")
+        check_vlan_list("switch_trunk_allowed_vlans", "Toegelaten VLANs op trunk")
+
+    if setup_id == "2":
+        check_required("router_hostname", "Router hostname")
+        check_required("router_trunk_description", "Router trunk beschrijving")
+        for field_name in sorted(custom_variables.keys()):
+            if field_name.startswith("vlan_") and field_name.endswith("_name"):
+               vlan_number = field_name.replace("vlan_", "").replace("_name", "")
+               check_required(field_name, "VLAN " + vlan_number + " naam")
+        check_required("sw11_hostname", "SW11 hostname")
+        check_required("sw12_hostname", "SW12 hostname")
+        check_required("distsw_hostname", "DISTSW hostname")
+        check_required("classsw_hostname", "CLASSSW hostname")
+        for field_name in sorted(custom_variables.keys()):
+            if field_name.startswith("classsw_access_") and field_name.endswith("_description"):
+               port_index = field_name.replace("classsw_access_", "").replace("_description", "")
+               port_number = str(int(port_index) + 1)
+               check_required(field_name, "Classroom accesspoort " + port_number + " beschrijving")
+
+        for field_name in sorted(custom_variables.keys()):
+            if field_name.startswith("classsw_access_") and field_name.endswith("_vlan"):
+               port_index = field_name.replace("classsw_access_", "").replace("_vlan", "")
+               port_number = str(int(port_index) + 1)
+               check_vlan(field_name, "Classroom accesspoort " + port_number + " VLAN")
+
+        
+        check_vlan_list("switches_trunk_allowed_vlans", "Toegelaten VLANs op trunks")
+
+    return errors
 
 ###############################################################################
 #                         Functies opstart Ansible                            #
@@ -224,9 +337,10 @@ def build_runtime_variables(setup_info, custom_variables=None):
         router["hostname"] = custom_variables.get("router_hostname", router.get("hostname"))
         router["trunk_description"] = custom_variables.get("router_trunk_description", router.get("trunk_description"))
 
-        if len(vlans) >= 2:
-            vlans[0]["name"] = custom_variables.get("vlan_10_name", vlans[0]["name"])
-            vlans[1]["name"] = custom_variables.get("vlan_20_name", vlans[1]["name"])
+        for vlan in vlans:
+            vlan_id = vlan.get("id")
+            veldnaam = "vlan_" + str(vlan_id) + "_name"
+            vlan["name"] = custom_variables.get(veldnaam, vlan.get("name"))
 
         switches["trunk_allowed_vlans"] = custom_variables.get(
             "switches_trunk_allowed_vlans",
@@ -246,14 +360,19 @@ def build_runtime_variables(setup_info, custom_variables=None):
             switches["classsw"]["hostname"] = custom_variables.get("classsw_hostname", switches["classsw"].get("hostname"))
 
             access_ports = switches["classsw"].get("access_ports", [])
-            if len(access_ports) >= 1:
-                access_ports[0]["description"] = custom_variables.get(
-                    "classsw_access_description",
-                    access_ports[0].get("description"),
+
+            for index, access_port in enumerate(access_ports):
+                description_field = "classsw_access_" + str(index) + "_description"
+                vlan_field = "classsw_access_" + str(index) + "_vlan"
+
+                access_port["description"] = custom_variables.get(
+                    description_field,
+                    access_port.get("description"),
                 )
-                access_ports[0]["vlan"] = custom_variables.get(
-                    "classsw_access_vlan",
-                    access_ports[0].get("vlan"),
+
+                access_port["vlan"] = custom_variables.get(
+                    vlan_field,
+                    access_port.get("vlan"),
                 )
 
     return runtime_data

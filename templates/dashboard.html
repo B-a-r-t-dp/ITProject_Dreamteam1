@@ -169,6 +169,7 @@
     {% set router = variables.get("router", {}) %}
     {% set switch = variables.get("switch", {}) %}
     {% set switches = variables.get("switches", {}) %}
+    {% set classsw = switches.get("classsw", {}) %}
     {% set vlans = variables.get("vlans", []) %}
 
     <form method="POST" action="/deploy" class="setup-form">
@@ -285,15 +286,12 @@
                         <div class="editable-variable-card">
                             <h4>VLANs</h4>
 
-                            <label>
-                                VLAN 10 naam
-                                <input type="text" name="vlan_10_name" value="{{ vlans[0].get('name', '') }}">
-                            </label>
-
-                            <label>
-                                VLAN 20 naam
-                                <input type="text" name="vlan_20_name" value="{{ vlans[1].get('name', '') }}">
-                            </label>
+                            {% for vlan in vlans %}
+                                <label>
+                                    VLAN {{ vlan.get('id', '') }} naam
+                                    <input type="text" name="vlan_{{ vlan.get('id', '') }}_name" value="{{ vlan.get('name', '') }}">
+                                </label>
+                            {% endfor %}
 
                             <label>
                                 Toegelaten VLANs op trunks
@@ -324,15 +322,32 @@
                                 <input type="text" name="classsw_hostname" value="{{ switches.get('classsw', {}).get('hostname', '') }}">
                             </label>
 
-                            <label>
-                                Classroom accesspoort beschrijving
-                                <input type="text" name="classsw_access_description" value="{{ switches.get('classsw', {}).get('access_ports', [])[0].get('description', '') }}">
-                            </label>
+                        {% set access_ports = classsw.get('access_ports', []) %}
 
-                            <label>
-                                Classroom access VLAN
-                                <input type="text" name="classsw_access_vlan" value="{{ switches.get('classsw', {}).get('access_ports', [])[0].get('vlan', '') }}">
-                            </label>
+                        <div class="access-port-editor">
+    <div class="access-port-header">
+        <span>Interface</span>
+        <span>Beschrijving</span>
+        <span>VLAN</span>
+    </div>
+
+                        {% for access_port in access_ports %}
+                            <div class="access-port-row">
+                                <span class="access-port-interface">
+                                    {{ access_port.get('interface', 'Accesspoort') }}
+                                </span>
+
+                                <input type="text"
+                                       name="classsw_access_{{ loop.index0 }}_description"
+                                       value="{{ access_port.get('description', '') }}">
+
+                                <input type="text"
+                                       class="access-port-vlan-input"
+                                       name="classsw_access_{{ loop.index0 }}_vlan"
+                                       value="{{ access_port.get('vlan', '') }}">
+                            </div>
+                        {% endfor %}
+</div>
                         </div>
 
                     </div>

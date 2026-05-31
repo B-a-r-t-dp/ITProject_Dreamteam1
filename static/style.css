@@ -1054,3 +1054,69 @@ body.bg-light:not(.app-body) .card {
     line-height: 1.45;
 }
 
+.access-port-editor {
+    margin-top: 16px;
+    border: 1px solid #d8e2ef;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.access-port-header,
+.access-port-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.8fr 80px;
+    gap: 12px;
+    align-items: center;
+}
+
+.access-port-header {
+    padding: 10px 14px;
+    background: #eef4fb;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.access-port-row {
+    padding: 10px 14px;
+    border-top: 1px solid #e5edf5;
+}
+
+.access-port-interface {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.access-port-row input {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid #cbd7e6;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.access-port-vlan-input {
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .access-port-header {
+        display: none;
+    }
+
+    .access-port-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .access-port-interface {
+        padding-top: 4px;
+    }
+
+    .access-port-vlan-input {
+        text-align: left;
+    }
+}
