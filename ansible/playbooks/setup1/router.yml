@@ -1,47 +1,39 @@
 ---
 # Routerplaybook
 # Verantwoordelijke: Bart
-#
 # Dit playbook bevat de basisconfiguratie voor de router uit onze MVP.
-#
-# De technische waarden komen uit info.yml.
-# Daardoor staan hostnames, interfaces, IP-adressen en OSPF-waarden
-# op 1 centrale plaats per opstelling.
+
+
+###############################################################################
+#                            Algemeene configuratie                           #
+###############################################################################
+
 
 - name: Router basisconfiguratie voorbereiden
   hosts: routers
-  gather_facts: false
+  gather_facts: false                                                                      # We halen geen algemene systeeminformatie op, Bij Cisco-toestellen hebben we dat hier niet nodig en zo start het playbook sneller.
 
   vars_files:
-    - info.yml
+    - info.yml                                                                             # De technische waarden komen uit info.yml.
 
   tasks:
-    # Deze debug-taak verandert niets op de router.
-    # Ze helpt controleren welke router Ansible geselecteerd heeft.
     - name: Controleer welke router gebruikt wordt
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                               # Toont een korte controlemelding in de output, Zo zien we meteen welk toestel Ansible probeert te configureren.
         msg: "Router {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
 
-    # Stelt de hostname van de router in.
-    # De waarde komt uit info.yml.
     - name: Hostname instellen
-      cisco.ios.ios_config:
+      cisco.ios.ios_config:                                                                # Cisco-module waarmee Ansible configuratiecommando's naar IOS stuurt.
         lines:
           - "hostname {{ variables.router.hostname }}"
 
-    # Bereidt de labinterface voor.
-    # Het IP-adres staat bewust in een aparte taak,
-    # omdat dit betrouwbaarder bleek tijdens de EVE-NG-test.
     - name: Labinterface voorbereiden
       cisco.ios.ios_config:
-        parents:
+        parents:                                                                           # Eerst naar interface Gi0/1 gaan 'parents', en daarbinnen de commando's uitvoeren. 'lines'
           - "interface {{ variables.router.lab_interface }}"
         lines:
           - "description {{ variables.router.lab_description }}"
           - no shutdown
 
-    # Zet het IP-adres op de labinterface.
-    # De interface, het IP en het subnetmasker komen uit info.yml.
     - name: Labinterface IP-adres instellen
       cisco.ios.ios_config:
         parents:
@@ -49,8 +41,6 @@
         lines:
           - "ip address {{ variables.router.lab_ip }} {{ variables.router.lab_mask }}"
 
-    # Voorziet een eenvoudige OSPF-basis.
-    # Alle OSPF-waarden komen uit info.yml.
     - name: OSPF-basisconfiguratie instellen
       cisco.ios.ios_config:
         parents:
@@ -59,56 +49,39 @@
           - "router-id {{ variables.router.ospf_router_id }}"
           - "network {{ variables.router.ospf_network }} {{ variables.router.ospf_wildcard }} area {{ variables.router.ospf_area }}"
 
-    # Slaat de configuratie op als er iets gewijzigd is.
-    # Zo blijft de configuratie behouden na een herstart van de router.
     - name: Configuratie opslaan indien gewijzigd
       cisco.ios.ios_config:
         save_when: modified
 
-    # Maakt metadata voor de backupbestandsnaam.
-    #
-    # backup_timestamp:
-    # - zorgt dat elke backup een uniek tijdstip krijgt.
-    #
-    # backup_created_by:
-    # - kan later vanuit Flask meegegeven worden als docentnaam.
-    # - zolang dat nog niet gekoppeld is, gebruiken we "unknown".
+
+###############################################################################
+#                              Backup Configuratie                            #
+###############################################################################
+
+
     - name: Backupmetadata voorbereiden
-      ansible.builtin.set_fact:
-        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
-        backup_created_by: "{{ logged_user | default('unknown') }}"
+      ansible.builtin.set_fact:                                                                                                   # Maakt tijdelijke variabelen tijdens het uitvoeren van het playbook.
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"                                        # lookup('pipe', ...) voert een lokaal commando uit in de Ansible-container en zorgt dat elke backup een uniek tijdstip krijgt.
+        backup_created_by: "{{ logged_user | default('unknown') }}"                                                               # we geven ingelogde user zijn naam mee, tot zolang dat niet het geval is geven we unknown mee.
 
     - name: Backupmapnaam voorbereiden
       ansible.builtin.set_fact:
-        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup1') }}"
+        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup1') }}"    # backupmapnaam van backups voorbereiden.
 
-    # Maakt een aparte backupmap voor deze configuratierun.
-    # Zo kunnen we later in de geschiedenis exact de juiste backups tonen.
     - name: Backupmap voor deze run maken
-      ansible.builtin.file:
-        path: "/app/backups/{{ backup_run_reference }}"
+      ansible.builtin.file:                                                                                                       # Gaat backupmap aanmaken
+        path: "/app/backups/{{ backup_run_reference }}"                                                                           # Zo kunnen we later in de geschiedenis exact de juiste backups tonen bij de juiste run.
         state: directory
-      delegate_to: localhost
+      delegate_to: localhost                                                                                                      # Deze taak wordt niet op de router uitgevoerd, maar in de Flask/Ansible-container zelf aangezien de backupmap in de container zit en niet ciscohardware.
 
-    # Haalt de volledige running-config van de router op.
-    # Dit gebruiken we als eenvoudige backup voor de MVP.
     - name: Router running-config ophalen voor backup
       cisco.ios.ios_command:
         commands:
           - show running-config
-      register: router_backup_config
+      register: router_backup_config                                                                                              # Hier bewaren we dus de output van show running-config zodat we die later kunnen wegschrijven.
 
-    # Bewaart de routerconfiguratie als tekstbestand in /app/backups.
-    #
-    # /app/backups is via Docker Compose gekoppeld aan de map backups/
-    # op onze eigen pc. Daardoor blijft de backup zichtbaar buiten de container.
-    #
-    # De bestandsnaam bevat:
-    # - het toestel uit de inventory;
-    # - de gebruiker/docent als die later wordt meegegeven;
-    # - de datum en tijd van de backup.
     - name: Routerconfiguratie bewaren in backups-map
-      ansible.builtin.copy:
+      ansible.builtin.copy:                                                                                                       # Schrijft tekst weg naar een bestand, Hier gebruiken we dit om de opgehaalde running-config als backupbestand op te slaan.
         content: "{{ router_backup_config.stdout[0] }}"
-        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"
+        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"                               # /app/backups is via Docker Compose gekoppeld aan de map backups/ op onze eigen pc. Daardoor blijft de backup zichtbaar buiten de container.
       delegate_to: localhost

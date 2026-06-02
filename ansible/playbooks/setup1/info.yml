@@ -5,11 +5,21 @@ description: 1 router, 1 switch, HTTP, HTTPS en FTP
 # Zo staan de waarden van deze opstelling op 1 centrale plaats.
 #
 # Voordeel:
-# - de frontend kan dezelfde info tonen;
+# - de frontend toont dezelfde info en kan ook in frontend aangepast worden;
 # - Ansible gebruikt dezelfde waarden om te configureren;
-# - we vermijden dat info.yml iets anders zegt dan de playbooks doen.
+
+###############################################################################
+#                              Setupvariabelen                                #
+###############################################################################
+
+# Belangrijk:
+# - de frontend toont en wijzigt deze waarden;
+# - Ansible gebruikt dezelfde waarden om de toestellen en containers te configureren;
+# - zo vermijden we dat het dashboard iets anders toont dan het playbook doet.
 
 variables:
+  # Router van de basisopstelling.
+  # Deze router krijgt 1 labinterface en een eenvoudige OSPF-configuratie.
   router:
     hostname: R1
     management_ip: 192.168.0.215
@@ -27,6 +37,8 @@ variables:
     ospf_wildcard: 0.0.0.255
     ospf_area: 0
 
+  # Switch van de basisopstelling.
+  # Deze switch krijgt VLANs, 1 accesspoort en 1 trunkpoort.
   switch:
     hostname: SW1
     management_ip: 192.168.0.216
@@ -47,6 +59,8 @@ variables:
     trunk_description: Trunk naar router of uplink
     trunk_allowed_vlans: "10,20"
 
+  # Servercontainers die bij setup1 horen.
+  # Deze waarden worden gebruikt door servers.yml om containers te starten en te testen.
   servers:
     http:
       service: http
@@ -71,8 +85,14 @@ variables:
       test_directory: ftp
       test_file: test.txt
       description: vsftpd op poort 20/21 met testbestand
+      
+###############################################################################
+#                         Technische documentatie frontend                     #
+###############################################################################
+
 # technical_documentation wordt enkel gebruikt door de frontend.
 # Dit is gewone tekst voor de docent/student.
+# Deze tekst legt uit hoe de setup aangesloten wordt en wat ze configureert.
 technical_documentation:
   title: Technische documentatie
   intro: Deze info toont welke toestellen, management-IP's en poorten bij setup1 horen.
@@ -95,4 +115,3 @@ technical_documentation:
         - Router R1 krijgt een lab-IP 192.168.10.1/24 op Gi0/1.
         - Switch SW1 krijgt VLAN 10 DOCENTEN en VLAN 20 STUDENTEN.
         - HTTP draait op poort 80, HTTPS op poort 443 en FTP op poort 21.
-

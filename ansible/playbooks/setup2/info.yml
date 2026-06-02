@@ -2,17 +2,22 @@
 description: 1 pod met router, 2 pod-switches, distributieswitch en classroomswitch
 
 # variables bevat de technische waarden die de setup2-playbooks gebruiken.
-# Deze opstelling stelt 1 werkende pod voor uit het grotere labo-podmodel.
-# De andere pods kunnen later hetzelfde principe volgen.
+
+###############################################################################
+#                              Setupvariabelen                                #
+###############################################################################
+
 
 variables:
+  # Router-on-a-stick.
+  # De router gebruikt 1 fysieke trunkinterface met subinterfaces per VLAN.
   router:
     hostname: R1
     management_ip: 192.168.0.221
 
     trunk_interface: GigabitEthernet0/0
     trunk_interface_short: Gi0/0
-    trunk_description: Trunk naar SW11 voor VLAN 10 en VLAN 20,VLAN 30 en VLAN 40
+    trunk_description: Trunk naar SW11 voor VLAN 10, VLAN 20, VLAN 30 en VLAN 40
 
     subinterfaces:
       - vlan: 10
@@ -32,6 +37,7 @@ variables:
         ip: 192.168.40.1
         mask: 255.255.255.0
 
+  # VLANs die doorheen de volledige podopstelling gebruikt worden.
   vlans:
     - id: 10
       name: DOCENTEN
@@ -42,9 +48,13 @@ variables:
     - id: 40
       name: GASTEN
 
+  # Switchdata per switch.
+  # De sleutelnaam, bijvoorbeeld sw11, moet overeenkomen met de naam in inventory.ini.
   switches:
     trunk_allowed_vlans: "10,20,30,40"
 
+    # Eerste podswitch.
+    # Deze switch hangt rechtstreeks aan de router.
     sw11:
       hostname: SW11
       management_ip: 192.168.0.222
@@ -54,6 +64,8 @@ variables:
         - interface: GigabitEthernet0/2
           description: Trunk naar SW12
 
+    # Tweede podswitch.
+    # Deze switch vormt de verbinding richting de distributieswitch.
     sw12:
       hostname: SW12
       management_ip: 192.168.0.223
@@ -63,6 +75,8 @@ variables:
         - interface: GigabitEthernet0/2
           description: Trunk naar DISTSW
 
+    # Distributieswitch aan de pod/serverruimte-kant.
+    # Deze switch maakt de EtherChannel richting de classroomswitch.
     distsw:
       hostname: DISTSW
       management_ip: 192.168.0.224
@@ -78,6 +92,8 @@ variables:
           - interface: GigabitEthernet0/3
             description: EtherChannel naar CLASSSW link 2
 
+    # Classroomswitch aan de studentenkant.
+    # Hier komen de voorbeeld-accesspoorten terecht.
     classsw:
       hostname: CLASSSW
       management_ip: 192.168.0.225
@@ -93,20 +109,26 @@ variables:
           - interface: GigabitEthernet0/3
             description: Docentenpoort VLAN 10
             vlan: 10
-          - interface: GigabitEthernet0/4
+          - interface: GigabitEthernet1/0
             description: Studentenpoort VLAN 20
             vlan: 20
-          - interface: GigabitEthernet0/5
+          - interface: GigabitEthernet1/1
             description: Serverpoort VLAN 30
             vlan: 30
-          - interface: GigabitEthernet0/6
+          - interface: GigabitEthernet1/2
             description: Gastpoort VLAN 40
             vlan: 40
+
+###############################################################################
+#                         Technische documentatie frontend                     #
+###############################################################################
+
 # technical_documentation wordt enkel gebruikt door de frontend.
 # Dit is gewone tekst voor de docent/student.
+# Deze tekst legt uit hoe de setup aangesloten wordt en wat ze configureert.
 technical_documentation:
   title: Technische documentatie
-  intro: Deze info toont hoe 1 pod uit het labo in Brussel aangesloten en geconfigureerd wordt.
+  intro: Deze setup configureert 1 pod uit het labo in Brussel. Het doel is dat de VLANs vanuit de pod via de distributieswitch tot aan de classroomswitch beschikbaar worden gemaakt.
   sections:
     - title: Management-IP's voor ssh
       items:
@@ -123,12 +145,14 @@ technical_documentation:
         - SW12 Gi0/2 -> DISTSW Gi0/1.
         - DISTSW Gi0/2 -> CLASSSW Gi0/1.
         - DISTSW Gi0/3 -> CLASSSW Gi0/2.
-        - CLASSSW Gi0/3 is de studentpoort op VLAN 10.
+        - CLASSSW Gi0/3, Gi1/0, Gi1/1 en Gi1/2 zijn voorbeeldpoorten aan de classroomkant.
 
     - title: Wat configureert de setup?
       items:
-        - R1 krijgt subinterfaces voor VLAN 10 en VLAN 20.
-        - De switches krijgen VLAN 10 DOCENTEN en VLAN 20 STUDENTEN.
-        - De links tussen DISTSW en CLASSSW worden als EtherChannel trunk ingesteld.
-        - CLASSSW krijgt een accesspoort voor de studentenkant.
+        - R1 wordt ingesteld als router-on-a-stick. De router krijgt subinterfaces voor VLAN 10, 20, 30 en 40.
+        - Alle switches krijgen dezelfde VLANs, zodat die VLANs doorheen de volledige podopstelling gebruikt kunnen worden.
+        - SW11 en SW12 verbinden de router en de podkant met de distributieswitch.
+        - DISTSW en CLASSSW worden via 2 fysieke links gekoppeld. Die 2 links worden samengevoegd in 1 EtherChannel trunk.
+        - CLASSSW krijgt accesspoorten voor de classroomkant, bijvoorbeeld docenten, studenten, servers en gasten.
+        - Kort gezegd: deze setup zorgt dat VLANs uit de pod tot in het klaslokaal beschikbaar zijn.
 

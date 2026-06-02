@@ -8,53 +8,51 @@
 # Daardoor staan VLANs, poorten en hostnames op 1 centrale plaats
 # per opstelling.
 
+
+###############################################################################
+#                            Algemene configuratie                            #
+###############################################################################
+
+
 - name: Switch basisconfiguratie voorbereiden
-  hosts: switches
-  gather_facts: false
+  hosts: switches                                                                               # Dit playbook wordt uitgevoerd op alle toestellen uit de groep switches.
+  gather_facts: false                                                                           # We halen geen algemene systeeminformatie op, want voor Cisco-configuratie hebben we dat hier niet nodig.
 
   vars_files:
-    - info.yml
+    - info.yml                                                                                  # De technische waarden komen uit info.yml.
 
   tasks:
-    # Deze debug-taak verandert niets op de switch.
-    # Ze helpt controleren welke switch Ansible geselecteerd heeft.
     - name: Controleer welke switch gebruikt wordt
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                                    # Toont een korte controlemelding in de Ansible-output.
         msg: "Switch {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
 
-    # Stelt de hostname van de switch in.
-    # De waarde komt uit info.yml.
     - name: Hostname instellen
-      cisco.ios.ios_config:
+      cisco.ios.ios_config:                                                                     # Cisco-module waarmee Ansible configuratiecommando's naar IOS stuurt.
         lines:
           - "hostname {{ variables.switch.hostname }}"
 
-    # Maakt alle VLANs aan die in info.yml staan.
-    # Daardoor kunnen we later VLANs toevoegen zonder deze taak te herschrijven.
     - name: VLANs aanmaken
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                     # Stuurt VLAN-configuratiecommando's naar de switch.
+        parents:                                                                                # Gaat eerst naar de juiste VLAN-configuratiemodus.
           - "vlan {{ item.id }}"
-        lines:
+        lines:                                                                                  # Voert daarna de commando's binnen die VLAN-modus uit.
           - "name {{ item.name }}"
-      loop: "{{ variables.switch.vlans }}"
+      loop: "{{ variables.switch.vlans }}"                                                       # Loopt door alle VLANs die in info.yml staan.
 
     # Zet de accesspoort eerst terug naar standaardconfiguratie.
     #
     # Dit vermijdt dat oude testconfiguratie blijft hangen.
     # Daarna bouwen we de gewenste accesspoort opnieuw proper op.
     - name: Accesspoort resetten
-      cisco.ios.ios_config:
+      cisco.ios.ios_config:                                                                     # Voert Cisco-configuratiecommando's uit.
         lines:
-          - "default interface {{ variables.switch.access_port }}"
+          - "default interface {{ variables.switch.access_port }}"                               # Zet de accesspoort terug naar standaardinstellingen.
 
-    # Configureert de accesspoort.
-    # De poort en VLAN komen uit info.yml.
     - name: Accesspoort configureren
       cisco.ios.ios_config:
-        parents:
+        parents:                                                                                # Gaat eerst naar de accesspoort-interface.
           - "interface {{ variables.switch.access_port }}"
-        lines:
+        lines:                                                                                  # Voert daarna de accesspoortcommando's binnen die interface uit.
           - "description {{ variables.switch.access_description }}"
           - switchport mode access
           - "switchport access vlan {{ variables.switch.access_vlan }}"
@@ -65,17 +63,15 @@
     # Zo vermijden we dat oude accessconfiguratie of testregels
     # blijven staan op een poort die als trunk bedoeld is.
     - name: Trunkpoort resetten
-      cisco.ios.ios_config:
+      cisco.ios.ios_config:                                                                     # Voert Cisco-configuratiecommando's uit.
         lines:
-          - "default interface {{ variables.switch.trunk_port }}"
+          - "default interface {{ variables.switch.trunk_port }}"                                # Zet de trunkpoort terug naar standaardinstellingen.
 
-    # Configureert de trunkpoort.
-    # De poort en toegelaten VLANs komen uit info.yml.
     - name: Trunkpoort configureren
       cisco.ios.ios_config:
-        parents:
+        parents:                                                                                # Gaat eerst naar de trunkpoort-interface.
           - "interface {{ variables.switch.trunk_port }}"
-        lines:
+        lines:                                                                                  # Voert daarna de trunkcommando's binnen die interface uit.
           - "description {{ variables.switch.trunk_description }}"
           - switchport trunk encapsulation dot1q
           - switchport mode trunk
@@ -86,40 +82,33 @@
     # Zo blijft de configuratie behouden na een herstart van de switch.
     - name: Configuratie opslaan indien gewijzigd
       cisco.ios.ios_config:
-        save_when: modified
+        save_when: modified                                                                     # Slaat alleen op als Ansible effectief iets gewijzigd heeft.
 
-    # Maakt metadata voor de backupbestandsnaam.
-    #
-    # backup_timestamp:
-    # - zorgt dat elke backup een uniek tijdstip krijgt.
-    #
-    # backup_created_by:
-    # - kan later vanuit Flask meegegeven worden als docentnaam.
-    # - zolang dat nog niet gekoppeld is, gebruiken we "unknown".
+
+###############################################################################
+#                              Backup Configuratie                            #
+###############################################################################
+
     - name: Backupmetadata voorbereiden
-      ansible.builtin.set_fact:
-        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
-        backup_created_by: "{{ logged_user | default('unknown') }}"
+      ansible.builtin.set_fact:                                                                 # Maakt tijdelijke variabelen tijdens het uitvoeren van het playbook.
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"       # lookup('pipe', ...) voert een lokaal commando uit in de Ansible-container en maakt een uniek tijdstip.
+        backup_created_by: "{{ logged_user | default('unknown') }}"                              # We geven de naam van de ingelogde user mee. Als die ontbreekt, gebruiken we unknown.
 
     - name: Backupmapnaam voorbereiden
-      ansible.builtin.set_fact:
-        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup1') }}"
+      ansible.builtin.set_fact:                                                                 # Maakt opnieuw een tijdelijke variabele.
+        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup1') }}"   # Maakt de naam klaar van de backupmap die bij deze run hoort.
 
-    # Maakt een aparte backupmap voor deze configuratierun.
-    # Zo kunnen we later in de geschiedenis exact de juiste backups tonen.
     - name: Backupmap voor deze run maken
-      ansible.builtin.file:
-        path: "/app/backups/{{ backup_run_reference }}"
+      ansible.builtin.file:                                                                     # Maakt de backupmap aan als die nog niet bestaat.
+        path: "/app/backups/{{ backup_run_reference }}"                                         # Zo kunnen we later in de geschiedenis exact de juiste backups tonen bij de juiste run.
         state: directory
-      delegate_to: localhost
+      delegate_to: localhost                                                                    # Deze taak draait in de Flask/Ansible-container en niet op de switch.
 
-    # Haalt de volledige running-config van de switch op.
-    # Dit gebruiken we als eenvoudige backup voor de MVP.
     - name: Switch running-config ophalen voor backup
-      cisco.ios.ios_command:
+      cisco.ios.ios_command:                                                                    # Cisco-module waarmee Ansible show-commando's uitvoert.
         commands:
           - show running-config
-      register: switch_backup_config
+      register: switch_backup_config                                                            # Bewaart de output van show running-config zodat we die later kunnen wegschrijven.
 
     # Bewaart de switchconfiguratie als tekstbestand in /app/backups.
     #
@@ -131,7 +120,7 @@
     # - de gebruiker/docent als die later wordt meegegeven;
     # - de datum en tijd van de backup.
     - name: Switchconfiguratie bewaren in backups-map
-      ansible.builtin.copy:
-        content: "{{ switch_backup_config.stdout[0] }}"
-        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"
-      delegate_to: localhost
+      ansible.builtin.copy:                                                                     # Schrijft tekst weg naar een bestand.
+        content: "{{ switch_backup_config.stdout[0] }}"                                         # Dit is de running-config die we hierboven opgehaald hebben.
+        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"   # /app/backups is via Docker Compose gekoppeld aan backups/ op onze pc.
+      delegate_to: localhost                                                                    # Deze taak draait in de Flask/Ansible-container, want daar staat de backupmap.

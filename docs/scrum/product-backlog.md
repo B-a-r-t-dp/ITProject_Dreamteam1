@@ -23,7 +23,7 @@ Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daaro
 | PB-12 | SQLite-schema voor `network_setups` uitwerken | Joost | Done |
 | PB-13 | SQLite-schema voor `deployment_logs` uitwerken | Joost | Done |
 | PB-14 | Relaties tussen tabellen voorbereiden | Joost | Done |
-| PB-15 | Ansible-inventory invullen met router en switch | Bart | Done |
+| PB-15 | Inventory voor basisopstelling invullen met router en switch | Bart | Done |
 | PB-16 | Routerplaybook als basis voorbereiden | Bart | Done |
 | PB-17 | Switchplaybook als basis voorbereiden | Bart | Done |
 | PB-18 | Serverplaybook als basis voorbereiden | Bart | Done |
@@ -66,29 +66,29 @@ Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daaro
 | PB-72 | Backupmap gebruiken | Bart | Done |
 | PB-73 | Routerconfiguratie als backup bewaren | Bart | Done |
 | PB-74 | Switchconfiguratie als backup bewaren | Bart | Done |
-| PB-75 | Op dashboard tonen welke waarden gebruikt worden | Lina | To do |
+| PB-75 | Op dashboard tonen welke waarden gebruikt worden | Lina | Done |
 | PB-76 | Koppelafspraken bijwerken voor setupdata en backups | Team | Done |
 | PB-60 | Ansible-output leesbaarder maken | Lina | Done |
 | PB-61 | Fouten duidelijker tonen | Lina | Done |
 | PB-64 | Netwerkschema of podschema maken | Lina | To do |
 | PB-65 | Serverplaybook nuttiger maken | Bart | Done |
 | PB-66 | Logs per docent controleren | Joost | Done |
-| PB-77 | Klein formulier voorzien voor setupwaarden | Lina | To do |
-| PB-78 | Aangepaste waarden doorgeven aan Ansible | Joost | To do |
-| PB-79 | Invoer controleren | Joost | To do |
-| PB-80 | Deployment log timestamps in Belgische tijd tonen | Lina | To do |
-| PB-81 | Configuratiegeschiedenis tonen op dashboard | Lina | To do |
-| PB-82 | Samenvatting en technische output per log bekijken | Lina | To do |
-| PB-83 | Tweede netwerkopstelling toevoegen volgens labo Brussel | Bart | To do |
-| PB-84 | Inventory per netwerkopstelling voorzien | Bart | To do |
-| PB-85 | Ansible-helper uitbreiden voor meerdere setupmappen | Bart | To do |
-| PB-86 | Dashboard meerdere opstellingen laten tonen en starten | Bart | To do |
-| PB-87 | Volledige configuratieflow debuggen | Team | To do |
-| PB-91 | Alleen veilige variabelen aanpasbaar maken | Joost | To do |
-| PB-92 | Backupbestanden tonen bij succesvolle configuraties | Lina | To do |
-| PB-93 | Backupbestanden logisch ordenen | Bart | To do |
-| PB-94 | Sprint 3 eindflow testen | Team | To do |
-| PB-95 | Restpunten voor Sprint 4 oplijsten | Team | To do |
+| PB-77 | Klein formulier voorzien voor setupwaarden | Lina | Done |
+| PB-78 | Aangepaste waarden doorgeven aan Ansible | Joost | Done |
+| PB-79 | Invoer controleren | Joost | Done |
+| PB-80 | Deployment log timestamps in Belgische tijd tonen | Lina | Done |
+| PB-81 | Configuratiegeschiedenis tonen op dashboard | Lina | Done |
+| PB-82 | Samenvatting en technische output per log bekijken | Lina | Done |
+| PB-83 | Tweede netwerkopstelling toevoegen volgens labo Brussel | Bart | Done |
+| PB-84 | Inventory per netwerkopstelling voorzien | Bart | Done |
+| PB-85 | Ansible-helper uitbreiden voor meerdere setupmappen | Bart | Done |
+| PB-86 | Dashboard meerdere opstellingen laten tonen en starten | Bart | Done |
+| PB-87 | Configuratiegeschiedenis overzichtelijker maken | Team | Done |
+| PB-91 | Alleen veilige variabelen aanpasbaar maken | Joost | Done |
+| PB-92 | Backupbestanden tonen bij succesvolle configuraties | Lina | Done |
+| PB-93 | Backupbestanden logisch ordenen | Bart | Done |
+| PB-94 | Sprint 3 eindflow testen | Team | Done |
+| PB-95 | Restpunten voor Sprint 4 oplijsten | Team | Done |
 | PB-49 | Volledige demo-flow testen | Team | To do |
 | PB-50 | Testen of `main` een werkende sprintversie bevat | Team | To do |
 | PB-51 | Docker Compose build/start documenteren | Bart | To do |
@@ -99,6 +99,8 @@ Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daaro
 | PB-56 | Niet-afgewerkte onderdelen verantwoorden | Team | To do |
 | PB-57 | Presentatie/demo voorbereiden | Team | To do |
 | PB-58 | AI-logboeken en changelogs controleren | Team | To do |
+| PB-96 | Code per eigenaar nalezen en kort documenteren | Team | To do |
+| PB-97 | Technisch document als einddocument afwerken | Team | To do |
 
 ## Could have
 
@@ -108,7 +110,7 @@ Alleen opnemen als de Must have-taken van die sprint werken.
 | --- | --- | --- | --- |
 | PB-59 | Dashboard iets mooier maken | Lina | To do |
 | PB-62 | Extra netwerkopstelling als bonus toevoegen | Joost + Lina | To do |
-| PB-88 | Backupbestanden downloadbaar maken | Lina + Bart | To do |
+| PB-88 | Backupbestanden downloadbaar maken | Lina + Bart | Done |
 | PB-89 | Output nog verder opdelen per playbook | Lina + Bart | To do |
 
 ## Niet in MVP

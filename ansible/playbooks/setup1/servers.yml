@@ -1,7 +1,6 @@
 ---
 # Serverplaybook
 # Verantwoordelijke: Bart
-#
 # Dit playbook hoort bij de serverkant van onze MVP.
 #
 # In onze opgave betekent "servers":
@@ -10,134 +9,130 @@
 # - FTP-container
 #
 # Docker Compose bouwt en beheert deze containers.
-# Vanuit de configuratieflow starten en controleren we stap voor stap
-# of de serverdiensten bereikbaar zijn.
+# Vanuit de configuratieflow starten en controleren we stap voor stap of de serverdiensten bereikbaar zijn.
+
+
+###############################################################################
+#                            Algemene configuratie                            #
+###############################################################################
+
 
 - name: Servercontainers starten en controleren
-  hosts: localhost
-  connection: local
-  gather_facts: false
+  hosts: localhost                                                                              # Dit playbook draait lokaal in de Flask/Ansible-container en niet op Cisco-hardware.
+  connection: local                                                                             # Ansible moet hiervoor geen SSH-sessie openen, want Docker draait op dezelfde container/hostomgeving.
+  gather_facts: false                                                                           # We halen geen systeeminformatie op omdat we hier alleen Docker- en servicetesten uitvoeren.
 
   vars_files:
-    - info.yml
+    - info.yml                                                                                  # De servernamen, poorten en testgegevens komen uit info.yml.
 
   vars:
     # playbook_dir wijst naar ansible/playbooks/setup1.
     # Met ../../.. komen we terug in de projectroot,
     # waar docker-compose.yml staat.
-    #
-    # Daardoor werkt dit ook als de projectmap bij iemand anders
-    # een andere naam heeft.
-    project_root: "{{ playbook_dir }}/../../.."
+    project_root: "{{ playbook_dir }}/../../.."                                                  # Pad naar de projectroot waar docker-compose.yml staat.
 
   tasks:
     - name: Toon geplande serverdiensten
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                                   
         msg:
           - "HTTP-container: webserver op poort {{ variables.servers.http.port }}"
           - "HTTPS-container: beveiligde webserver op poort {{ variables.servers.https.port }}"
           - "FTP-container: FTP-service op poort {{ variables.servers.ftp.ports }}"
 
 
+###############################################################################
+#                              HTTP Configuratie                              #
+###############################################################################
 
-    # Start de HTTP-container via Docker Compose.
-    # Deze service hoort bij PB-41.
+
     - name: HTTP-container starten via Docker Compose
-      ansible.builtin.command:
-        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.http.service }}"
-        chdir: "{{ project_root }}"
-      register: http_start_result
+      ansible.builtin.command:                                                                   # Voert een terminalcommando uit vanuit Ansible.
+        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.http.service }}"   # Start de HTTP-service via Docker Compose.
+        chdir: "{{ project_root }}"                                                              # Voert het commando uit in de projectmap, waar docker-compose.yml staat.
+      register: http_start_result                                                                # Bewaart de output van het Docker Compose-commando.
+      
+      # Alleen als Docker echt iets start of aanmaakt, tonen we dit als changed.
       changed_when: >
         'Started' in http_start_result.stdout or
         'Created' in http_start_result.stdout or
         'Started' in http_start_result.stderr or
         'Created' in http_start_result.stderr
 
-    # Controleert of de HTTP-container bereikbaar is binnen het Docker-netwerk.
-    # Vanuit de Flask-container is de service bereikbaar via de servicenaam "http".
     - name: HTTP-container controleren
-      ansible.builtin.uri:
-        url: "{{ variables.servers.http.scheme }}://{{ variables.servers.http.service }}"
-        method: GET
-        status_code: 200
-      register: http_check_result
+      ansible.builtin.uri:                                                                       # Doet een HTTP-request vanuit Ansible.
+        url: "{{ variables.servers.http.scheme }}://{{ variables.servers.http.service }}"        # Gebruikt de servicenaam uit Docker Compose, bijvoorbeeld http.
+        method: GET                                                                             
+        status_code: 200                                                                         # We verwachten status 200, dus een succesvolle webpagina.
+      register: http_check_result                                                                # Bewaart het resultaat van de HTTP-check.
 
     - name: HTTP-testresultaat tonen
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                                     # Toont een korte bevestiging in de Ansible-output.
         msg: "HTTP-container is gestart en bereikbaar met status {{ http_check_result.status }}."
 
 
+###############################################################################
+#                              HTTPS Configuratie                             #
+###############################################################################
 
 
-
-    # Start de HTTPS-container via Docker Compose.
-    # Deze service hoort bij PB-42.
     - name: HTTPS-container starten via Docker Compose
-      ansible.builtin.command:
-        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.https.service }}"
-        chdir: "{{ project_root }}"
-      register: https_start_result
+      ansible.builtin.command:                                                                   
+        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.https.service }}"  
+        chdir: "{{ project_root }}"                                                              
+      register: https_start_result                                                             
+
+      # Alleen als Docker echt iets start of aanmaakt, tonen we dit als changed.
       changed_when: >
         'Started' in https_start_result.stdout or
         'Created' in https_start_result.stdout or
         'Started' in https_start_result.stderr or
         'Created' in https_start_result.stderr
 
-    # Controleert of de HTTPS-container bereikbaar is binnen het Docker-netwerk.
-    #
-    # Omdat onze HTTPS-container een self-signed certificaat gebruikt,
-    # zetten we validate_certs op false.
-    # Dat is normaal voor een labo/MVP-test.
     - name: HTTPS-container controleren
-      ansible.builtin.uri:
-        url: "{{ variables.servers.https.scheme }}://{{ variables.servers.https.service }}"
-        method: GET
-        status_code: 200
-        validate_certs: false
-      register: https_check_result
+      ansible.builtin.uri:                                                                       # Doet een HTTPS-request vanuit Ansible.
+        url: "{{ variables.servers.https.scheme }}://{{ variables.servers.https.service }}"      
+        method: GET                                                                              
+        status_code: 200                                                                         
+        validate_certs: false                                                                    
+      register: https_check_result                                                              
 
     - name: HTTPS-testresultaat tonen
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                                     # Toont een korte bevestiging in de Ansible-output.
         msg: "HTTPS-container is gestart en bereikbaar met status {{ https_check_result.status }}."
 
 
+###############################################################################
+#                               FTP Configuratie                              #
+###############################################################################
 
 
-    # Start de FTP-container via Docker Compose.
-    # Deze service hoort bij PB-44.
-    #
     # De FTP-container gebruikt vsftpd en bevat een testgebruiker:
     # - gebruiker: ftpuser
     # - wachtwoord: itproject
     #
-    # Docker Compose zorgt ervoor dat de container gestart wordt.
+
     - name: FTP-container starten via Docker Compose
-      ansible.builtin.command:
-        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.ftp.service }}"
-        chdir: "{{ project_root }}"
-      register: ftp_start_result
+      ansible.builtin.command:                                                                  
+        cmd: "docker compose -f docker-compose.yml up -d {{ variables.servers.ftp.service }}"   
+        chdir: "{{ project_root }}"                                                             
+      register: ftp_start_result                                                                
+      
+      # Alleen als Docker echt iets start of aanmaakt, tonen we dit als changed.
       changed_when: >
         'Started' in ftp_start_result.stdout or
         'Created' in ftp_start_result.stdout or
         'Started' in ftp_start_result.stderr or
         'Created' in ftp_start_result.stderr
 
-    # Controleert of de FTP-server bereikbaar is op poort 21.
-    #
-    # Poort 21 is het commandokanaal van FTP.
-    # Daarmee weten we dat de FTP-service effectief luistert.
-    #
-    # Passive FTP gebruikt daarnaast extra datapoorten.
-    # Die staan in docker-compose.yml open voor clients zoals WinSCP.
     - name: FTP-poort controleren
-      ansible.builtin.wait_for:
-        host: "{{ variables.servers.ftp.service }}"
-        port: "{{ variables.servers.ftp.control_port }}"
-        timeout: 10
-      register: ftp_port_check_result
+      ansible.builtin.wait_for:                                                                 # Wacht tot een host en poort bereikbaar zijn.
+        host: "{{ variables.servers.ftp.service }}"                                              # Gebruikt de FTP-servicenaam uit Docker Compose.
+        port: "{{ variables.servers.ftp.control_port }}"                                         # Controleert de FTP-commandopoort, normaal poort 21.
+        timeout: 10                                                                             # Wacht maximaal 10 seconden op de FTP-service.
+      register: ftp_port_check_result                                                           # Bewaart het resultaat van de poortcontrole.
+
 
     # Controleert of aanmelden op FTP ook echt lukt.
-    #
     # We gebruiken Python ftplib omdat Python al aanwezig is
     # in de Flask-container.
     #
@@ -146,7 +141,7 @@
     # Daardoor testen we niet enkel of de poort openstaat,
     # maar ook of de FTP-server bruikbaar is.
     - name: FTP-login en testbestand controleren
-      ansible.builtin.command:
+      ansible.builtin.command:                                                                  # Voert een kleine Python-test uit vanuit Ansible.
         cmd: >
           python -c "from ftplib import FTP;
           ftp = FTP('{{ variables.servers.ftp.service }}', timeout=10);
@@ -156,9 +151,9 @@
           ftp.quit();
           assert '{{ variables.servers.ftp.test_file }}' in files;
           print('FTP-login werkt en {{ variables.servers.ftp.test_file }} is gevonden.')"
-      register: ftp_login_check_result
-      changed_when: false
+      register: ftp_login_check_result                                                          # Bewaart de output van de FTP-logincheck.
+      changed_when: false                                                                       # Deze test verandert niets aan de configuratie, dus blijft dit altijd ok en niet changed.
 
     - name: FTP-testresultaat tonen
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                                    # Toont de bevestiging dat FTP-login en testbestand werken.
         msg: "{{ ftp_login_check_result.stdout }}"

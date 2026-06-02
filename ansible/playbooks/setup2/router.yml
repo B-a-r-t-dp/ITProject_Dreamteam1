@@ -3,72 +3,90 @@
 # Verantwoordelijke: Bart
 #
 # Dit playbook configureert de router van 1 labo-pod.
-# De router gebruikt subinterfaces, zodat VLAN 10 en VLAN 20
-# via 1 fysieke link naar de pod-switch kunnen lopen.
+# De router gebruikt subinterfaces, zodat VLAN 10, 20, 30 en 40
+# via 1 fysieke trunklink naar de eerste pod-switch kunnen lopen.
+
+
+###############################################################################
+#                            Algemene configuratie                            #
+###############################################################################
+
 
 - name: Router configureren voor podopstelling
-  hosts: routers
-  gather_facts: false
+  hosts: routers                                                                               # Dit playbook wordt uitgevoerd op alle toestellen uit de groep routers.
+  gather_facts: false                                                                          # We halen geen algemene systeeminformatie op, want voor Cisco-configuratie hebben we dat hier niet nodig.
 
   vars_files:
-    - info.yml
+    - info.yml                                                                                 # De technische waarden komen uit info.yml.
 
   tasks:
     - name: Controleer welke router gebruikt wordt
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                                   # Toont een korte controlemelding in de Ansible-output.
         msg: "Router {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
 
     - name: Hostname instellen
-      cisco.ios.ios_config:
+      cisco.ios.ios_config:                                                                    # Cisco-module waarmee Ansible configuratiecommando's naar IOS stuurt.
         lines:
           - "hostname {{ variables.router.hostname }}"
 
+
+###############################################################################
+#                         Router-on-a-stick configuratie                      #
+###############################################################################
+
+
     - name: Fysieke trunkinterface voorbereiden
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                    # Configureert de fysieke trunkinterface op de router.
+        parents:                                                                               # Gaat eerst naar de juiste interfaceconfiguratie.
           - "interface {{ variables.router.trunk_interface }}"
-        lines:
+        lines:                                                                                 # Voert daarna de commando's binnen die interface uit.
           - "description {{ variables.router.trunk_description }}"
           - no ip address
           - no shutdown
 
     - name: Router subinterfaces configureren
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                    # Cisco-module waarmee Ansible show-commando's uitvoert.
+        parents:                                                                               # Bijvoorbeeld interface GigabitEthernet0/0.10.
           - "interface {{ variables.router.trunk_interface }}.{{ item.vlan }}"
-        lines:
+        lines:                                                                                 # Deze commando's horen bij 1 subinterface.
           - "description {{ item.description }}"
           - "encapsulation dot1Q {{ item.vlan }}"
           - "ip address {{ item.ip }} {{ item.mask }}"
-      loop: "{{ variables.router.subinterfaces }}"
+      loop: "{{ variables.router.subinterfaces }}"                                              # Loopt door alle subinterfaces uit info.yml.
 
     - name: Configuratie opslaan indien gewijzigd
-      cisco.ios.ios_config:
-        save_when: modified
+      cisco.ios.ios_config:                                                                    
+        save_when: modified                                                                    # Slaat alleen op als Ansible effectief iets gewijzigd heeft.
+
+
+###############################################################################
+#                              Backup Configuratie                            #
+###############################################################################
+
 
     - name: Backupmetadata voorbereiden
-      ansible.builtin.set_fact:
-        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
-        backup_created_by: "{{ logged_user | default('unknown') }}"
+      ansible.builtin.set_fact:                                                                 # Maakt tijdelijke variabelen tijdens het uitvoeren van het playbook.
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"      # lookup('pipe', ...) voert een lokaal commando uit in de Ansible-container en maakt een uniek tijdstip.
+        backup_created_by: "{{ logged_user | default('unknown') }}"                             
 
     - name: Backupmapnaam voorbereiden
-      ansible.builtin.set_fact:
-        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup2') }}"
+      ansible.builtin.set_fact:                                                                
+        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup2') }}"   # Maakt de naam klaar van de backupmap die bij deze run hoort.
 
     - name: Backupmap voor deze run maken
-      ansible.builtin.file:
-        path: "/app/backups/{{ backup_run_reference }}"
+      ansible.builtin.file:                                                                    # Maakt de backupmap aan als die nog niet bestaat.
+        path: "/app/backups/{{ backup_run_reference }}"                                        # Zo kunnen we later in de geschiedenis exact de juiste backups tonen bij de juiste run.
         state: directory
-      delegate_to: localhost
+      delegate_to: localhost                                                                   # Deze taak draait in de Flask/Ansible-container en niet op de router.
 
     - name: Router running-config ophalen voor backup
-      cisco.ios.ios_command:
+      cisco.ios.ios_command:                                                                   
         commands:
           - show running-config
-      register: router_backup_config
+      register: router_backup_config                                                           # Bewaart de output van show running-config zodat we die later kunnen wegschrijven.
 
     - name: Routerconfiguratie bewaren in backups-map
-      ansible.builtin.copy:
-        content: "{{ router_backup_config.stdout[0] }}"
-        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"
-      delegate_to: localhost
+      ansible.builtin.copy:                                                                    # Schrijft tekst weg naar een bestand.
+        content: "{{ router_backup_config.stdout[0] }}"                                        # Dit is de running-config die we hierboven opgehaald hebben.
+        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"   # /app/backups is via Docker Compose gekoppeld aan backups/ op onze pc.
+      delegate_to: localhost                                                                  
