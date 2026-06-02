@@ -3,8 +3,8 @@
 # Verantwoordelijke: Bart
 #
 # Dit playbook configureert de router van 1 labo-pod.
-# De router gebruikt subinterfaces, zodat VLAN 10 en VLAN 20
-# via 1 fysieke link naar de pod-switch kunnen lopen.
+# De router gebruikt subinterfaces, zodat VLAN 10, 20, 30 en 40
+# via 1 fysieke trunklink naar de eerste pod-switch kunnen lopen.
 
 - name: Router configureren voor podopstelling
   hosts: routers

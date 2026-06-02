@@ -362,28 +362,42 @@ def get_last_deployment_log(user_id=None):
     }
 
 
-def get_deployment_logs_for_user(user_id, limit=10):
+def get_deployment_logs_for_user(user_id=None, limit=10):
     """
-    Geeft de laatste deployment logs terug voor Ã©Ã©n gebruiker/docent.
+    Geeft de laatste deployment logs terug.
 
-    Deze functie wordt gebruikt om te controleren welke docent
-    welke configuratie gestart heeft.
+    Als user_id meegegeven wordt, tonen we enkel die gebruiker.
+    Als user_id leeg blijft, tonen we alle gebruikers.
     """
 
     connection = get_connection()
 
-    rows = connection.execute(
-        """
-        SELECT deployment_logs.id, user_id, setup_id, network_setups.name AS setup_name, timestamp, status, output, run_reference, users.username
-        FROM deployment_logs
-        JOIN users ON users.id = deployment_logs.user_id
-        JOIN network_setups ON network_setups.id = deployment_logs.setup_id
-        WHERE user_id = ?
-        ORDER BY deployment_logs.id DESC
-        LIMIT ?
-        """,
-        (user_id, limit),
-    ).fetchall()
+    if user_id:
+        rows = connection.execute(
+            """
+            SELECT deployment_logs.id, user_id, setup_id, network_setups.name AS setup_name, timestamp, status, output, run_reference, users.username
+            FROM deployment_logs
+            JOIN users ON users.id = deployment_logs.user_id
+            JOIN network_setups ON network_setups.id = deployment_logs.setup_id
+            WHERE user_id = ?
+            ORDER BY deployment_logs.id DESC
+            LIMIT ?
+            """,
+            (user_id, limit),
+        ).fetchall()
+
+    else:
+        rows = connection.execute(
+            """
+            SELECT deployment_logs.id, user_id, setup_id, network_setups.name AS setup_name, timestamp, status, output, run_reference, users.username
+            FROM deployment_logs
+            JOIN users ON users.id = deployment_logs.user_id
+            JOIN network_setups ON network_setups.id = deployment_logs.setup_id
+            ORDER BY deployment_logs.id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
 
     connection.close()
 
@@ -445,39 +459,6 @@ def get_backup_files_for_run(run_reference):
     backup_files.sort(key=lambda item: item["modified"], reverse=True)
 
     return backup_files
-
-
-def get_backup_files():
-    """
-    Geeft alle backupbestanden terug uit de map backups/.
-
-    Deze functie blijft bestaan als fallback,
-    maar de geschiedenis gebruikt vooral get_backup_files_for_run().
-    """
-
-    backup_dir = BASE_DIR / "backups"
-
-    if not backup_dir.exists():
-        return []
-
-    backup_files = []
-
-    for file_path in backup_dir.rglob("*"):
-        if file_path.is_file() and file_path.name != ".gitkeep":
-            backup_files.append({
-                "name": file_path.name,
-                "path": str(file_path.relative_to(BASE_DIR)),
-                "modified": datetime.fromtimestamp(
-                    file_path.stat().st_mtime,
-                    ZoneInfo("Europe/Brussels")
-                ).strftime("%Y-%m-%d %H:%M:%S"),
-            })
-
-    backup_files.sort(key=lambda item: item["modified"], reverse=True)
-
-    return backup_files
-
-
 
 
 

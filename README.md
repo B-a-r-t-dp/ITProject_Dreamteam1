@@ -31,6 +31,8 @@ We bouwen bewust een haalbare MVP:
 | [Sprint 2](docs/scrum/sprint-2.md) | Integratie en uitbreiding van de basisopstelling tot een werkende MVP. |
 | [Sprint 2 Retrospective](docs/scrum/retrospective-sprint-2.md) | Wat goed ging, wat moeilijk ging en wat we meenemen naar Sprint 3. |
 | [Sprint 3](docs/scrum/sprint-3.md) | Alle functionaliteiten benutten in de mvp tot de finale versie. |
+| [Sprint 3 Retrospective](docs/scrum/retrospective-sprint-3.md) | Wat goed ging, wat moeilijk ging en wat we meenemen naar Sprint 4. |
+| [Sprint 4](docs/scrum/sprint-4.md) | Technisch document opmaken, code learning voorbereiding demo. |
 
 
 ## Taakverdeling en bestandseigenaars

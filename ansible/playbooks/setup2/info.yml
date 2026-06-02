@@ -12,7 +12,7 @@ variables:
 
     trunk_interface: GigabitEthernet0/0
     trunk_interface_short: Gi0/0
-    trunk_description: Trunk naar SW11 voor VLAN 10 en VLAN 20,VLAN 30 en VLAN 40
+    trunk_description: Trunk naar SW11 voor VLAN 10, VLAN 20, VLAN 30 en VLAN 40
 
     subinterfaces:
       - vlan: 10
@@ -93,20 +93,21 @@ variables:
           - interface: GigabitEthernet0/3
             description: Docentenpoort VLAN 10
             vlan: 10
-          - interface: GigabitEthernet0/4
+          - interface: GigabitEthernet1/0
             description: Studentenpoort VLAN 20
             vlan: 20
-          - interface: GigabitEthernet0/5
+          - interface: GigabitEthernet1/1
             description: Serverpoort VLAN 30
             vlan: 30
-          - interface: GigabitEthernet0/6
+          - interface: GigabitEthernet1/2
             description: Gastpoort VLAN 40
             vlan: 40
+
 # technical_documentation wordt enkel gebruikt door de frontend.
 # Dit is gewone tekst voor de docent/student.
 technical_documentation:
   title: Technische documentatie
-  intro: Deze info toont hoe 1 pod uit het labo in Brussel aangesloten en geconfigureerd wordt.
+  intro: Deze setup configureert 1 pod uit het labo in Brussel. Het doel is dat de VLANs vanuit de pod via de distributieswitch tot aan de classroomswitch beschikbaar worden gemaakt.
   sections:
     - title: Management-IP's voor ssh
       items:
@@ -123,12 +124,14 @@ technical_documentation:
         - SW12 Gi0/2 -> DISTSW Gi0/1.
         - DISTSW Gi0/2 -> CLASSSW Gi0/1.
         - DISTSW Gi0/3 -> CLASSSW Gi0/2.
-        - CLASSSW Gi0/3 is de studentpoort op VLAN 10.
+        - CLASSSW Gi0/3, Gi1/0, Gi1/1 en Gi1/2 zijn voorbeeldpoorten aan de classroomkant.
 
     - title: Wat configureert de setup?
       items:
-        - R1 krijgt subinterfaces voor VLAN 10 en VLAN 20.
-        - De switches krijgen VLAN 10 DOCENTEN en VLAN 20 STUDENTEN.
-        - De links tussen DISTSW en CLASSSW worden als EtherChannel trunk ingesteld.
-        - CLASSSW krijgt een accesspoort voor de studentenkant.
+        - R1 wordt ingesteld als router-on-a-stick. De router krijgt subinterfaces voor VLAN 10, 20, 30 en 40.
+        - Alle switches krijgen dezelfde VLANs, zodat die VLANs doorheen de volledige podopstelling gebruikt kunnen worden.
+        - SW11 en SW12 verbinden de router en de podkant met de distributieswitch.
+        - DISTSW en CLASSSW worden via 2 fysieke links gekoppeld. Die 2 links worden samengevoegd in 1 EtherChannel trunk.
+        - CLASSSW krijgt accesspoorten voor de classroomkant, bijvoorbeeld docenten, studenten, servers en gasten.
+        - Kort gezegd: deze setup zorgt dat VLANs uit de pod tot in het klaslokaal beschikbaar zijn.
 

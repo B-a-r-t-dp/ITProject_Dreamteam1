@@ -71,6 +71,7 @@ variables:
       test_directory: ftp
       test_file: test.txt
       description: vsftpd op poort 20/21 met testbestand
+      
 # technical_documentation wordt enkel gebruikt door de frontend.
 # Dit is gewone tekst voor de docent/student.
 technical_documentation:

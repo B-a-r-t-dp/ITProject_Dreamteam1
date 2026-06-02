@@ -14,7 +14,11 @@ from modules.database_tools import (
     get_deployment_logs_for_user,
 )
 
-from modules.ansible_tools import run_setup, validate_custom_variables
+from modules.ansible_tools import (
+    run_setup,
+    validate_custom_variables,
+    update_setup_info_file,
+)
 
 
 app = Flask(__name__)
@@ -80,7 +84,65 @@ def dashboard():
 
     network_setups = get_network_setups()
     last_log = get_last_deployment_log(session["user_id"])
-    deployment_logs = get_deployment_logs_for_user(session["user_id"], limit=10)
+
+    # We halen iets meer logs op zodat de filters nuttig blijven.
+    # De geschiedenis mag alle users tonen, want zo kan je zien wie wat gestart heeft.
+    deployment_logs = get_deployment_logs_for_user(limit=50)
+    setup_update_feedback = session.pop("setup_update_feedback", None)
+
+    history_users = []
+    history_user_ids = []
+
+    for log in deployment_logs:
+        if log["user_id"] not in history_user_ids:
+            history_user_ids.append(log["user_id"])
+            history_users.append({
+                "id": log["user_id"],
+                "username": log["username"],
+            })
+
+    # Simpele filters voor de configuratiegeschiedenis.
+    # We halen eerst de gewone logs op en filteren daarna in Python.
+    # Zo moeten we geen extra SQL-logica of nieuwe tabellen maken.
+    history_setup_filter = request.args.get("history_setup", "all")
+    history_status_filter = request.args.get("history_status", "all")
+    history_user_filter = request.args.get("history_user", "all")
+
+    if history_setup_filter != "all":
+        try:
+            history_setup_id = int(history_setup_filter)
+        except (TypeError, ValueError):
+            history_setup_id = None
+
+        if history_setup_id:
+            deployment_logs = [
+                log for log in deployment_logs
+                if log["setup_id"] == history_setup_id
+            ]
+
+    if history_status_filter in ("success", "failed"):
+        deployment_logs = [
+            log for log in deployment_logs
+            if log["status"] == history_status_filter
+        ]
+
+    if history_user_filter != "all":
+        try:
+            history_user_id = int(history_user_filter)
+        except (TypeError, ValueError):
+            history_user_id = None
+
+        if history_user_id:
+            deployment_logs = [
+                log for log in deployment_logs
+                if log["user_id"] == history_user_id
+            ]
+
+    history_filters = {
+        "setup": history_setup_filter,
+        "status": history_status_filter,
+        "user": history_user_filter,
+    }
 
     return render_template(
         "dashboard.html",
@@ -88,6 +150,9 @@ def dashboard():
         network_setups=network_setups,
         last_log=last_log,
         deployment_logs=deployment_logs,
+        history_users=history_users,
+        setup_update_feedback=setup_update_feedback,
+        history_filters=history_filters,
     )
 
 
@@ -108,31 +173,11 @@ def deploy():
     if setup_id not in valid_setup_ids:
         return redirect("/dashboard")
 
-    custom_variables = request.form.to_dict()
     run_reference = maak_run_referentie(setup_id, session["username"])
-
-    validation_errors = validate_custom_variables(setup_id, custom_variables)
-
-    if validation_errors:
-        result = {
-            "status": "failed",
-            "output": "VALIDATIEFOUTEN\n\n" + "\n".join(validation_errors),
-        }
-
-        save_deployment_log(
-            user_id=session["user_id"],
-            setup_id=setup_id,
-            status=result["status"],
-            output=result["output"],
-            run_reference=run_reference,
-        )
-
-        return redirect("/dashboard")
 
     result = run_setup(
         setup_id,
         logged_user=session["username"],
-        custom_variables=custom_variables,
         run_reference=run_reference,
     )
 
@@ -143,6 +188,62 @@ def deploy():
         output=result["output"],
         run_reference=run_reference,
     )
+
+    return redirect("/dashboard")
+
+
+@app.route("/update-setup-variables", methods=["POST"])
+def update_setup_variables():
+    """
+    Past de waarden in info.yml aan zonder Ansible te starten.
+
+    Eerst valideren we de formulierwaarden.
+    Pas als alles klopt, schrijven we ze effectief weg naar info.yml.
+    """
+
+    if "user_id" not in session:
+        return redirect("/")
+
+    setup_id = request.form.get("setup_id")
+
+    try:
+        setup_id = int(setup_id)
+    except (TypeError, ValueError):
+        return redirect("/dashboard")
+
+    valid_setup_ids = [setup["id"] for setup in get_network_setups()]
+
+    if setup_id not in valid_setup_ids:
+        return redirect("/dashboard")
+
+    custom_variables = request.form.to_dict()
+    validation_errors = validate_custom_variables(setup_id, custom_variables)
+
+    if validation_errors:
+        session["setup_update_feedback"] = {
+            "setup_id": setup_id,
+            "status": "failed",
+            "messages": validation_errors,
+        }
+
+        return redirect("/dashboard")
+
+    update_result = update_setup_info_file(setup_id, custom_variables)
+
+    if update_result["status"] == "failed":
+        session["setup_update_feedback"] = {
+            "setup_id": setup_id,
+            "status": "failed",
+            "messages": [update_result["output"]],
+        }
+
+        return redirect("/dashboard")
+
+    session["setup_update_feedback"] = {
+        "setup_id": setup_id,
+        "status": "success",
+        "messages": ["De waarden zijn gevalideerd en opgeslagen in info.yml."],
+    }
 
     return redirect("/dashboard")
 
