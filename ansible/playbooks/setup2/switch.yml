@@ -6,111 +6,147 @@
 # Het doel is om VLANs vanuit de pod tot aan de classroomswitch te brengen.
 # Tussen DISTSW en CLASSSW gebruiken we EtherChannel + trunk.
 
+
+###############################################################################
+#                            Algemene configuratie                            #
+###############################################################################
+
+
 - name: Switches configureren voor podopstelling
-  hosts: switches
-  gather_facts: false
+  hosts: switches                                                                              # Dit playbook wordt uitgevoerd op alle toestellen uit de groep switches.
+  gather_facts: false                                                                          # We halen geen algemene systeeminformatie op, want voor Cisco-configuratie hebben we dat hier niet nodig.
 
   vars_files:
-    - info.yml
+    - info.yml                                                                                 # De technische waarden komen uit info.yml.
 
   tasks:
     - name: Controleer welke switch gebruikt wordt
-      ansible.builtin.debug:
+      ansible.builtin.debug:                                                                   # Toont een korte controlemelding in de Ansible-output.
         msg: "Switch {{ inventory_hostname }} gebruikt IP {{ ansible_host }}"
 
     - name: Setupdata voor deze switch ophalen
-      ansible.builtin.set_fact:
-        switch_config: "{{ variables.switches[inventory_hostname] }}"
+      ansible.builtin.set_fact:                                                                # Maakt een tijdelijke variabele voor de switch die nu aan de beurt is.
+        switch_config: "{{ variables.switches[inventory_hostname] }}"                           # Haalt de juiste switchdata uit info.yml op basis van de inventorynaam.
 
     - name: Hostname instellen
-      cisco.ios.ios_config:
+      cisco.ios.ios_config:                                                                    # Cisco-module waarmee Ansible configuratiecommando's naar IOS stuurt.
         lines:
           - "hostname {{ switch_config.hostname }}"
 
+
+###############################################################################
+#                              VLAN Configuratie                              #
+###############################################################################
+
+
     - name: VLANs aanmaken
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                    # Stuurt VLAN-configuratiecommando's naar de switch.
+        parents:                                                                               # Gaat eerst naar de juiste VLAN-configuratiemodus.
           - "vlan {{ item.id }}"
-        lines:
+        lines:                                                                                 # Voert daarna de commando's binnen die VLAN-modus uit.
           - "name {{ item.name }}"
-      loop: "{{ variables.vlans }}"
+      loop: "{{ variables.vlans }}"                                                            # Loopt door alle VLANs die in info.yml staan.
+
+
+###############################################################################
+#                              Trunk Configuratie                             #
+###############################################################################
+
 
     - name: Gewone trunkpoorten configureren
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                    # Configureert de normale trunkpoorten tussen router, podswitches en distributieswitch.
+        parents:                                                                               # Gaat eerst naar de juiste interfaceconfiguratie.
           - "interface {{ item.interface }}"
-        lines:
+        lines:                                                                                 # Voert daarna de trunkcommando's binnen die interface uit.
           - "description {{ item.description }}"
           - switchport trunk encapsulation dot1q
           - switchport mode trunk
           - "switchport trunk allowed vlan {{ variables.switches.trunk_allowed_vlans }}"
           - no shutdown
-      loop: "{{ switch_config.trunk_ports | default([]) }}"
+      loop: "{{ switch_config.trunk_ports | default([]) }}"                                     # Loopt door de trunkpoorten van deze switch. Als er geen zijn, gebruikt Ansible een lege lijst.
+
+
+###############################################################################
+#                            EtherChannel Configuratie                        #
+###############################################################################
+
 
     - name: EtherChannel memberpoorten configureren
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                    # Configureert de fysieke poorten die samen 1 EtherChannel vormen.
+        parents:                                                                               # Gaat eerst naar de juiste fysieke interface.
           - "interface {{ item.interface }}"
-        lines:
+        lines:                                                                                 # Zet de poort als trunk en koppelt ze aan de port-channel.
           - "description {{ item.description }}"
           - switchport trunk encapsulation dot1q
           - switchport mode trunk
           - "switchport trunk allowed vlan {{ variables.switches.trunk_allowed_vlans }}"
           - "channel-group {{ switch_config.etherchannel.port_channel }} mode {{ switch_config.etherchannel.mode }}"
           - no shutdown
-      loop: "{{ switch_config.etherchannel.member_ports | default([]) }}"
-      when: switch_config.etherchannel is defined
+      loop: "{{ switch_config.etherchannel.member_ports | default([]) }}"                       # Loopt door alle fysieke EtherChannel-links van deze switch.
+      when: switch_config.etherchannel is defined                                               # Deze taak draait alleen op switches die EtherChannel-data hebben.
 
     - name: Port-channel trunk configureren
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                    # Configureert de logische Port-channel-interface.
+        parents:                                                                               # Gaat naar de Port-channel-interface.
           - "interface Port-channel{{ switch_config.etherchannel.port_channel }}"
-        lines:
+        lines:                                                                                 # Zet de Port-channel zelf ook als trunk.
           - "description EtherChannel trunk tussen pod en klaslokaal"
           - switchport trunk encapsulation dot1q
           - switchport mode trunk
           - "switchport trunk allowed vlan {{ variables.switches.trunk_allowed_vlans }}"
           - no shutdown
-      when: switch_config.etherchannel is defined
+      when: switch_config.etherchannel is defined                                               # Alleen nodig op DISTSW en CLASSSW.
+
+
+###############################################################################
+#                            Accesspoort Configuratie                         #
+###############################################################################
+
 
     - name: Classroom accesspoorten configureren
-      cisco.ios.ios_config:
-        parents:
+      cisco.ios.ios_config:                                                                    # Configureert accesspoorten aan de classroomkant.
+        parents:                                                                               # Gaat eerst naar de accesspoort-interface.
           - "interface {{ item.interface }}"
-        lines:
+        lines:                                                                                 # Voert daarna de accesspoortcommando's binnen die interface uit.
           - "description {{ item.description }}"
           - switchport mode access
           - "switchport access vlan {{ item.vlan }}"
           - no shutdown
-      loop: "{{ switch_config.access_ports | default([]) }}"
+      loop: "{{ switch_config.access_ports | default([]) }}"                                    # Loopt door de accesspoorten van deze switch. Als er geen zijn, gebruikt Ansible een lege lijst.
 
     - name: Configuratie opslaan indien gewijzigd
-      cisco.ios.ios_config:
-        save_when: modified
+      cisco.ios.ios_config:                                                                    # Cisco-module waarmee Ansible configuratie kan opslaan.
+        save_when: modified                                                                    # Slaat alleen op als Ansible effectief iets gewijzigd heeft.
+
+
+###############################################################################
+#                              Backup Configuratie                            #
+###############################################################################
+
 
     - name: Backupmetadata voorbereiden
-      ansible.builtin.set_fact:
-        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"
-        backup_created_by: "{{ logged_user | default('unknown') }}"
+      ansible.builtin.set_fact:                                                                # Maakt tijdelijke variabelen tijdens het uitvoeren van het playbook.
+        backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"      # lookup('pipe', ...) voert een lokaal commando uit in de Ansible-container en maakt een uniek tijdstip.
+        backup_created_by: "{{ logged_user | default('unknown') }}"                             # We geven de naam van de ingelogde user mee. Als die ontbreekt, gebruiken we unknown.
 
     - name: Backupmapnaam voorbereiden
-      ansible.builtin.set_fact:
-        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup2') }}"
+      ansible.builtin.set_fact:                                                                # Maakt opnieuw een tijdelijke variabele.
+        backup_run_reference: "{{ run_reference | default('run-' ~ backup_timestamp ~ '-' ~ backup_created_by ~ '-setup2') }}"   # Maakt de naam klaar van de backupmap die bij deze run hoort.
 
     - name: Backupmap voor deze run maken
-      ansible.builtin.file:
-        path: "/app/backups/{{ backup_run_reference }}"
+      ansible.builtin.file:                                                                    # Maakt de backupmap aan als die nog niet bestaat.
+        path: "/app/backups/{{ backup_run_reference }}"                                        # Zo kunnen we later in de geschiedenis exact de juiste backups tonen bij de juiste run.
         state: directory
-      delegate_to: localhost
+      delegate_to: localhost                                                                   # Deze taak draait in de Flask/Ansible-container en niet op de switch.
 
     - name: Switch running-config ophalen voor backup
-      cisco.ios.ios_command:
+      cisco.ios.ios_command:                                                                   # Cisco-module waarmee Ansible show-commando's uitvoert.
         commands:
           - show running-config
-      register: switch_backup_config
+      register: switch_backup_config                                                           # Bewaart de output van show running-config zodat we die later kunnen wegschrijven.
 
     - name: Switchconfiguratie bewaren in backups-map
-      ansible.builtin.copy:
-        content: "{{ switch_backup_config.stdout[0] }}"
-        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"
-      delegate_to: localhost
+      ansible.builtin.copy:                                                                    # Schrijft tekst weg naar een bestand.
+        content: "{{ switch_backup_config.stdout[0] }}"                                        # Dit is de running-config die we hierboven opgehaald hebben.
+        dest: "/app/backups/{{ backup_run_reference }}/{{ inventory_hostname }}-running-config.txt"   # /app/backups is via Docker Compose gekoppeld aan backups/ op onze pc.
+      delegate_to: localhost                                                                   # Deze taak draait in de Flask/Ansible-container, want daar staat de backupmap.
