@@ -178,107 +178,139 @@
                         <div class="config-group">
                             <h4>Router</h4>
 
-                            <div class="config-fields-grid">
-                                <label class="config-field">
-                                    <span>Hostname</span>
-                                    <input type="text" name="router_hostname" value="{{ router.get('hostname', '') }}">
-                                </label>
+                            <div class="config-subgroup">
+                                <h5>Algemeen</h5>
 
-                                <label class="config-field">
-                                    <span>Management-IP</span>
-                                    <input type="text" name="router_management_ip" value="{{ router.get('management_ip', '') }}">
-                                </label>
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Hostname</span>
+                                        <input type="text" name="router_hostname" value="{{ router.get('hostname', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>Labinterface</span>
-                                    <input type="text" name="router_lab_interface" value="{{ router.get('lab_interface', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>Management-IP</span>
+                                        <input type="text" name="router_management_ip" value="{{ router.get('management_ip', '') }}">
+                                    </label>
+                                </div>
+                            </div>
 
-                                <label class="config-field">
-                                    <span>Labinterface beschrijving</span>
-                                    <input type="text" name="router_lab_description" value="{{ router.get('lab_description', '') }}">
-                                </label>
+                            <div class="config-subgroup">
+                                <h5>Labinterface</h5>
 
-                                <label class="config-field">
-                                    <span>Lab IP-adres</span>
-                                    <input type="text" name="router_lab_ip" value="{{ router.get('lab_ip', '') }}">
-                                </label>
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Interface</span>
+                                        <input type="text" name="router_lab_interface" value="{{ router.get('lab_interface', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>Lab subnetmasker</span>
-                                    <input type="text" name="router_lab_mask" value="{{ router.get('lab_mask', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>Beschrijving</span>
+                                        <input type="text" name="router_lab_description" value="{{ router.get('lab_description', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>OSPF process</span>
-                                    <input type="text" name="router_ospf_process" value="{{ router.get('ospf_process', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>IP-adres</span>
+                                        <input type="text" name="router_lab_ip" value="{{ router.get('lab_ip', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>OSPF router-id</span>
-                                    <input type="text" name="router_ospf_router_id" value="{{ router.get('ospf_router_id', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>Subnetmasker</span>
+                                        <input type="text" name="router_lab_mask" value="{{ router.get('lab_mask', '') }}">
+                                    </label>
+                                </div>
+                            </div>
 
-                                <label class="config-field">
-                                    <span>OSPF netwerk</span>
-                                    <input type="text" name="router_ospf_network" value="{{ router.get('ospf_network', '') }}">
-                                </label>
+                            <div class="config-subgroup">
+                                <h5>OSPF-routing</h5>
 
-                                <label class="config-field">
-                                    <span>OSPF wildcard</span>
-                                    <input type="text" name="router_ospf_wildcard" value="{{ router.get('ospf_wildcard', '') }}">
-                                </label>
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Process</span>
+                                        <input type="text" name="router_ospf_process" value="{{ router.get('ospf_process', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>OSPF area</span>
-                                    <input type="text" name="router_ospf_area" value="{{ router.get('ospf_area', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>Router-id</span>
+                                        <input type="text" name="router_ospf_router_id" value="{{ router.get('ospf_router_id', '') }}">
+                                    </label>
+
+                                    <label class="config-field">
+                                        <span>Netwerk</span>
+                                        <input type="text" name="router_ospf_network" value="{{ router.get('ospf_network', '') }}">
+                                    </label>
+
+                                    <label class="config-field">
+                                        <span>Wildcard</span>
+                                        <input type="text" name="router_ospf_wildcard" value="{{ router.get('ospf_wildcard', '') }}">
+                                    </label>
+
+                                    <label class="config-field">
+                                        <span>Area</span>
+                                        <input type="text" name="router_ospf_area" value="{{ router.get('ospf_area', '') }}">
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
                         <div class="config-group">
                             <h4>Switch</h4>
 
-                            <div class="config-fields-grid">
-                                <label class="config-field">
-                                    <span>Hostname</span>
-                                    <input type="text" name="switch_hostname" value="{{ switch.get('hostname', '') }}">
-                                </label>
+                            <div class="config-subgroup">
+                                <h5>Algemeen</h5>
 
-                                <label class="config-field">
-                                    <span>Management-IP</span>
-                                    <input type="text" name="switch_management_ip" value="{{ switch.get('management_ip', '') }}">
-                                </label>
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Hostname</span>
+                                        <input type="text" name="switch_hostname" value="{{ switch.get('hostname', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>Accesspoort</span>
-                                    <input type="text" name="switch_access_port" value="{{ switch.get('access_port', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>Management-IP</span>
+                                        <input type="text" name="switch_management_ip" value="{{ switch.get('management_ip', '') }}">
+                                    </label>
+                                </div>
+                            </div>
 
-                                <label class="config-field">
-                                    <span>Accesspoort beschrijving</span>
-                                    <input type="text" name="switch_access_description" value="{{ switch.get('access_description', '') }}">
-                                </label>
+                            <div class="config-subgroup">
+                                <h5>Accesspoort</h5>
 
-                                <label class="config-field">
-                                    <span>Access VLAN</span>
-                                    <input type="text" name="switch_access_vlan" value="{{ switch.get('access_vlan', '') }}">
-                                </label>
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Interface</span>
+                                        <input type="text" name="switch_access_port" value="{{ switch.get('access_port', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>Trunkpoort</span>
-                                    <input type="text" name="switch_trunk_port" value="{{ switch.get('trunk_port', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>Beschrijving</span>
+                                        <input type="text" name="switch_access_description" value="{{ switch.get('access_description', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>Trunk beschrijving</span>
-                                    <input type="text" name="switch_trunk_description" value="{{ switch.get('trunk_description', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>VLAN</span>
+                                        <input type="text" name="switch_access_vlan" value="{{ switch.get('access_vlan', '') }}">
+                                    </label>
+                                </div>
+                            </div>
 
-                                <label class="config-field">
-                                    <span>Toegelaten VLANs</span>
-                                    <input type="text" name="switch_trunk_allowed_vlans" value="{{ switch.get('trunk_allowed_vlans', '') }}">
-                                </label>
+                            <div class="config-subgroup">
+                                <h5>Trunkpoort</h5>
+
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Interface</span>
+                                        <input type="text" name="switch_trunk_port" value="{{ switch.get('trunk_port', '') }}">
+                                    </label>
+
+                                    <label class="config-field">
+                                        <span>Beschrijving</span>
+                                        <input type="text" name="switch_trunk_description" value="{{ switch.get('trunk_description', '') }}">
+                                    </label>
+
+                                    <label class="config-field">
+                                        <span>Toegelaten VLANs</span>
+                                        <input type="text" name="switch_trunk_allowed_vlans" value="{{ switch.get('trunk_allowed_vlans', '') }}">
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
@@ -422,58 +454,70 @@
                         <div class="config-group">
                             <h4>Router</h4>
 
-                            <div class="config-fields-grid">
-                                <label class="config-field">
-                                    <span>Hostname</span>
-                                    <input type="text" name="router_hostname" value="{{ router.get('hostname', '') }}">
-                                </label>
+                            <div class="config-subgroup">
+                                <h5>Algemeen</h5>
 
-                                <label class="config-field">
-                                    <span>Management-IP</span>
-                                    <input type="text" name="router_management_ip" value="{{ router.get('management_ip', '') }}">
-                                </label>
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Hostname</span>
+                                        <input type="text" name="router_hostname" value="{{ router.get('hostname', '') }}">
+                                    </label>
 
-                                <label class="config-field">
-                                    <span>Trunkinterface</span>
-                                    <input type="text" name="router_trunk_interface" value="{{ router.get('trunk_interface', '') }}">
-                                </label>
-
-                                <label class="config-field">
-                                    <span>Trunk beschrijving</span>
-                                    <input type="text" name="router_trunk_description" value="{{ router.get('trunk_description', '') }}">
-                                </label>
+                                    <label class="config-field">
+                                        <span>Management-IP</span>
+                                        <input type="text" name="router_management_ip" value="{{ router.get('management_ip', '') }}">
+                                    </label>
+                                </div>
                             </div>
 
-                            <h6>Subinterfaces</h6>
+                            <div class="config-subgroup">
+                                <h5>Trunk naar podswitch</h5>
 
-                            <div class="config-device-grid">
-                                {% for subinterface in subinterfaces %}
-                                    <div class="config-sub-card">
-                                        <h5>VLAN {{ subinterface.get('vlan', '') }}</h5>
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Interface</span>
+                                        <input type="text" name="router_trunk_interface" value="{{ router.get('trunk_interface', '') }}">
+                                    </label>
 
-                                        <div class="config-fields-grid">
-                                            <label class="config-field">
-                                                <span>VLAN</span>
-                                                <input type="text" name="setup2_subinterface_{{ loop.index0 }}_vlan" value="{{ subinterface.get('vlan', '') }}">
-                                            </label>
+                                    <label class="config-field">
+                                        <span>Beschrijving</span>
+                                        <input type="text" name="router_trunk_description" value="{{ router.get('trunk_description', '') }}">
+                                    </label>
+                                </div>
+                            </div>
 
-                                            <label class="config-field">
-                                                <span>Beschrijving</span>
-                                                <input type="text" name="setup2_subinterface_{{ loop.index0 }}_description" value="{{ subinterface.get('description', '') }}">
-                                            </label>
+                            <div class="config-subgroup">
+                                <h5>Subinterfaces</h5>
 
-                                            <label class="config-field">
-                                                <span>Gateway-IP</span>
-                                                <input type="text" name="setup2_subinterface_{{ loop.index0 }}_ip" value="{{ subinterface.get('ip', '') }}">
-                                            </label>
+                                <div class="config-device-grid">
+                                    {% for subinterface in subinterfaces %}
+                                        <div class="config-sub-card">
+                                            <h5>VLAN {{ subinterface.get('vlan', '') }}</h5>
 
-                                            <label class="config-field">
-                                                <span>Subnetmasker</span>
-                                                <input type="text" name="setup2_subinterface_{{ loop.index0 }}_mask" value="{{ subinterface.get('mask', '') }}">
-                                            </label>
+                                            <div class="config-fields-grid">
+                                                <label class="config-field">
+                                                    <span>VLAN</span>
+                                                    <input type="text" name="setup2_subinterface_{{ loop.index0 }}_vlan" value="{{ subinterface.get('vlan', '') }}">
+                                                </label>
+
+                                                <label class="config-field">
+                                                    <span>Beschrijving</span>
+                                                    <input type="text" name="setup2_subinterface_{{ loop.index0 }}_description" value="{{ subinterface.get('description', '') }}">
+                                                </label>
+
+                                                <label class="config-field">
+                                                    <span>Gateway-IP</span>
+                                                    <input type="text" name="setup2_subinterface_{{ loop.index0 }}_ip" value="{{ subinterface.get('ip', '') }}">
+                                                </label>
+
+                                                <label class="config-field">
+                                                    <span>Subnetmasker</span>
+                                                    <input type="text" name="setup2_subinterface_{{ loop.index0 }}_mask" value="{{ subinterface.get('mask', '') }}">
+                                                </label>
+                                            </div>
                                         </div>
-                                    </div>
-                                {% endfor %}
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
 
@@ -538,6 +582,58 @@
                             </div>
                         {% endfor %}
                     </div>
+
+                    <details class="edit-details">
+                        <summary>Wijzigen</summary>
+
+                        <div class="edit-details-content">
+                            <p class="variables-help">
+                                Deze tekst komt uit info.yml. Als de docent de opstelling wijzigt, kan de uitleg hier mee aangepast worden.
+                            </p>
+
+                            <div class="config-subgroup">
+                                <h5>Algemeen</h5>
+
+                                <div class="config-fields-grid">
+                                    <label class="config-field">
+                                        <span>Titel</span>
+                                        <input type="text" name="technical_documentation_title" value="{{ technical_documentation.title }}">
+                                    </label>
+
+                                    <label class="config-field config-field-wide">
+                                        <span>Intro</span>
+                                        <textarea name="technical_documentation_intro">{{ technical_documentation.intro }}</textarea>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="technical-documentation-grid technical-documentation-editor-grid">
+                                {% for section in technical_documentation.sections %}
+                                    <div class="technical-documentation-card">
+                                        {% set section_index = loop.index0 %}
+
+                                        <label class="config-field">
+                                            <span>Sectietitel</span>
+                                            <input type="text" name="technical_documentation_section_{{ section_index }}_title" value="{{ section.title }}">
+                                        </label>
+
+                                        <div class="technical-documentation-items">
+                                            {% for item in section["items"] %}
+                                                <label class="config-field">
+                                                    <span>Regel {{ loop.index }}</span>
+                                                    <textarea name="technical_documentation_section_{{ section_index }}_item_{{ loop.index0 }}">{{ item }}</textarea>
+                                                </label>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="form-actions">
+                                <button class="btn btn-outline-primary" type="submit">Documentatie opslaan</button>
+                            </div>
+                        </div>
+                    </details>
                 </div>
             </details>
         {% endif %}

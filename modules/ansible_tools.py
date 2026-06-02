@@ -122,6 +122,12 @@ def validate_custom_variables(setup_id, custom_variables):
         if number < minimum or number > maximum:
             errors.append(label + " moet tussen " + str(minimum) + " en " + str(maximum) + " liggen.")
 
+    # De technische documentatie is vrije tekst, maar mag niet leeg zijn.
+    # Zo vermijden we lege titels of lege regels in info.yml.
+    for field_name in sorted(custom_variables.keys()):
+        if field_name.startswith("technical_documentation_"):
+            check_required(field_name, field_name.replace("_", " "))
+
     setup_id = str(setup_id)
 
     if setup_id == "1":
@@ -483,7 +489,55 @@ def build_runtime_variables(setup_info, custom_variables=None):
                 access_port["description"] = custom_variables.get(switch_name + "_access_" + str(index) + "_description", access_port.get("description"))
                 access_port["vlan"] = custom_variables.get(switch_name + "_access_" + str(index) + "_vlan", access_port.get("vlan"))
 
+    update_technical_documentation(runtime_data, custom_variables)
+
     return runtime_data
+
+
+def update_technical_documentation(runtime_data, custom_variables):
+    """
+    Werkt de technische documentatie in info.yml bij.
+
+    De structuur blijft dezelfde:
+    - titel;
+    - intro;
+    - vaste secties;
+    - vaste regels per sectie.
+
+    We passen dus alleen de tekst aan, niet het aantal blokken.
+    """
+
+    technical_documentation = runtime_data.get("technical_documentation")
+
+    if not isinstance(technical_documentation, dict):
+        return
+
+    technical_documentation["title"] = custom_variables.get(
+        "technical_documentation_title",
+        technical_documentation.get("title"),
+    )
+
+    technical_documentation["intro"] = custom_variables.get(
+        "technical_documentation_intro",
+        technical_documentation.get("intro"),
+    )
+
+    sections = technical_documentation.get("sections", [])
+
+    for section_index, section in enumerate(sections):
+        if not isinstance(section, dict):
+            continue
+
+        section["title"] = custom_variables.get(
+            "technical_documentation_section_" + str(section_index) + "_title",
+            section.get("title"),
+        )
+
+        items = section.get("items", [])
+
+        for item_index, item in enumerate(items):
+            field_name = "technical_documentation_section_" + str(section_index) + "_item_" + str(item_index)
+            items[item_index] = custom_variables.get(field_name, item)
 
 
 def update_setup_info_file(setup_id, custom_variables):

@@ -898,6 +898,42 @@ body.bg-light:not(.app-body) .card {
     line-height: 1.45;
 }
 
+.technical-documentation-editor-grid {
+    margin-top: 16px;
+}
+
+.technical-documentation-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-details {
+    margin-top: 18px;
+}
+
+.edit-details summary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 10px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #004aad;
+    font-weight: 800;
+}
+
+.edit-details summary:hover {
+    background: #f8fafc;
+    color: var(--primary);
+}
+
+.edit-details-content {
+    margin-top: 16px;
+}
+
 /* Sprint 3 - configuratieformulier per logische groep */
 
 .config-form-section {
@@ -924,6 +960,25 @@ body.bg-light:not(.app-body) .card {
     margin: 18px 0 10px;
     color: #004aad;
     font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.config-subgroup {
+    margin-bottom: 14px;
+    padding: 14px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.config-subgroup:last-child {
+    margin-bottom: 0;
+}
+
+.config-subgroup h5 {
+    margin: 0 0 12px;
+    color: #004aad;
+    font-size: 0.92rem;
     font-weight: 800;
 }
 
@@ -983,7 +1038,25 @@ body.bg-light:not(.app-body) .card {
     font-size: 0.92rem;
 }
 
-.config-field input:focus {
+.config-field textarea {
+    width: 100%;
+    min-height: 92px;
+    resize: vertical;
+    padding: 9px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: white;
+    color: #0f172a;
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.config-field-wide {
+    grid-column: 1 / -1;
+}
+
+.config-field input:focus,
+.config-field textarea:focus {
     outline: none;
     border-color: #0057d9;
     box-shadow: 0 0 0 3px rgba(0, 87, 217, 0.14);
