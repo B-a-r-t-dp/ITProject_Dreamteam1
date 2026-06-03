@@ -11,6 +11,7 @@
 
 <body class="app-body">
 
+<!-- Applicatieheader met gebruikersinformatie -->
 <header class="app-header">
     <div>
         <p class="eyebrow">ITProject Dreamteam 1</p>
@@ -21,9 +22,12 @@
     <div class="user-panel">
         <div>
             <span class="user-label">Aangemeld als</span>
+
+            <!-- Ingelogde gebruiker uit Flask-sessie -->
             <strong>{{ user.username }}</strong>
         </div>
 
+        <!-- Afmelden van de applicatie -->
         <a class="btn btn-outline-light btn-sm logout-btn" href="/logout">
 
                     <svg
@@ -65,8 +69,10 @@
 
 <main class="dashboard-shell">
 
+    <!-- Dashboardoverzicht met kerninformatie -->
     <section class="summary-grid" aria-label="Projectstatus">
 
+        <!-- Gebruikersrol -->
         <div class="summary-item">
             <div class="summary-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -81,6 +87,7 @@
             </div>
         </div>
 
+        <!-- Aantal beschikbare netwerkopstellingen -->
         <div class="summary-item">
             <div class="summary-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -98,6 +105,7 @@
             </div>
         </div>
 
+        <!-- Status van de laatste configuratierun -->
         <div class="summary-item">
             <div class="summary-icon success-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -109,6 +117,7 @@
             <div>
                 <span class="summary-label">Laatste status</span>
 
+                <!-- Laatste configuratiestatus weergeven -->
                 {% if last_log %}
                     <strong class="status-text status-{{ last_log.status }}">{{ last_log.status }}</strong>
                 {% else %}
@@ -119,8 +128,10 @@
 
     </section>
 
+    <!-- Hoofdinhoud van het dashboard -->
     <section class="content-grid">
 
+        <!-- Beschikbare netwerkopstellingen -->
         <div class="panel setup-panel">
             <div class="panel-heading">
                 <div>
@@ -131,15 +142,22 @@
 
             {% if network_setups %}
                 <div class="setup-list">
+
+                    <!-- Herhaal voor iedere netwerkopstelling -->
                     {% for setup in network_setups %}
                        <article class="setup-card">
+
+    <!-- Configuratievariabelen uit info.yml ophalen -->
     {% set variables = setup.info.variables if setup.info and setup.info.variables else {} %}
     {% set router = variables.get("router", {}) %}
     {% set switch = variables.get("switch", {}) %}
     {% set switches = variables.get("switches", {}) %}
     {% set vlans = variables.get("vlans", []) %}
 
+    <!-- Formulier voor configuratie en documentatie -->
     <form method="POST" action="/update-setup-variables" class="setup-form">
+
+        <!-- Verborgen ID van de gekozen opstelling -->
         <input type="hidden" name="setup_id" value="{{ setup.id }}">
 
         <div class="setup-card-body">
@@ -150,11 +168,14 @@
             </div>
 
             <div class="deploy-action">
+
+                <!-- Start de Ansible-configuratie -->
                 <button class="btn btn-primary deploy-button" type="submit" formaction="/deploy">Start configuratie</button>
                 <p class="deploy-loading-message" hidden>Even geduld, de opstelling wordt toegepast.</p>
             </div>
         </div>
 
+        <!-- Aanpasbare configuratieparameters -->
         <details class="setup-details">
             <summary>Aanpasbare configuratiewaarden</summary>
 
@@ -163,6 +184,7 @@
                     Deze waarden worden eerst gevalideerd en daarna opgeslagen in info.yml. De configuratie wordt pas gepusht via Start configuratie.
                 </p>
 
+                <!-- Resultaat van validatie of opslag -->
                 {% if setup_update_feedback and setup_update_feedback.setup_id == setup.id %}
                     <div class="form-feedback form-feedback-{{ setup_update_feedback.status }}">
                         {% for message in setup_update_feedback.messages %}
@@ -171,6 +193,7 @@
                     </div>
                 {% endif %}
 
+                <!-- Configuratievelden voor setup 1 -->
                 {% if setup.id|string == "1" %}
                     {% set setup1_vlans = switch.get('vlans', []) %}
 
@@ -339,6 +362,7 @@
                         </div>
                     </div>
 
+                <!-- Configuratievelden voor setup 2 -->
                 {% elif setup.id|string == "2" %}
                     {% set subinterfaces = router.get('subinterfaces', []) %}
 
@@ -559,6 +583,8 @@
                 </div>
             </div>
         </details>
+
+        <!-- Technische documentatie van de opstelling -->
         {% if setup.info and setup.info.technical_documentation %}
             {% set technical_documentation = setup.info.technical_documentation %}
             <details class="setup-details technical-documentation-section">
@@ -648,6 +674,7 @@
                 </div>
             {% endif %}
 
+            <!-- Configuratiegeschiedenis -->
             <div class="history-section">
                 <div class="panel-heading history-heading">
                     <div>
@@ -656,6 +683,8 @@
                     </div>
                 </div>
 
+
+                <!-- Filters voor configuratiegeschiedenis -->
                 <form class="history-filter-form" method="GET" action="/dashboard">
                     <div>
                         <label for="history_setup">Setup</label>
@@ -706,8 +735,11 @@
                     <a class="btn btn-secondary" href="/dashboard">Alles tonen</a>
                 </form>
 
+                <!-- Overzicht van uitgevoerde configuraties -->
                 {% if deployment_logs %}
                     <div class="history-list">
+
+                        <!-- Herhaal voor iedere configuratierun -->
                         {% for log in deployment_logs %}
 
                             <details class="history-dropdown">
@@ -733,6 +765,7 @@
                                     <div>
                                         <div class="output-title">Technische output</div>
 
+                                        <!-- Technische output van Ansible -->
                                         {% if log.technical_output %}
                                             <pre class="output-box small-output">{{ log.technical_output }}</pre>
                                         {% else %}
@@ -741,6 +774,7 @@
                                     </div>
                                 </div>
 
+                                <!-- Running-config backups -->
                                 {% if log.status == "success" and log.backups %}
                                     <div class="history-backups">
                                         <div class="output-title">Running-config backups</div>
@@ -777,6 +811,7 @@
             </div>
         </div>
 
+        <!-- Laatste configuratierun -->
         <aside class="panel log-panel">
             <div class="panel-heading">
                 <div>
@@ -785,6 +820,7 @@
                 </div>
             </div>
 
+            <!-- Gegevens van de laatste configuratie -->
             {% if last_log %}
                 <div class="log-wrapper">
 
@@ -823,6 +859,8 @@
                     <pre class="output-box summary-box">{{ last_log.summary }}</pre>
 
                     {% if last_log.technical_output %}
+
+                        <!-- Gedetailleerde technische output -->
                         <details class="technical-details">
                             <summary>Technische output bekijken</summary>
                             <pre class="output-box">{{ last_log.technical_output }}</pre>
@@ -841,12 +879,16 @@
     </section>
 </main>
 
+<!-- Feedback tijdens het uitvoeren van Ansible configuratie. 
+ Zo ziet de docent dat de configuratie bezig is. -->
 <script>
-    // Kleine feedback tijdens het starten van Ansible.
-    // Zo ziet de docent dat de configuratie bezig is.
+
+    // Zoek alle configuratieformulieren
     const setupForms = document.querySelectorAll(".setup-form");
 
     setupForms.forEach(function(form) {
+
+        // Toon melding tijdens configuratie
         form.addEventListener("submit", function(event) {
             const button = event.submitter;
 
@@ -857,6 +899,7 @@
             const deployAction = button.closest(".deploy-action");
             const loadingMessage = deployAction.querySelector(".deploy-loading-message");
 
+            // Voorkom meerdere configuratiestarts
             button.disabled = true;
             button.textContent = "Bezig met configureren...";
 
