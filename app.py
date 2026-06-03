@@ -1,7 +1,23 @@
+# Module voor werken met datum en tijd.
+# Wordt gebruikt voor het genereren van tijdstempels
+# bij configuratieruns en logging.
 from datetime import datetime
+
+# Module voor het veilig werken met bestanden en mappen.
+# Wordt gebruikt bij het beheren en downloaden van backups.
 from pathlib import Path
+
+# Module voor tijdzones.
+# Wordt gebruikt om tijdstempels weer te geven volgens
+# de Belgische tijdzone (Europe/Brussels).
 from zoneinfo import ZoneInfo
 
+# Flask                -> Aanmaken van de Flask-webapplicatie.
+# render_template      -> Laden en weergeven van HTML-pagina's.
+# request              -> Uitlezen van gegevens uit formulieren en URL-aanvragen.
+# redirect             -> Doorsturen van gebruikers naar een andere pagina.
+# session              -> Opslaan van gebruikersgegevens tijdens een sessie.
+# send_from_directory  -> Aanbieden van bestanden als download.
 from flask import Flask, render_template, request, redirect, session, send_from_directory
 
 
@@ -20,9 +36,20 @@ from modules.ansible_tools import (
     update_setup_info_file,
 )
 
-
+# Initialisatie van de Flask-applicatie.
+# Flask gebruikt __name__ om de locatie van templates,
+# statische bestanden en configuraties correct te bepalen.
 app = Flask(__name__)
+
+# Geheime sleutel voor sessiebeheer -> session[...] die opgeslagen in cookie
+# Wordt gebruikt om sessiegegevens veilig te ondertekenen
+# zodat gebruikers deze niet kunnen manipuleren.
 app.secret_key = "supersecretkey"
+
+# Initialiseren van de SQLite-database.
+# Bij het opstarten van de applicatie worden de nodige
+# tabellen aangemaakt indien deze nog niet bestaan.
+init_database()
 
 # --------------------------------------------------
 # Functie: maak_run_referentie()
@@ -42,7 +69,7 @@ app.secret_key = "supersecretkey"
 # Return:
 # String met unieke runreferentie
 # --------------------------------------------------
-init_database()
+
 def maak_run_referentie(setup_id, username):
     """
     Maakt een unieke naam voor 1 configuratierun.
@@ -94,9 +121,15 @@ def login():
         username = request.form.get("username")
         password = request.form.get("password")
 
+        # Controle van gebruikersnaam en wachtwoord.
+        # De functie verify_user() vergelijkt de ingevoerde
+        # gegevens met de gebruikers in de database.
         user = verify_user(username, password)
 
         if user:
+            # Bij succesvolle login worden de gebruikersgegevens
+            # opgeslagen in de sessie zodat de gebruiker niet
+            # opnieuw moet aanmelden bij elke pagina.
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             session["role"] = user["role"]
@@ -139,14 +172,25 @@ def dashboard():
         "role": session["role"],
     }
 
+    # Ophalen van alle beschikbare netwerkopstellingen.
+    # Deze worden weergegeven als configuratiekaarten
+    # op het dashboard.
     network_setups = get_network_setups()
+
+    # Ophalen van de meest recente configuratierun
+    # van de huidige gebruiker.
     last_log = get_last_deployment_log(session["user_id"])
 
-    # We halen iets meer logs op zodat de filters nuttig blijven.
-    # De geschiedenis mag alle users tonen, want zo kan je zien wie wat gestart heeft.
+    # Ophalen van de laatste configuratieruns.
+    # Deze worden gebruikt voor de sectie
+    # 'Configuratiegeschiedenis'.
     deployment_logs = get_deployment_logs_for_user(limit=50)
+
     setup_update_feedback = session.pop("setup_update_feedback", None)
 
+    # Opbouwen van een unieke lijst gebruikers
+    # zodat deze gebruikt kunnen worden als filter
+    # in de configuratiegeschiedenis.
     history_users = []
     history_user_ids = []
 
@@ -158,11 +202,18 @@ def dashboard():
                 "username": log["username"],
             })
 
-    # Simpele filters voor de configuratiegeschiedenis.
-    # We halen eerst de gewone logs op en filteren daarna in Python.
-    # Zo moeten we geen extra SQL-logica of nieuwe tabellen maken.
+    # Filter op gekozen netwerkopstelling.
+    # Enkel logs van de geselecteerde setup blijven zichtbaar.
     history_setup_filter = request.args.get("history_setup", "all")
+
+    # Filter op resultaat van de configuratie.
+    # Mogelijke waarden:
+    # - success
+    # - failed
     history_status_filter = request.args.get("history_status", "all")
+
+    # Filter op gebruiker zodat enkel de runs
+    # van een bepaalde gebruiker worden getoond.
     history_user_filter = request.args.get("history_user", "all")
 
     if history_setup_filter != "all":
@@ -246,19 +297,31 @@ def deploy():
     except (TypeError, ValueError):
         return redirect("/dashboard")
     
+    # Controleren of de gekozen setup bestaat.
+    # Hierdoor kan een gebruiker geen ongeldige
+    # setup-ID doorsturen via een aangepast formulier.
     valid_setup_ids = [setup["id"] for setup in get_network_setups()]
 
     if setup_id not in valid_setup_ids:
         return redirect("/dashboard")
 
+    # Voor iedere configuratierun wordt een unieke
+    # referentie aangemaakt. Deze referentie wordt
+    # gebruikt voor logging en backupbestanden.
     run_reference = maak_run_referentie(setup_id, session["username"])
 
+    # Start de gekozen Ansible-configuratie.
+    # De functie voert de playbook uit en geeft
+    # een resultaat terug (success of failed).
     result = run_setup(
         setup_id,
         logged_user=session["username"],
         run_reference=run_reference,
     )
 
+    # Opslaan van het resultaat in SQLite.
+    # Hierdoor blijft een historiek van alle
+    # uitgevoerde configuraties beschikbaar.
     save_deployment_log(
         user_id=session["user_id"],
         setup_id=setup_id,
@@ -312,7 +375,15 @@ def update_setup_variables():
     if setup_id not in valid_setup_ids:
         return redirect("/dashboard")
 
+    # Alle formulierwaarden worden verzameld
+    # zodat ze gevalideerd kunnen worden.
     custom_variables = request.form.to_dict()
+
+    # Controle van de ingevoerde configuratiewaarden.
+    # Bijvoorbeeld:
+    # - verplichte velden ingevuld
+    # - geldig IP-adres
+    # - correcte hostnaam
     validation_errors = validate_custom_variables(setup_id, custom_variables)
 
     if validation_errors:
@@ -324,6 +395,11 @@ def update_setup_variables():
 
         return redirect("/dashboard")
 
+
+    # Indien alle waarden geldig zijn,
+    # worden ze opgeslagen in info.yml.
+    # Deze waarden kunnen later door
+    # Ansible gebruikt worden.
     update_result = update_setup_info_file(setup_id, custom_variables)
 
     if update_result["status"] == "failed":
@@ -374,16 +450,24 @@ def download_backup(run_reference, filename):
     if "user_id" not in session:
         return redirect("/")
 
+    # Locatie van alle configuratiebackups.
+    # Iedere configuratierun krijgt een eigen map.
     backup_root = Path(app.root_path) / "backups"
+
     backup_map = backup_root / run_reference
 
-    # Simpele beveiliging: alleen bestanden uit de backups-map toelaten.
+    # Extra beveiliging tegen path traversal.
+    # Hiermee voorkomen we dat een gebruiker
+    # bestanden buiten de backupmap kan downloaden.
     backup_root = backup_root.resolve()
     backup_map = backup_map.resolve()
 
     if backup_root not in backup_map.parents:
         return redirect("/dashboard")
 
+    # Download van het gevraagde backupbestand.
+    # Het bestand wordt als bijlage aangeboden
+    # zodat de browser een download start.
     return send_from_directory(backup_map, filename, as_attachment=True)
 
 
@@ -401,9 +485,18 @@ def download_backup(run_reference, filename):
 # --------------------------------------------------
 @app.route("/logout")
 def logout():
+
+    # Verwijderen van alle actieve sessiegegevens.
+    # Hierdoor wordt de gebruiker volledig afgemeld.
     session.clear()
+
     return redirect("/")
 
 
 if __name__ == "__main__":
+
+    # Start van de Flask-webserver.
+    # host="0.0.0.0" maakt de applicatie bereikbaar
+    # vanaf andere toestellen in hetzelfde netwerk.
+    # debug=True toont foutmeldingen tijdens ontwikkeling.
     app.run(host="0.0.0.0", port=5000, debug=True)
