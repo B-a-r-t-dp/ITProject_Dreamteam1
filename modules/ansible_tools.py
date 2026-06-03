@@ -10,9 +10,9 @@
 
 import os                       # Wordt gebruikt om paden te maken die op elke pc werken.
 import subprocess               # Wordt gebruikt om ansible-playbook vanuit Python te starten.
-import copy                     # Wordt gebruikt om de setupdata veilig te kopiëren.
+import copy                     # Wordt gebruikt om de setupdata veilig te kopieren.
 import yaml                     # Wordt gebruikt om info.yml te lezen.
-import ipaddress
+import ipaddress                # Wordt gebruikt om IP-adressen te valideren.
 
 ###############################################################################
 #                              Path variabelen                                #
@@ -25,211 +25,231 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ANSIBLE_DIR = os.path.join(BASE_DIR, "ansible")
 PLAYBOOK_DIR = os.path.join(ANSIBLE_DIR, "playbooks")
 
+
+###############################################################################
+#                         Functies validatie setupwaarden                      #
+###############################################################################
+
 def validate_custom_variables(setup_id, custom_variables):
     """
-    Controleert de formulierwaarden voordat Ansible gestart wordt.
-
-    We houden de controles bewust simpel en leesbaar:
-    - verplichte velden mogen niet leeg zijn;
-    - IP-adressen moeten echte IP-adressen zijn;
-    - VLANs moeten tussen 1 en 4094 liggen;
-    - interfaces mogen geen spaties bevatten.
+    Controleert de formulierwaarden voordat info.yml aangepast wordt.
     """
 
-    errors = []
+    fouten = []
 
-    def check_required(field_name, label):
-        value = custom_variables.get(field_name, "").strip()
+    def controleer_op_lege_velden(veldnaam, label):
+        # .get() voorkomt dat de applicatie crasht als een formulierwaarde ontbreekt.
+        variabele = custom_variables.get(veldnaam, "").strip()
 
-        if value == "":
-            errors.append(label + " mag niet leeg zijn.")
+        if variabele == "":
+            fouten.append(label + " mag niet leeg zijn.")
 
-        return value
+        return variabele
 
-    def check_ip(field_name, label):
-        value = custom_variables.get(field_name, "").strip()
+    def controleer_ip(veldnaam, label):
+        variabele = controleer_op_lege_velden(veldnaam, label)
 
-        if value == "":
-            errors.append(label + " mag niet leeg zijn.")
+        if variabele == "":
             return
 
         try:
-            ipaddress.ip_address(value)
+            ipaddress.ip_address(variabele)
         except ValueError:
-            errors.append(label + " moet een geldig IP-adres zijn.")
+            fouten.append(label + " moet een geldig IP-adres zijn.")
 
-    def check_vlan(field_name, label):
-        value = custom_variables.get(field_name, "").strip()
+    def controleer_vlan(veldnaam, label):
+        variabele = controleer_op_lege_velden(veldnaam, label)
 
-        if value == "":
-            errors.append(label + " mag niet leeg zijn.")
+        if variabele == "":
             return
 
-        if not value.isdigit():
-            errors.append(label + " moet een getal zijn.")
+        if not variabele.isdigit():
+            fouten.append(label + " moet een getal zijn.")
             return
 
-        vlan_id = int(value)
+        vlan_id = int(variabele)
 
         if vlan_id < 1 or vlan_id > 4094:
-            errors.append(label + " moet tussen 1 en 4094 liggen.")
+            fouten.append(label + " moet tussen 1 en 4094 liggen.")
 
-    def check_vlan_list(field_name, label):
-        value = custom_variables.get(field_name, "").strip()
+    def controleer_vlan_lijst(veldnaam, label):
+        # Sommige velden bevatten meerdere VLANs in 1 tekstveld.
+        # Bijvoorbeeld: 10,20,30
+        variabele = controleer_op_lege_velden(veldnaam, label)
 
-        if value == "":
-            errors.append(label + " mag niet leeg zijn.")
+        if variabele == "":
             return
 
-        vlan_values = value.split(",")
+        vlan_variabelen = variabele.split(",")
 
-        for vlan in vlan_values:
-            vlan = vlan.strip()
+        for vlan in vlan_variabelen:
+            vlan = vlan.strip()              # Spaties rond elk VLAN-nummer verwijderen.
 
             if not vlan.isdigit():
-                errors.append(label + " mag alleen VLAN-nummers bevatten, gescheiden door komma's.")
+                fouten.append(label + " mag alleen VLAN-nummers bevatten, gescheiden door komma's.")
                 return
 
             vlan_id = int(vlan)
 
             if vlan_id < 1 or vlan_id > 4094:
-                errors.append(label + " bevat een VLAN buiten bereik 1-4094.")
+                fouten.append(label + " bevat een VLAN buiten bereik 1-4094.")
                 return
 
-    def check_interface(field_name, label):
-        value = custom_variables.get(field_name, "").strip()
+    def controleer_interface(veldnaam, label):
+        # Een interfacenaam zoals GigabitEthernet0/1 mag geen spaties bevatten.
+        variabele = controleer_op_lege_velden(veldnaam, label)
 
-        if value == "":
-            errors.append(label + " mag niet leeg zijn.")
+        if variabele == "":
             return
 
-        if " " in value:
-            errors.append(label + " mag geen spaties bevatten.")
+        if " " in variabele:
+            fouten.append(label + " mag geen spaties bevatten.")
 
-    def check_number(field_name, label, minimum, maximum):
-        value = custom_variables.get(field_name, "").strip()
+    def controleer_getal(veldnaam, label, minimum, maximum):
+        # Deze functie gebruiken we voor velden die een getal met een minimum en maximum nodig hebben.
+        # Bijvoorbeeld OSPF process of port-channel nummer.
+        variabele = controleer_op_lege_velden(veldnaam, label)
 
-        if value == "":
-            errors.append(label + " mag niet leeg zijn.")
+        if variabele == "":
             return
 
-        if not value.isdigit():
-            errors.append(label + " moet een getal zijn.")
+        if not variabele.isdigit():
+            fouten.append(label + " moet een getal zijn.")
             return
 
-        number = int(value)
+        getal = int(variabele)
 
-        if number < minimum or number > maximum:
-            errors.append(label + " moet tussen " + str(minimum) + " en " + str(maximum) + " liggen.")
+        if getal < minimum or getal > maximum:
+            fouten.append(label + " moet tussen " + str(minimum) + " en " + str(maximum) + " liggen.")
 
-    # De technische documentatie is vrije tekst, maar mag niet leeg zijn.
-    # Zo vermijden we lege titels of lege regels in info.yml.
-    for field_name in sorted(custom_variables.keys()):
-        if field_name.startswith("technical_documentation_"):
-            check_required(field_name, field_name.replace("_", " "))
+    def valideer_technische_documentatie(custom_variables, fouten):
+        """
+        Controleert alle velden van de technische documentatie.
+        Deze velden beginnen in het formulier altijd met technical_documentation_.
+        """
 
+        for veldnaam in sorted(custom_variables.keys()):                                                    # Doorloop alle variabelen op naam.
+            is_technische_documentatie = veldnaam.startswith("technical_documentation_")
+
+            if is_technische_documentatie:
+                label = veldnaam.replace("_", " ")
+                controleer_op_lege_velden(veldnaam, label)
+
+    # We valideren per setup apart, omdat setup1 en setup2 andere formulierwaarden gebruiken.
     setup_id = str(setup_id)
 
+    # Controleer ook de technische documentatievelden.
+    valideer_technische_documentatie(custom_variables, fouten)
+
     if setup_id == "1":
-        check_required("router_hostname", "Router hostname")
-        check_ip("router_management_ip", "Router management-IP")
-        check_interface("router_lab_interface", "Router labinterface")
-        check_required("router_lab_description", "Router labinterface beschrijving")
-        check_ip("router_lab_ip", "Router lab IP-adres")
-        check_ip("router_lab_mask", "Router lab subnetmasker")
-        check_number("router_ospf_process", "OSPF process", 1, 65535)
-        check_ip("router_ospf_router_id", "OSPF router-id")
-        check_ip("router_ospf_network", "OSPF netwerk")
-        check_ip("router_ospf_wildcard", "OSPF wildcard")
-        check_number("router_ospf_area", "OSPF area", 0, 4294967295)
+        # Setup1 heeft 1 router, 1 switch en servercontainers.
+        # Hieronder controleren we alleen de velden die in het formulier aanpasbaar zijn.
+        controleer_op_lege_velden("router_hostname", "Router hostname")
+        controleer_ip("router_management_ip", "Router management-IP")
+        controleer_interface("router_lab_interface", "Router labinterface")
+        controleer_op_lege_velden("router_lab_description", "Router labinterface beschrijving")
+        controleer_ip("router_lab_ip", "Router lab IP-adres")
+        controleer_ip("router_lab_mask", "Router lab subnetmasker")
+        controleer_getal("router_ospf_process", "OSPF process", 1, 65535)
+        controleer_ip("router_ospf_router_id", "OSPF router-id")
+        controleer_ip("router_ospf_network", "OSPF netwerk")
+        controleer_ip("router_ospf_wildcard", "OSPF wildcard")
+        controleer_getal("router_ospf_area", "OSPF area", 0, 4294967295)
 
-        check_required("switch_hostname", "Switch hostname")
-        check_ip("switch_management_ip", "Switch management-IP")
-        check_interface("switch_access_port", "Switch accesspoort")
-        check_required("switch_access_description", "Switch accesspoort beschrijving")
-        check_vlan("switch_access_vlan", "Switch access VLAN")
-        check_interface("switch_trunk_port", "Switch trunkpoort")
-        check_required("switch_trunk_description", "Switch trunk beschrijving")
-        check_vlan_list("switch_trunk_allowed_vlans", "Toegelaten VLANs op trunk")
+        controleer_op_lege_velden("switch_hostname", "Switch hostname")
+        controleer_ip("switch_management_ip", "Switch management-IP")
+        controleer_interface("switch_access_port", "Switch accesspoort")
+        controleer_op_lege_velden("switch_access_description", "Switch accesspoort beschrijving")
+        controleer_vlan("switch_access_vlan", "Switch access VLAN")
+        controleer_interface("switch_trunk_port", "Switch trunkpoort")
+        controleer_op_lege_velden("switch_trunk_description", "Switch trunk beschrijving")
+        controleer_vlan_lijst("switch_trunk_allowed_vlans", "Toegelaten VLANs op trunk")
 
-        for field_name in sorted(custom_variables.keys()):
-            if field_name.startswith("setup1_vlan_") and field_name.endswith("_id"):
-                vlan_index = field_name.replace("setup1_vlan_", "").replace("_id", "")
-                check_vlan(field_name, "VLAN " + vlan_index + " nummer")
+        for veldnaam in sorted(custom_variables.keys()):                                      # Doorloop alle variabelen op naam.
+            if veldnaam.startswith("setup1_vlan_") and veldnaam.endswith("_id"):              # Zoek setup1 VLAN-velden die een VLAN-nummer bevatten.
+                vlan_index = veldnaam.replace("setup1_vlan_", "").replace("_id", "")          # Haal de index uit de veldnaam, bijvoorbeeld 0 of 1.
+                controleer_vlan(veldnaam, "VLAN " + vlan_index + " nummer")                   # Controleer of het VLAN-nummer geldig is.
 
-            if field_name.startswith("setup1_vlan_") and field_name.endswith("_name"):
-                vlan_index = field_name.replace("setup1_vlan_", "").replace("_name", "")
-                check_required(field_name, "VLAN " + vlan_index + " naam")
+            if veldnaam.startswith("setup1_vlan_") and veldnaam.endswith("_name"):            # Zoek setup1 VLAN-velden die een VLAN-naam bevatten.
+                vlan_index = veldnaam.replace("setup1_vlan_", "").replace("_name", "")        # Haal de index uit de veldnaam, bijvoorbeeld 0 of 1.
+                controleer_op_lege_velden(veldnaam, "VLAN " + vlan_index + " naam")           # Controleer of de VLAN-naam ingevuld is.
 
     if setup_id == "2":
-        check_required("router_hostname", "Router hostname")
-        check_ip("router_management_ip", "Router management-IP")
-        check_interface("router_trunk_interface", "Router trunkinterface")
-        check_required("router_trunk_description", "Router trunk beschrijving")
+        # Setup2 is groter: 1 router en meerdere switches.
+        # Daarom zijn er meer dynamische velden dan bij setup1.
+        controleer_op_lege_velden("router_hostname", "Router hostname")
+        controleer_ip("router_management_ip", "Router management-IP")
+        controleer_interface("router_trunk_interface", "Router trunkinterface")
+        controleer_op_lege_velden("router_trunk_description", "Router trunk beschrijving")
 
-        for field_name in sorted(custom_variables.keys()):
-            if field_name.startswith("setup2_subinterface_") and field_name.endswith("_vlan"):
-                check_vlan(field_name, field_name.replace("_", " "))
+        # Setup2 heeft dynamische lijsten voor subinterfaces en VLANs.
+        # Daarom zoeken we de velden op basis van hun naamstructuur.
+        for veldnaam in sorted(custom_variables.keys()):
+            if veldnaam.startswith("setup2_subinterface_") and veldnaam.endswith("_vlan"):       # Zoek VLAN-nummers van router-subinterfaces.
+                controleer_vlan(veldnaam, veldnaam.replace("_", " "))
 
-            if field_name.startswith("setup2_subinterface_") and field_name.endswith("_description"):
-                check_required(field_name, field_name.replace("_", " "))
+            if veldnaam.startswith("setup2_subinterface_") and veldnaam.endswith("_description"): # Zoek beschrijvingen van router-subinterfaces.
+                controleer_op_lege_velden(veldnaam, veldnaam.replace("_", " "))
 
-            if field_name.startswith("setup2_subinterface_") and field_name.endswith("_ip"):
-                check_ip(field_name, field_name.replace("_", " "))
+            if veldnaam.startswith("setup2_subinterface_") and veldnaam.endswith("_ip"):         # Zoek IP-adressen van router-subinterfaces.
+                controleer_ip(veldnaam, veldnaam.replace("_", " "))
 
-            if field_name.startswith("setup2_subinterface_") and field_name.endswith("_mask"):
-                check_ip(field_name, field_name.replace("_", " "))
+            if veldnaam.startswith("setup2_subinterface_") and veldnaam.endswith("_mask"):       # Zoek subnetmaskers van router-subinterfaces.
+                controleer_ip(veldnaam, veldnaam.replace("_", " "))
 
-            if field_name.startswith("setup2_vlan_") and field_name.endswith("_id"):
-                check_vlan(field_name, field_name.replace("_", " "))
+            if veldnaam.startswith("setup2_vlan_") and veldnaam.endswith("_id"):                 # Zoek algemene VLAN-nummers van setup2.
+                controleer_vlan(veldnaam, veldnaam.replace("_", " "))
 
-            if field_name.startswith("setup2_vlan_") and field_name.endswith("_name"):
-                check_required(field_name, field_name.replace("_", " "))
+            if veldnaam.startswith("setup2_vlan_") and veldnaam.endswith("_name"):               # Zoek algemene VLAN-namen van setup2.
+                controleer_op_lege_velden(veldnaam, veldnaam.replace("_", " "))
 
-        for switch_name in ["sw11", "sw12", "distsw", "classsw"]:
-            check_required(switch_name + "_hostname", switch_name.upper() + " hostname")
-            check_ip(switch_name + "_management_ip", switch_name.upper() + " management-IP")
+        for switch_name in ["sw11", "sw12", "distsw", "classsw"]:                                # Setup2 heeft meerdere switches.
+            controleer_op_lege_velden(switch_name + "_hostname", switch_name.upper() + " hostname")
+            controleer_ip(switch_name + "_management_ip", switch_name.upper() + " management-IP")
 
-        for field_name in sorted(custom_variables.keys()):
-            if field_name.startswith(("sw11_trunk_", "sw12_trunk_", "distsw_trunk_", "classsw_trunk_")):
-                if field_name.endswith("_interface"):
-                    check_interface(field_name, field_name.replace("_", " "))
+        # Setup2 heeft meerdere switchvelden voor trunks, EtherChannel en accesspoorten.
+        # Daarom zoeken we opnieuw op basis van de vaste naamstructuur van het formulier.
+        for veldnaam in sorted(custom_variables.keys()):
+            if veldnaam.startswith(("sw11_trunk_", "sw12_trunk_", "distsw_trunk_", "classsw_trunk_")):  # Zoek trunkvelden van alle switches.
+                if veldnaam.endswith("_interface"):
+                    controleer_interface(veldnaam, veldnaam.replace("_", " "))
 
-                if field_name.endswith("_description"):
-                    check_required(field_name, field_name.replace("_", " "))
+                if veldnaam.endswith("_description"):
+                    controleer_op_lege_velden(veldnaam, veldnaam.replace("_", " "))
 
-            if field_name.startswith(("distsw_etherchannel_", "classsw_etherchannel_")):
-                if field_name.endswith("_port_channel"):
-                    check_number(field_name, field_name.replace("_", " "), 1, 64)
+            if veldnaam.startswith(("distsw_etherchannel_", "classsw_etherchannel_")):           # Zoek EtherChannel-velden van DISTSW en CLASSSW.
+                if veldnaam.endswith("_port_channel"):
+                    controleer_getal(veldnaam, veldnaam.replace("_", " "), 1, 64)
 
-                if field_name.endswith("_mode"):
-                    value = custom_variables.get(field_name, "").strip()
+                if veldnaam.endswith("_mode"):                                                  # EtherChannel mode mag alleen active, passive of on zijn.
+                    # Dit veld controleren we apart omdat alleen deze 3 waarden geldig zijn.
+                    waarde = custom_variables.get(veldnaam, "").strip()
 
-                    if value == "":
-                        errors.append(field_name.replace("_", " ") + " mag niet leeg zijn.")
+                    if waarde == "":
+                        fouten.append(veldnaam.replace("_", " ") + " mag niet leeg zijn.")
 
-                    if value not in ["active", "passive", "on"]:
-                        errors.append(field_name.replace("_", " ") + " moet active, passive of on zijn.")
+                    if waarde not in ["active", "passive", "on"]:
+                        fouten.append(veldnaam.replace("_", " ") + " moet active, passive of on zijn.")
 
-                if field_name.endswith("_interface"):
-                    check_interface(field_name, field_name.replace("_", " "))
+                if veldnaam.endswith("_interface"):
+                    controleer_interface(veldnaam, veldnaam.replace("_", " "))
 
-                if field_name.endswith("_description"):
-                    check_required(field_name, field_name.replace("_", " "))
+                if veldnaam.endswith("_description"):
+                    controleer_op_lege_velden(veldnaam, veldnaam.replace("_", " "))
 
-            if field_name.startswith("classsw_access_"):
-                if field_name.endswith("_interface"):
-                    check_interface(field_name, field_name.replace("_", " "))
+            if veldnaam.startswith("classsw_access_"):                                          # Zoek accesspoortvelden van de classroomswitch.
+                if veldnaam.endswith("_interface"):
+                    controleer_interface(veldnaam, veldnaam.replace("_", " "))
 
-                if field_name.endswith("_description"):
-                    check_required(field_name, field_name.replace("_", " "))
+                if veldnaam.endswith("_description"):
+                    controleer_op_lege_velden(veldnaam, veldnaam.replace("_", " "))
 
-                if field_name.endswith("_vlan"):
-                    check_vlan(field_name, field_name.replace("_", " "))
+                if veldnaam.endswith("_vlan"):
+                    controleer_vlan(veldnaam, veldnaam.replace("_", " "))
 
-        check_vlan_list("switches_trunk_allowed_vlans", "Toegelaten VLANs op trunks")
+        controleer_vlan_lijst("switches_trunk_allowed_vlans", "Toegelaten VLANs op trunks")
 
-    return errors
+    return fouten
 
 ###############################################################################
 #                         Functies opstart Ansible                            #
@@ -250,6 +270,7 @@ def run_setup(setup_id, logged_user=None, run_reference=None):
     setup_info = get_setup_info(setup_id)        # Setupinfo opvragen volgens setup_id.
 
     if setup_info == None:
+        # Als de setupmap of inventory ontbreekt, kunnen we niet starten.
         setup_info_status = {
             "status": "failed",
             "output": "Geen geldige setup gevonden voor setup_id " + str(setup_id),
@@ -257,10 +278,14 @@ def run_setup(setup_id, logged_user=None, run_reference=None):
         return setup_info_status
 
     playbooks = get_playbooks_for_setup(setup_info)  # Playbooks opvragen volgens de setupinfo.
-    runtime_variables = build_runtime_variables(setup_info)
-    runtime_inventory = maak_runtime_inventory(setup_info, runtime_variables, run_reference)
+
+    # We lezen info.yml en maken daarna een tijdelijke inventory.
+    # Zo gebruikt Ansible altijd de management-IP's die op dat moment in info.yml staan.
+    setup_data = build_runtime_variables(setup_info)
+    runtime_inventory = maak_runtime_inventory(setup_info, setup_data, run_reference)
 
     if not playbooks:
+        # Dit vangt op dat de setupmap wel bestaat, maar geen bruikbare playbooks bevat.
         playbooks_status = {
             "status": "failed",
             "output": "Geen Ansible-playbooks gevonden voor setup_id " + str(setup_id),
@@ -275,7 +300,7 @@ def run_setup(setup_id, logged_user=None, run_reference=None):
     er_is_een_fout = False
 
     for playbook_pad in playbooks:
-        playbook_naam = os.path.basename(playbook_pad)
+        playbook_naam = os.path.basename(playbook_pad)  # Haalt enkel de bestandsnaam uit het volledige pad.
 
         ansible_resultaat = run_playbook(
             playbook_pad,
@@ -323,7 +348,7 @@ def get_setup_info(setup_id):
     Zo blijven de IP-adressen per netwerkopstelling duidelijk gescheiden.
     """
 
-    setup_map_naam = "setup" + str(setup_id)
+    setup_map_naam = "setup" + str(setup_id)  # Bijvoorbeeld setup1 of setup2.
 
     # Volledig pad naar de setupmap.
     # Bijvoorbeeld: ansible/playbooks/setup1
@@ -356,7 +381,7 @@ def get_playbooks_for_setup(setup_info):
     Alleen playbooks die echt bestaan worden uitgevoerd.
     """
 
-    setup_pad = setup_info["pad"]
+    setup_pad = setup_info["pad"]  # Dit is de map waar de playbooks van deze setup staan.
 
     # Dit zijn de playbooks die we verwachten in elke setupmap.
     # In de MVP houden we dit bewust hardcoded.
@@ -366,13 +391,18 @@ def get_playbooks_for_setup(setup_info):
         os.path.join(setup_pad, "servers.yml"),
     ]
 
-    bestaande_playbooks = []
+    bestaande_playbooks = []  # Hierin komen alleen playbooks die echt bestaan.
 
     for playbook_pad in mogelijke_playbooks:
         if os.path.exists(playbook_pad):
             bestaande_playbooks.append(playbook_pad)
 
     return bestaande_playbooks
+
+
+###############################################################################
+#                         Functies info.yml verwerken                         #
+###############################################################################
 
 
 def build_runtime_variables(setup_info, custom_variables=None):
@@ -386,23 +416,27 @@ def build_runtime_variables(setup_info, custom_variables=None):
     update_setup_info_file() gebruikt deze data om info.yml te bewaren.
     """
 
-    info_pad = os.path.join(setup_info["pad"], "info.yml")
+    info_pad = os.path.join(setup_info["pad"], "info.yml")  # Pad naar info.yml van de gekozen setup.
 
     with open(info_pad, "r", encoding="utf-8") as info_file:
-        info_data = yaml.safe_load(info_file)
+        info_data = yaml.safe_load(info_file)  # Leest YAML om naar gewone Python-data.
 
-    runtime_data = copy.deepcopy(info_data)
+    # We maken bewust een kopie van info.yml.
+    # Zo kunnen we waarden aanpassen zonder de originele data per ongeluk te wijzigen.
+    setup_data = copy.deepcopy(info_data)
 
     if not custom_variables:
-        return runtime_data
+        # Als er geen formulierwaarden zijn, gebruiken we info.yml zoals die nu is.
+        return setup_data
 
     setup_id = str(setup_info["id"])
-    variables = runtime_data.get("variables", {})
+    variabelen = setup_data.get("variables", {})  # Alle technische setupwaarden staan onder variables.
 
     if setup_id == "1":
-        router = variables.get("router", {})
-        switch = variables.get("switch", {})
+        router = variabelen.get("router", {})    # Routerblok uit info.yml.
+        switch = variabelen.get("switch", {})    # Switchblok uit info.yml.
 
+        # Routerwaarden van setup1 bijwerken met de formulierwaarden.
         router["hostname"] = custom_variables.get("router_hostname", router.get("hostname"))
         router["management_ip"] = custom_variables.get("router_management_ip", router.get("management_ip"))
         router["lab_interface"] = custom_variables.get("router_lab_interface", router.get("lab_interface"))
@@ -415,6 +449,7 @@ def build_runtime_variables(setup_info, custom_variables=None):
         router["ospf_wildcard"] = custom_variables.get("router_ospf_wildcard", router.get("ospf_wildcard"))
         router["ospf_area"] = custom_variables.get("router_ospf_area", router.get("ospf_area"))
 
+        # Switchwaarden van setup1 bijwerken met de formulierwaarden.
         switch["hostname"] = custom_variables.get("switch_hostname", switch.get("hostname"))
         switch["management_ip"] = custom_variables.get("switch_management_ip", switch.get("management_ip"))
         switch["access_port"] = custom_variables.get("switch_access_port", switch.get("access_port"))
@@ -424,30 +459,34 @@ def build_runtime_variables(setup_info, custom_variables=None):
         switch["trunk_description"] = custom_variables.get("switch_trunk_description", switch.get("trunk_description"))
         switch["trunk_allowed_vlans"] = custom_variables.get("switch_trunk_allowed_vlans", switch.get("trunk_allowed_vlans"))
 
-        vlans = switch.get("vlans", [])
+        vlans = switch.get("vlans", [])          # Lijst met VLANs van setup1.
 
+        # VLANs worden via index verwerkt omdat het formulier dezelfde volgorde gebruikt.
         for index, vlan in enumerate(vlans):
             vlan["id"] = custom_variables.get("setup1_vlan_" + str(index) + "_id", vlan.get("id"))
             vlan["name"] = custom_variables.get("setup1_vlan_" + str(index) + "_name", vlan.get("name"))
 
     if setup_id == "2":
-        router = variables.get("router", {})
-        vlans = variables.get("vlans", [])
-        switches = variables.get("switches", {})
+        router = variabelen.get("router", {})      # Routerblok uit info.yml.
+        vlans = variabelen.get("vlans", [])        # Algemene VLAN-lijst van setup2.
+        switches = variabelen.get("switches", {})  # Alle switches van setup2.
 
+        # Routerwaarden van setup2 bijwerken met de formulierwaarden.
         router["hostname"] = custom_variables.get("router_hostname", router.get("hostname"))
         router["management_ip"] = custom_variables.get("router_management_ip", router.get("management_ip"))
         router["trunk_interface"] = custom_variables.get("router_trunk_interface", router.get("trunk_interface"))
         router["trunk_description"] = custom_variables.get("router_trunk_description", router.get("trunk_description"))
 
-        subinterfaces = router.get("subinterfaces", [])
+        subinterfaces = router.get("subinterfaces", [])  # Subinterfaces van de router-on-a-stick configuratie.
 
+        # Subinterfaces worden via index verwerkt omdat het formulier dezelfde volgorde gebruikt.
         for index, subinterface in enumerate(subinterfaces):
             subinterface["vlan"] = custom_variables.get("setup2_subinterface_" + str(index) + "_vlan", subinterface.get("vlan"))
             subinterface["description"] = custom_variables.get("setup2_subinterface_" + str(index) + "_description", subinterface.get("description"))
             subinterface["ip"] = custom_variables.get("setup2_subinterface_" + str(index) + "_ip", subinterface.get("ip"))
             subinterface["mask"] = custom_variables.get("setup2_subinterface_" + str(index) + "_mask", subinterface.get("mask"))
 
+        # Algemene VLAN-lijst van setup2 bijwerken.
         for index, vlan in enumerate(vlans):
             vlan["id"] = custom_variables.get("setup2_vlan_" + str(index) + "_id", vlan.get("id"))
             vlan["name"] = custom_variables.get("setup2_vlan_" + str(index) + "_name", vlan.get("name"))
@@ -457,44 +496,51 @@ def build_runtime_variables(setup_info, custom_variables=None):
             switches.get("trunk_allowed_vlans"),
         )
 
-        for switch_name, switch_data in switches.items():
+        for switch_naam, switch_data in switches.items():
+            # .items() geeft telkens de naam van de switch en de data van die switch.
+            # Bijvoorbeeld: sw11 en het bijhorende blok uit info.yml.
             if not isinstance(switch_data, dict):
+                # trunk_allowed_vlans is tekst en geen switchblok.
+                # Daarom slaan we die hier over.
                 continue
 
-            switch_data["hostname"] = custom_variables.get(switch_name + "_hostname", switch_data.get("hostname"))
-            switch_data["management_ip"] = custom_variables.get(switch_name + "_management_ip", switch_data.get("management_ip"))
+            # Elke switch heeft eigen formulierwaarden.
+            # De naam uit info.yml, bijvoorbeeld sw11, komt overeen met de veldnamen.
+            switch_data["hostname"] = custom_variables.get(switch_naam + "_hostname", switch_data.get("hostname"))
+            switch_data["management_ip"] = custom_variables.get(switch_naam + "_management_ip", switch_data.get("management_ip"))
 
-            trunk_ports = switch_data.get("trunk_ports", [])
+            trunk_ports = switch_data.get("trunk_ports", [])  # Trunkpoorten van deze switch.
 
             for index, trunk_port in enumerate(trunk_ports):
-                trunk_port["interface"] = custom_variables.get(switch_name + "_trunk_" + str(index) + "_interface", trunk_port.get("interface"))
-                trunk_port["description"] = custom_variables.get(switch_name + "_trunk_" + str(index) + "_description", trunk_port.get("description"))
+                trunk_port["interface"] = custom_variables.get(switch_naam + "_trunk_" + str(index) + "_interface", trunk_port.get("interface"))
+                trunk_port["description"] = custom_variables.get(switch_naam + "_trunk_" + str(index) + "_description", trunk_port.get("description"))
 
-            etherchannel = switch_data.get("etherchannel")
+            etherchannel = switch_data.get("etherchannel")  # EtherChannel bestaat alleen op sommige switches.
 
             if isinstance(etherchannel, dict):
-                etherchannel["port_channel"] = custom_variables.get(switch_name + "_etherchannel_port_channel", etherchannel.get("port_channel"))
-                etherchannel["mode"] = custom_variables.get(switch_name + "_etherchannel_mode", etherchannel.get("mode"))
+                # Alleen als etherchannel echt een blok met data is, werken we die waarden bij.
+                etherchannel["port_channel"] = custom_variables.get(switch_naam + "_etherchannel_port_channel", etherchannel.get("port_channel"))
+                etherchannel["mode"] = custom_variables.get(switch_naam + "_etherchannel_mode", etherchannel.get("mode"))
 
-                member_ports = etherchannel.get("member_ports", [])
+                member_ports = etherchannel.get("member_ports", [])  # Fysieke poorten die samen 1 EtherChannel vormen.
 
                 for index, member_port in enumerate(member_ports):
-                    member_port["interface"] = custom_variables.get(switch_name + "_etherchannel_" + str(index) + "_interface", member_port.get("interface"))
-                    member_port["description"] = custom_variables.get(switch_name + "_etherchannel_" + str(index) + "_description", member_port.get("description"))
+                    member_port["interface"] = custom_variables.get(switch_naam + "_etherchannel_" + str(index) + "_interface", member_port.get("interface"))
+                    member_port["description"] = custom_variables.get(switch_naam + "_etherchannel_" + str(index) + "_description", member_port.get("description"))
 
-            access_ports = switch_data.get("access_ports", [])
+            access_ports = switch_data.get("access_ports", [])  # Accesspoorten voor toestellen aan de classroomkant.
 
             for index, access_port in enumerate(access_ports):
-                access_port["interface"] = custom_variables.get(switch_name + "_access_" + str(index) + "_interface", access_port.get("interface"))
-                access_port["description"] = custom_variables.get(switch_name + "_access_" + str(index) + "_description", access_port.get("description"))
-                access_port["vlan"] = custom_variables.get(switch_name + "_access_" + str(index) + "_vlan", access_port.get("vlan"))
+                access_port["interface"] = custom_variables.get(switch_naam + "_access_" + str(index) + "_interface", access_port.get("interface"))
+                access_port["description"] = custom_variables.get(switch_naam + "_access_" + str(index) + "_description", access_port.get("description"))
+                access_port["vlan"] = custom_variables.get(switch_naam + "_access_" + str(index) + "_vlan", access_port.get("vlan"))
 
-    update_technical_documentation(runtime_data, custom_variables)
+    update_technical_documentation(setup_data, custom_variables)  # Ook de tekstuele documentatie in info.yml bijwerken.
 
-    return runtime_data
+    return setup_data
 
 
-def update_technical_documentation(runtime_data, custom_variables):
+def update_technical_documentation(setup_data, custom_variables):
     """
     Werkt de technische documentatie in info.yml bij.
 
@@ -507,37 +553,40 @@ def update_technical_documentation(runtime_data, custom_variables):
     We passen dus alleen de tekst aan, niet het aantal blokken.
     """
 
-    technical_documentation = runtime_data.get("technical_documentation")
+    technische_documentatie = setup_data.get("technical_documentation")  # Blok met leesbare documentatie uit info.yml.
 
-    if not isinstance(technical_documentation, dict):
+    if not isinstance(technische_documentatie, dict):
+        # Als een setup geen technische documentatie heeft, stoppen we gewoon.
         return
 
-    technical_documentation["title"] = custom_variables.get(
+    technische_documentatie["title"] = custom_variables.get(
         "technical_documentation_title",
-        technical_documentation.get("title"),
+        technische_documentatie.get("title"),
     )
 
-    technical_documentation["intro"] = custom_variables.get(
+    technische_documentatie["intro"] = custom_variables.get(
         "technical_documentation_intro",
-        technical_documentation.get("intro"),
+        technische_documentatie.get("intro"),
     )
 
-    sections = technical_documentation.get("sections", [])
+    secties = technische_documentatie.get("sections", [])  # Lijst met documentatieblokken.
 
-    for section_index, section in enumerate(sections):
-        if not isinstance(section, dict):
+    for sectie_index, sectie in enumerate(secties):
+        # enumerate geeft zowel de positie als de inhoud.
+        # Die positie gebruiken we om de juiste formuliernaam terug te vinden.
+        if not isinstance(sectie, dict):
             continue
 
-        section["title"] = custom_variables.get(
-            "technical_documentation_section_" + str(section_index) + "_title",
-            section.get("title"),
+        sectie["title"] = custom_variables.get(
+            "technical_documentation_section_" + str(sectie_index) + "_title",
+            sectie.get("title"),
         )
 
-        items = section.get("items", [])
+        regels = sectie.get("items", [])  # Regels tekst binnen deze documentatiesectie.
 
-        for item_index, item in enumerate(items):
-            field_name = "technical_documentation_section_" + str(section_index) + "_item_" + str(item_index)
-            items[item_index] = custom_variables.get(field_name, item)
+        for regel_index, regel in enumerate(regels):
+            veldnaam = "technical_documentation_section_" + str(sectie_index) + "_item_" + str(regel_index)
+            regels[regel_index] = custom_variables.get(veldnaam, regel)
 
 
 def update_setup_info_file(setup_id, custom_variables):
@@ -551,23 +600,26 @@ def update_setup_info_file(setup_id, custom_variables):
     setup_info = get_setup_info(setup_id)
 
     if setup_info == None:
+        # Zonder geldige setupmap weten we niet welke info.yml aangepast moet worden.
         return {
             "status": "failed",
             "output": "Geen geldige setup gevonden voor setup_id " + str(setup_id),
         }
 
-    info_pad = os.path.join(setup_info["pad"], "info.yml")
+    info_pad = os.path.join(setup_info["pad"], "info.yml")  # Bestand dat effectief aangepast wordt.
 
     try:
+        # Eerst bouwen we de nieuwe inhoud op in Python.
+        # Daarna schrijven we die pas naar info.yml.
         nieuwe_info = build_runtime_variables(setup_info, custom_variables)
 
         with open(info_pad, "w", encoding="utf-8") as info_file:
             yaml.safe_dump(
                 nieuwe_info,
                 info_file,
-                sort_keys=False,
-                allow_unicode=True,
-                default_flow_style=False,
+                sort_keys=False,             # Volgorde van info.yml zoveel mogelijk behouden.
+                allow_unicode=True,          # Nederlandse tekens normaal bewaren.
+                default_flow_style=False,    # YAML netjes onder elkaar schrijven.
             )
 
     except Exception as fout:
@@ -582,7 +634,12 @@ def update_setup_info_file(setup_id, custom_variables):
     }
 
 
-def maak_runtime_inventory(setup_info, runtime_variables, run_reference=None):
+###############################################################################
+#                         Functies tijdelijke inventory                        #
+###############################################################################
+
+
+def maak_runtime_inventory(setup_info, setup_data, run_reference=None):
     """
     Maakt een tijdelijke inventory voor 1 configuratierun.
 
@@ -592,54 +649,65 @@ def maak_runtime_inventory(setup_info, runtime_variables, run_reference=None):
     - Ansible moet verbinden met de IP's die nu in info.yml staan.
     """
 
-    originele_inventory = setup_info["inventory"]
+    originele_inventory = setup_info["inventory"]  # Basisinventory van de setup.
     runtime_inventory_map = os.path.join(BASE_DIR, "data", "runtime_inventories")
-    os.makedirs(runtime_inventory_map, exist_ok=True)
+    os.makedirs(runtime_inventory_map, exist_ok=True)  # Map maken als ze nog niet bestaat.
 
     if run_reference:
+        # Bij een echte configuratierun gebruiken we dezelfde naam als de backupmap.
         inventory_naam = run_reference + "-inventory.ini"
     else:
+        # Fallbacknaam voor wanneer er geen run_reference werd meegegeven.
         inventory_naam = "setup" + str(setup_info["id"]) + "-runtime-inventory.ini"
 
-    runtime_inventory_pad = os.path.join(runtime_inventory_map, inventory_naam)
+    runtime_inventory_pad = os.path.join(runtime_inventory_map, inventory_naam)  # Volledig pad naar tijdelijke inventory.
 
-    variables = runtime_variables.get("variables", {})
-    management_ips = {}
+    variabelen = setup_data.get("variables", {})  # Technische waarden uit info.yml.
+    management_ips = {}                           # Hierin verzamelen we toestelnaam + management-IP.
 
-    router = variables.get("router", {})
+    router = variabelen.get("router", {})
 
     if router.get("management_ip"):
+        # In onze playbooks heet de router in de inventory r1.
         management_ips["r1"] = str(router.get("management_ip"))
 
-    switch = variables.get("switch", {})
+    switch = variabelen.get("switch", {})
 
     if switch.get("management_ip"):
+        # Setup1 heeft 1 switch met inventorynaam sw1.
         management_ips["sw1"] = str(switch.get("management_ip"))
 
-    switches = variables.get("switches", {})
+    switches = variabelen.get("switches", {})
 
-    for switch_name, switch_data in switches.items():
+    for switch_naam, switch_data in switches.items():
+        # Setup2 heeft meerdere switches, bijvoorbeeld sw11, sw12, distsw en classsw.
         if isinstance(switch_data, dict) and switch_data.get("management_ip"):
-            management_ips[switch_name] = str(switch_data.get("management_ip"))
+            management_ips[switch_naam] = str(switch_data.get("management_ip"))
 
     with open(originele_inventory, "r", encoding="utf-8") as inventory_file:
-        inventory_regels = inventory_file.readlines()
+        inventory_regels = inventory_file.readlines()  # Inventory regel per regel lezen.
 
-    nieuwe_regels = []
+    nieuwe_regels = []  # Hierin bouwen we de aangepaste inventory op.
 
+    # We lezen de vaste inventory en vervangen enkel ansible_host.
+    # Alle andere groepsinstellingen blijven gewoon hetzelfde.
     for regel in inventory_regels:
         nieuwe_regel = regel
-        regel_zonder_spaties = regel.strip()
+        regel_zonder_spaties = regel.strip()  # Nodig om makkelijker te controleren waarmee de regel start.
 
         for toestelnaam, management_ip in management_ips.items():
+            # We zoeken de regel van het toestel.
+            # Bijvoorbeeld: r1 ansible_host=192.168.0.215
             if regel_zonder_spaties.startswith(toestelnaam + " ") and "ansible_host=" in regel_zonder_spaties:
-                delen = regel_zonder_spaties.split()
-                nieuwe_delen = []
+                delen = regel_zonder_spaties.split()  # Regel opdelen in losse stukken.
+                nieuwe_delen = []                     # Hier komt dezelfde regel terug, maar met nieuw IP.
 
                 for deel in delen:
                     if deel.startswith("ansible_host="):
+                        # Alleen het IP-adres vervangen.
                         nieuwe_delen.append("ansible_host=" + management_ip)
                     else:
+                        # Alle andere instellingen blijven hetzelfde.
                         nieuwe_delen.append(deel)
 
                 nieuwe_regel = " ".join(nieuwe_delen) + "\n"
@@ -647,7 +715,7 @@ def maak_runtime_inventory(setup_info, runtime_variables, run_reference=None):
         nieuwe_regels.append(nieuwe_regel)
 
     with open(runtime_inventory_pad, "w", encoding="utf-8") as inventory_file:
-        inventory_file.writelines(nieuwe_regels)
+        inventory_file.writelines(nieuwe_regels)  # Tijdelijke inventory wegschrijven.
 
     return runtime_inventory_pad
 
@@ -749,7 +817,7 @@ def maak_technische_output(uitgevoerd_proces):
     stderr = waarschuwingen of foutdetails
     """
 
-    output_delen = []
+    output_delen = []  # Hier verzamelen we stdout en stderr in 1 leesbare tekst.
 
     if uitgevoerd_proces.stdout:
         output_delen.append("ANSIBLE OUTPUT")
@@ -761,7 +829,7 @@ def maak_technische_output(uitgevoerd_proces):
         output_delen.append("")
         output_delen.append(uitgevoerd_proces.stderr)
 
-    output = "\n".join(output_delen).strip()
+    output = "\n".join(output_delen).strip()  # Alle delen samenvoegen met nieuwe regels ertussen.
 
     if output == "":
         output = "Ansible gaf geen output terug."
@@ -778,7 +846,7 @@ def maak_volledige_output(samenvatting_regels, technische_output):
     Die tekst dus niet zomaar aanpassen.
     """
 
-    volledige_output = []
+    volledige_output = []  # Eerst samenvatting, daarna technische output.
 
     volledige_output.append("SAMENVATTING CONFIGURATIE")
     volledige_output.append("")
@@ -799,7 +867,7 @@ def explain_ansible_error(output):
     Dat is makkelijker te lezen en uit te leggen dan regex.
     """
 
-    output_lower = output.lower()
+    output_lower = output.lower()  # Alles naar kleine letters zetten zodat zoeken makkelijker wordt.
 
     if "authentication failed" in output_lower or "failed to authenticate" in output_lower:
         return "de login of het enable-wachtwoord klopt waarschijnlijk niet."
