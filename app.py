@@ -24,10 +24,25 @@ from modules.ansible_tools import (
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-
+# --------------------------------------------------
+# Functie: maak_run_referentie()
+#
+# Doel:
+# Genereert een unieke referentie voor iedere
+# configuratierun.
+#
+# Gebruik:
+# - Opslaan van deployment logs in SQLite
+# - Aanmaken van unieke backupmappen
+#
+# Parameters:
+# setup_id  -> ID van de gekozen opstelling
+# username  -> aangemelde gebruiker
+#
+# Return:
+# String met unieke runreferentie
+# --------------------------------------------------
 init_database()
-
-
 def maak_run_referentie(setup_id, username):
     """
     Maakt een unieke naam voor 1 configuratierun.
@@ -44,6 +59,27 @@ def maak_run_referentie(setup_id, username):
     return run_referentie
 
 
+
+# --------------------------------------------------
+# Route: /
+#
+# Doel:
+# Loginpagina van de applicatie.
+#
+# Werking:
+# - Toont loginformulier (GET)
+# - Controleert gebruikersnaam en wachtwoord (POST)
+# - Maakt een sessie aan bij succesvolle login
+# - Stuurt gebruiker door naar dashboard
+#
+# Template:
+# login.html
+#
+# Sessies:
+# user_id
+# username
+# role
+# --------------------------------------------------
 @app.route("/", methods=["GET", "POST"])
 def login():
     # Als de gebruiker al aangemeld is en opnieuw naar / gaat,
@@ -71,6 +107,27 @@ def login():
     return render_template("login.html", error=error)
 
 
+
+
+# --------------------------------------------------
+# Route: /dashboard
+#
+# Doel:
+# Hoofdscherm van de applicatie tonen.
+#
+# Werking:
+# - Controleert of gebruiker ingelogd is
+# - Haalt netwerkopstellingen op
+# - Haalt laatste configuratierun op
+# - Toont configuratiegeschiedenis
+# - Ondersteunt filtering op:
+#   * setup
+#   * status
+#   * gebruiker
+#
+# Template:
+# dashboard.html
+# --------------------------------------------------
 @app.route("/dashboard")
 def dashboard():
     if "user_id" not in session:
@@ -156,6 +213,27 @@ def dashboard():
     )
 
 
+
+
+# --------------------------------------------------
+# Route: /deploy
+#
+# Doel:
+# Start een Ansible-configuratie.
+#
+# Werking:
+# - Controleert sessie
+# - Valideert setup-ID
+# - Genereert runreferentie
+# - Start gekozen netwerkopstelling
+# - Slaat resultaat op in deployment_logs
+#
+# Methode:
+# POST
+#
+# Resultaat:
+# Gebruiker wordt teruggestuurd naar dashboard
+# --------------------------------------------------
 @app.route("/deploy", methods=["POST"])
 def deploy():
     if "user_id" not in session:
@@ -192,6 +270,24 @@ def deploy():
     return redirect("/dashboard")
 
 
+
+
+# --------------------------------------------------
+# Route: /update-setup-variables
+#
+# Doel:
+# Aanpasbare configuratiewaarden bewaren zonder
+# Ansible uit te voeren.
+#
+# Werking:
+# - Leest formuliergegevens uit dashboard
+# - Valideert invoer
+# - Schrijft gegevens weg naar info.yml
+# - Geeft succes- of foutmelding terug
+#
+# Methode:
+# POST
+# --------------------------------------------------
 @app.route("/update-setup-variables", methods=["POST"])
 def update_setup_variables():
     """
@@ -248,6 +344,23 @@ def update_setup_variables():
     return redirect("/dashboard")
 
 
+
+
+# --------------------------------------------------
+# Route: /backup/<run_reference>/<filename>
+#
+# Doel:
+# Downloaden van running-config backups.
+#
+# Werking:
+# - Controleert sessie
+# - Controleert geldig pad
+# - Levert bestand aan gebruiker
+#
+# Beveiliging:
+# Enkel bestanden uit de backups-map
+# worden toegelaten.
+# --------------------------------------------------
 @app.route("/backup/<run_reference>/<filename>")
 def download_backup(run_reference, filename):
     """
@@ -274,6 +387,18 @@ def download_backup(run_reference, filename):
     return send_from_directory(backup_map, filename, as_attachment=True)
 
 
+
+
+# --------------------------------------------------
+# Route: /logout
+#
+# Doel:
+# Afmelden van de gebruiker.
+#
+# Werking:
+# - Verwijdert alle sessiegegevens
+# - Stuurt gebruiker terug naar loginpagina
+# --------------------------------------------------
 @app.route("/logout")
 def logout():
     session.clear()
