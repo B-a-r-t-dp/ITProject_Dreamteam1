@@ -54,8 +54,8 @@ variables:
     access_description: Accesspoort VLAN 10
     access_vlan: 10
 
-    trunk_port: GigabitEthernet0/3
-    trunk_port_short: Gi0/3
+    trunk_port: GigabitEthernet0/1
+    trunk_port_short: Gi0/1
     trunk_description: Trunk naar router of uplink
     trunk_allowed_vlans: "10,20"
 
@@ -107,8 +107,9 @@ technical_documentation:
       items:
         - R1 Gi0/0 is de managementinterface voor SSH en Ansible.
         - R1 Gi0/1 wordt gebruikt als labinterface richting de switch.
+        - SW1 Gi0/0 is de managementinterface voor SSH en Ansible.
+        - SW1 Gi0/1 is de trunkpoort voor VLAN 10 en VLAN 20.
         - SW1 Gi0/2 is de accesspoort voor VLAN 10.
-        - SW1 Gi0/3 is de trunkpoort voor VLAN 10 en VLAN 20.
 
     - title: Wat configureert de setup?
       items:
