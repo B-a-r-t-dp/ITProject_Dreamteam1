@@ -210,6 +210,8 @@ show ip interface brief
 show running-config interface GigabitEthernet0/0
 show running-config interface GigabitEthernet0/0.10
 show running-config interface GigabitEthernet0/0.20
+show running-config interface GigabitEthernet0/0.30
+show running-config interface GigabitEthernet0/0.40
 ```
 
 Switches:

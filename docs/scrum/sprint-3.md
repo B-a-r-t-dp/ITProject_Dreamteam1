@@ -80,7 +80,7 @@ Joost heeft verder gekeken naar de formulierwaarden voor de setups. De bedoeling
 **29/05 Vrijdag daily 3 | 20:00 | MS Teams**
 
 Bart
-Ik heb setup2 getest en bijgestuurd. De router krijgt subinterfaces voor VLAN 10 en VLAN 20, en de switches krijgen VLANs, trunks, EtherChannel en een accesspoort aan de classroomkant. Mijn volgende stap is controleren of de backups en technische documentatie per setup kloppen. Waar ik even tegenaan liep, was dat de router wel pingbaar was maar SSH niet altijd goed reageerde tot de basisconfiguratie juist stond.
+Ik heb setup2 getest en bijgestuurd. De router krijgt subinterfaces voor VLAN 10, VLAN 20, VLAN 30 en VLAN 40, en de switches krijgen VLANs, trunks, EtherChannel en accesspoorten aan de classroomkant. Mijn volgende stap is controleren of de backups en technische documentatie per setup kloppen. Waar ik even tegenaan liep, was dat de router wel pingbaar was maar SSH niet altijd goed reageerde tot de basisconfiguratie juist stond.
 
 Lina
 Lina heeft de configuratiegeschiedenis verder uitgewerkt. Per run kunnen we nu zien welke setup gestart werd, door welke user, met welke status en welke output erbij hoort. Haar volgende stap is ervoor zorgen dat succesvolle runs ook de backupbestanden tonen. De grootste uitdaging is dat de geschiedenis overzichtelijk moet blijven zonder een te groot admin-dashboard te bouwen.

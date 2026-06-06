@@ -7,10 +7,10 @@ Geautomatiseerde netwerk- en serverconfiguratie via Flask, Ansible en Docker
 We bouwen bewust een haalbare MVP:
 
 - 1 docent kan aanmelden;
-- 1 netwerkopstelling kan geselecteerd worden;
+- meerdere netwerkopstellingen kunnen geselecteerd worden;
 - Flask start een Ansible-flow;
 - output/status wordt opgeslagen in SQLite;
-- Ansible richt zich op 1 router, 1 switch, HTTP, HTTPS en FTP;
+- Ansible richt zich op setup1 en setup2 met router-, switch- en serverconfiguratie;
 - alles draait via eigen Alpine Docker-images op een Debian Docker-host.
 
 ## Belangrijkste documenten
@@ -41,7 +41,7 @@ We bouwen bewust een haalbare MVP:
 | --- | --- | --- |
 | Lina | Flask / frontend | `app.py`, `templates/login.html`, `templates/dashboard.html`, `static/` |
 | Joost | SQLite / backend | `database/schema.sql`, `modules/database_tools.py`, `data/` |
-| Bart | Ansible / Docker / netwerk | `modules/ansible_tools.py`, `ansible/inventory.ini`, `ansible/playbooks/`, `Dockerfile`, `docker-compose.yml`, `servers/http/`, `servers/https/`, `servers/ftp/` |
+| Bart | Ansible / Docker / netwerk | `modules/ansible_tools.py`, `ansible/playbooks/setup*/inventory.ini`, `ansible/playbooks/`, `Dockerfile`, `docker-compose.yml`, `servers/http/`, `servers/https/`, `servers/ftp/` |
 
 Iedereen werkt aan een eigen deel, maar spreekt vaste afspraken af voor hoe de delen samenkomen.
 

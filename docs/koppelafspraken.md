@@ -108,26 +108,28 @@ None
         "description": "1 router, 1 switch, HTTP, HTTPS en FTP",
         "playbook_data": "setup1",
         "info": {
-            "name": "Basisopstelling",
+            "setup_name": "Basisopstelling",
             "description": "1 router, 1 switch, HTTP, HTTPS en FTP",
-            "devices": {},
-            "variables": {}
+            "variables": {},
+            "technical_documentation": {}
         }
     }
 ]
 ```
 
-`playbook_data` verwijst voorlopig naar de map onder `ansible/playbooks/`.
-Voor de basisopstelling is dat dus:
+`playbook_data` verwijst naar de map onder `ansible/playbooks/`.
+Voorbeelden zijn:
 
 ```text
 setup1
+setup2
 ```
 
-De extra sleutel `info` komt uit:
+De extra sleutel `info` komt uit het `info.yml`-bestand van de gekozen setup:
 
 ```text
 ansible/playbooks/setup1/info.yml
+ansible/playbooks/setup2/info.yml
 ```
 
 Die informatie mag op het dashboard getoond worden. Zo moet Lina geen netwerkdetails hardcoded in HTML zetten.
@@ -137,7 +139,7 @@ Die informatie mag op het dashboard getoond worden. Zo moet Lina geen netwerkdet
 Deze functie moet bestaan:
 
 ```python
-run_setup(setup_id, logged_user=None)
+run_setup(setup_id, logged_user=None, run_reference=None)
 ```
 
 Die geeft altijd dit formaat terug:
@@ -281,18 +283,22 @@ last_log = None
 Bart werkt in:
 
 ```text
-ansible/inventory.ini
+ansible/playbooks/setup1/inventory.ini
 ansible/playbooks/setup1/info.yml
 ansible/playbooks/setup1/router.yml
 ansible/playbooks/setup1/switch.yml
 ansible/playbooks/setup1/servers.yml
+ansible/playbooks/setup2/inventory.ini
+ansible/playbooks/setup2/info.yml
+ansible/playbooks/setup2/router.yml
+ansible/playbooks/setup2/switch.yml
 ```
 
 Vaste afspraak:
 
 | Bestand | Doel |
 | --- | --- |
-| `inventory.ini` | Bevat groepen `routers` en `switches`. |
+| `setup*/inventory.ini` | Bevat per setup de juiste toestellen, groepen en SSH-instellingen. |
 | `setup1/info.yml` | Bevat toonbare setupinformatie en later configureerbare basiswaarden. |
 | `setup1/router.yml` | Bevat routertaken voor basisopstelling 1. |
 | `setup1/switch.yml` | Bevat switchtaken voor basisopstelling 1. |
@@ -308,11 +314,11 @@ r1 ansible_host=...
 sw1 ansible_host=...
 ```
 
-Voor de MVP gebruiken we minimaal:
+Voor de MVP gebruiken we meerdere opstellingen:
 
-- 1 router;
-- 1 switch;
-- 1 setup-id uit SQLite.
+- setup1: basisopstelling met 1 router, 1 switch en servercontainers;
+- setup2: podopstelling Brussel met router, podswitches, distributieswitch en classroomswitch;
+- elke setup heeft een eigen setupmap en eigen inventory.ini.
 
 ### Setupdata
 
@@ -326,8 +332,8 @@ Voor Sprint 2 spreken we af dat `info.yml` de centrale plaats wordt voor:
 
 | Onderdeel | Doel |
 | --- | --- |
-| `devices` | Menselijke informatie voor het dashboard. |
-| `variables` | Technische waarden die de playbooks gebruiken. |
+| `variables` | Technische waarden die de playbooks gebruiken en die de frontend toont/aanpast. |
+| `technical_documentation` | Menselijke uitleg voor de frontend over aansluitingen en werking van de setup. |
 
 Voorbeelden van waarden in `variables`:
 
@@ -369,20 +375,35 @@ De map `backups/` staat op de hostmachine en wordt via Docker Compose gekoppeld 
 Daardoor kunnen de Ansible-playbooks vanuit de Flask-container backupbestanden schrijven,
 terwijl die bestanden ook zichtbaar blijven in de projectmap op de pc.
 
-Bestandsnaam:
+Backups worden per configuratierun in een eigen map bewaard.
+
+Mapnaam:
 
 ```text
-<toestel>-<docent>-<datumtijd>-running-config.txt
+backups/<run_reference>/
 ```
 
 Voorbeeld:
 
 ```text
-r1-docent-20260519-214122-running-config.txt
-sw1-docent-20260519-214218-running-config.txt
+backups/run-20260602-170934-docent-setup2/
 ```
 
-De datum/tijd in de bestandsnaam gebruikt Belgische tijd:
+Bestandsnaam per toestel:
+
+```text
+<inventory_hostname>-running-config.txt
+```
+
+Voorbeeld:
+
+```text
+r1-running-config.txt
+sw11-running-config.txt
+classsw-running-config.txt
+```
+
+De run_reference gebruikt Belgische tijd:
 
 ```text
 Europe/Brussels
@@ -429,13 +450,13 @@ Reden:
 
 - Flask start via `run_setup(setup_id, logged_user=session["username"])` de Ansible-flow;
 - de Ansible-flow voert ook `servers.yml` uit;
-- `servers.yml` moet in Sprint 2 servercontainers kunnen starten of controleren;
+- `servers.yml` van setup1 kan servercontainers starten of controleren;
 - daarvoor moet de Flask-container het commando `docker compose` kunnen gebruiken.
 
 Belangrijk:
 
 - Docker Compose blijft verantwoordelijk voor de servercontainers;
-- de knop **Start configuratie** start de configuratieflow van de basisopstelling;
+- de knop **Start configuratie** start de configuratieflow van de gekozen opstelling;
 - binnen die flow kan het serverplaybook HTTP, HTTPS en FTP starten/controleren;
 - dit is een labo/MVP-keuze en geen productie-security aanpak.
 
