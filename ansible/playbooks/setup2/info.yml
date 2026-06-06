@@ -109,13 +109,13 @@ variables:
           - interface: GigabitEthernet0/3
             description: Docentenpoort VLAN 10
             vlan: 10
-          - interface: GigabitEthernet1/0
+          - interface: GigabitEthernet0/4
             description: Studentenpoort VLAN 20
             vlan: 20
-          - interface: GigabitEthernet1/1
+          - interface: GigabitEthernet0/5
             description: Serverpoort VLAN 30
             vlan: 30
-          - interface: GigabitEthernet1/2
+          - interface: GigabitEthernet0/6
             description: Gastpoort VLAN 40
             vlan: 40
 
@@ -145,7 +145,7 @@ technical_documentation:
         - SW12 Gi0/2 -> DISTSW Gi0/1.
         - DISTSW Gi0/2 -> CLASSSW Gi0/1.
         - DISTSW Gi0/3 -> CLASSSW Gi0/2.
-        - CLASSSW Gi0/3, Gi1/0, Gi1/1 en Gi1/2 zijn voorbeeldpoorten aan de classroomkant.
+        - CLASSSW Gi0/3 - Gi0/10 zijn voorbeeldpoorten aan de classroomkant.
 
     - title: Wat configureert de setup?
       items:
