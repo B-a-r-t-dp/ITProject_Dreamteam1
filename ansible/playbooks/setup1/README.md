@@ -48,7 +48,7 @@ SW1 krijgt:
 - VLAN 10 `DOCENTEN`;
 - VLAN 20 `STUDENTEN`;
 - accesspoort `Gi0/2` voor VLAN 10;
-- trunkpoort `Gi0/3` voor VLAN 10 en VLAN 20.
+- trunkpoort `Gi0/1` voor VLAN 10 en VLAN 20.
 
 ### Servers
 
@@ -78,6 +78,6 @@ Switch:
 ```cisco
 show vlan brief
 show running-config interface GigabitEthernet0/2
-show running-config interface GigabitEthernet0/3
+show running-config interface GigabitEthernet0/1
 show interfaces trunk
 ```
