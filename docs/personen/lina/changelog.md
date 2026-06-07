@@ -31,7 +31,13 @@
 | 26-05-2026 | Sprint 3 | `dashboard.html` | Dubbele technische output verwijderd uit configuratiegeschiedenis. | Dashboard overzichtelijker maken en dubbele informatie vermijden. |
 | 26-05-2026 | Sprint 3 | `dashboard.html`, `style.css` | Configuratiegeschiedenis herwerkt naar uitklapbare dropdowns per configuratierun. | Grote hoeveelheden geschiedenis compacter weergeven. |
 | 26-05-2026 | Sprint 3 | `dashboard.html`, `style.css` | Samenvatting van configuraties verborgen achter een klikbare setup-weergave. | Informatie enkel tonen wanneer nodig en de leesbaarheid verbeteren. |
-| --- | --- | --- | --- | --- |
+| 04-06-2026 | Sprint 4 | `app.py`                        | Code gedocumenteerd met extra commentaar bij imports, Flask-initialisatie, sessiebeheer en routes.                       | De leesbaarheid en onderhoudbaarheid van de backend verbeteren.          |
+| 04-06-2026 | Sprint 4 | `login.html` | HTML- en Jinja2-code gedocumenteerd met verklarende commentaren. | De werking van de loginflow duidelijk documenteren. |
+| 04-06-2026 | Sprint 4 | `dashboard.html` | Belangrijkste dashboardcomponenten voorzien van commentaar en documentatie. | De werking van configuraties, monitoring en geschiedenis verduidelijken. |
+| 04-06-2026 | Sprint 4 | `dashboard.html` | Jinja2-constructies (`if`, `for`, `{{ }}`) gedocumenteerd. | Dynamische gegevensverwerking beter begrijpbaar maken. |
+| 07-06-2026 | Sprint 4 | `Technische documentatie` | Hoofdstuk Flask-applicatie uitgewerkt met beschrijving van packages, structuur, routes, sessies, dashboard en validatie. | Technische werking van de applicatie documenteren voor oplevering. |
+| 07-06-2026 | Sprint 4 | `ai-logboek.md`, `changelog.md` | Sprint 4 documentatie bijgewerkt op basis van gebruikte AI-ondersteuning. | Correcte projectopvolging en traceerbaarheid voorzien. |
+
 
 
 

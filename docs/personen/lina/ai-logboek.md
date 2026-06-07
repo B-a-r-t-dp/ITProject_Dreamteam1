@@ -30,7 +30,14 @@
 | 26-05-2026 | Sprint 3 | Hoe verwijder ik de dubbele technische output uit configuratiegeschiedenis? | ChatGPT | Dubbele technische output verwijderd zodat deze enkel zichtbaar blijft bij Laatste Configuratie. | Ja, gecontroleerd |
 | 26-05-2026 | Sprint 3 | Hoe maak ik van configuratiegeschiedenis een dropdown-overzicht? | ChatGPT | Uitklapbare configuratiegeschiedenis toegevoegd met gebruik van HTML details/summary. | Ja, getest |
 | 26-05-2026 | Sprint 3 | Hoe toon ik samenvattingen enkel wanneer op een setup geklikt wordt? | ChatGPT | Samenvattingen verborgen achter een dropdown per configuratierun. | Ja, gecontroleerd |
-| --- | --- | --- | --- | --- | --- |
+| 03-06-2026 | Sprint 4 | Ik vroeg hulp om `app.py` te documenteren met duidelijke commentaar bij de belangrijkste code. | ChatGPT | Uitleg en korte commentaren gekregen voor imports, Flask-initialisatie, routes, sessies, deploy, validatie en backups. | Ja, vergeleken met mijn eigen code |
+| 03-06-2026 | Sprint 4 | Wat betekenen `app = Flask(__name__)` en `app.secret_key`? | ChatGPT | Uitleg gekregen over het aanmaken van de Flask-applicatie en het beveiligen van sessies met een secret key. | Ja, verwerkt in technische documentatie |
+| 03-06-2026 | Sprint 4 | Wat betekenen de imports `datetime`, `Path`, `ZoneInfo` en de Flask-imports? | ChatGPT | Korte uitleg gekregen over tijdstempels, bestandspaden, Belgische tijdzone en Flask-componenten zoals `render_template`, `request`, `redirect` en `session`. | Ja, gebruikt als codecommentaar |
+| 03-06-2026 | Sprint 4 | Ik vroeg hulp om `login.html` te documenteren met korte commentaren. | ChatGPT | Commentaren voorzien voor Bootstrap, eigen CSS, loginformulier, foutmelding en Jinja2-variabelen. | Ja, nagekeken in HTML-bestand |
+| 03-06-2026 | Sprint 4 | Wat voor code is `{% if error %}` en `{{ error }}` in `login.html`? | ChatGPT | Uitleg gekregen over Jinja2-logica en Jinja2-variabelen binnen Flask-templates. | Ja, begrepen en verwerkt |
+| 03-06-2026 | Sprint 4 | Ik vroeg hulp om `dashboard.html` te documenteren zonder de bestaande code te wijzigen. | ChatGPT | Voorstellen gekregen voor korte commentaren bij header, overzichtskaarten, Jinja2-loops, formulieren, configuratiegeschiedenis, backups en monitoring. | Ja, gecontroleerd met de juiste versie van het bestand |
+| 04-06-2026 | Sprint 4 | Hoe pas ik de kaart “Aangemeld als” aan zodat de juiste gebruiker of rol getoond wordt? | ChatGPT | Uitleg gekregen over `{{ user.username }}` en `{{ user.role }}` en waar deze waarden uit Flask komen. | Ja, toegepast of gecontroleerd in dashboard |
+| 04-06-2026 | Sprint 4 | Ik vroeg hulp bij het schrijven van “Flask-applicatie”. | ChatGPT | Inleiding en inhoud opgesteld voor gebruikte packages, applicatiestructuur, routes, authenticatie, dashboard, geschiedenis, backups en variabelenvalidatie. | Ja, verwerkt in technische documentatie |
 
 
 
