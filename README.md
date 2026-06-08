@@ -1,4 +1,4 @@
-# ITProject MVP
+﻿# ITProject MVP
 
 ```text
 Geautomatiseerde netwerk- en serverconfiguratie via Flask, Ansible en Docker
@@ -33,6 +33,7 @@ We bouwen bewust een haalbare MVP:
 | [Sprint 3](docs/scrum/sprint-3.md) | Alle functionaliteiten benutten in de mvp tot de finale versie. |
 | [Sprint 3 Retrospective](docs/scrum/retrospective-sprint-3.md) | Wat goed ging, wat moeilijk ging en wat we meenemen naar Sprint 4. |
 | [Sprint 4](docs/scrum/sprint-4.md) | Technisch document opmaken, code learning voorbereiding demo. |
+| [Sprint 4 Retrospective](docs/scrum/retrospective-sprint-4.md) | Wat goed ging, wat moeilijk ging en wat we meenemen naar de evaluatie. |
 
 
 ## Taakverdeling en bestandseigenaars
@@ -66,3 +67,4 @@ projectnew/
 |-- docs/
 |-- README.md
 ```
+

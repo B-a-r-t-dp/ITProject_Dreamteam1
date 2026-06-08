@@ -1,4 +1,4 @@
-# Sprint 4 - Oplevering, documentatie en demo voorbereiden
+﻿# Sprint 4 - Oplevering, documentatie en demo voorbereiden
 
 ## Doel
 
@@ -22,38 +22,44 @@ Alleen als er tijdens het testen nog een kleine fout gevonden wordt die de demo 
 - Als code onnodig complex is, mag die eenvoudiger gemaakt worden, maar alleen als dit weinig risico geeft en de hele flow niet breekt.
 - Het technisch document wordt afgewerkt volgens de vereisten van de opgave.
 - De demo-flow wordt volledig getest.
-- Iedereen moet elke lijn code in heel het project kennen.. dus het is belangrijk dat we optijd pushen zodat we altijd op de nieuwste versie zitten.
+- Iedereen moet zijn of haar code kunnen uitleggen tijdens de evaluatie.
 
 
 ## Gekozen taken sprint 4
 
 | PB-ID | Taak | Wat betekent dit concreet? | Eigenaar | Bestand(en) | Status |
 | --- | --- | --- | --- | --- | --- |
-| PB-49 | Volledige demo-flow testen | We testen de demo alsof de docent meekijkt: login, setup kiezen, waarden aanpassen, configuratie starten, output bekijken, geschiedenis controleren en backups downloaden. | Team | volledige project | To do |
-| PB-50 | Testen of `main` een werkende sprintversie bevat | We controleren of de gepushte versie opnieuw kan starten vanaf een propere checkout. | Team | GitHub, Docker Compose | To do |
+| PB-49 | Volledige demo-flow testen | We testen de demo alsof de docent meekijkt: login, setup kiezen, waarden aanpassen, configuratie starten, output bekijken, geschiedenis controleren en backups downloaden. | Team | volledige project | Done |
+| PB-50 | Testen of `main` een werkende sprintversie bevat | We controleren of de gepushte versie opnieuw kan starten vanaf een propere checkout. | Team | GitHub, Docker Compose | Done |
 | PB-51 | Docker Compose build/start documenteren | De stappen om Docker-images te bouwen en containers te starten worden duidelijk uitgelegd. | Bart | `Dockerfile`, `docker-compose.yml`, `servers/`, technisch document | Done |
-| PB-52 | SQLite-tabellen en logs documenteren | De database, tabellen, gebruikers, setupdata en deployment logs worden duidelijk uitgelegd. | Joost | `database/schema.sql`, `modules/database_tools.py`, technisch document | To do |
-| PB-53 | Flask-flow documenteren | De login, dashboardflow, routes, templates en frontendwerking worden duidelijk gedocumenteerd. | Lina | `app.py`, `templates/`, `static/`, technisch document | To do |
+| PB-52 | SQLite-tabellen en logs documenteren | De database, tabellen, gebruikers, setupdata en deployment logs worden duidelijk uitgelegd. | Joost | `database/schema.sql`, `modules/database_tools.py`, technisch document | Done |
+| PB-53 | Flask-flow documenteren | De login, dashboardflow, routes, templates en frontendwerking worden duidelijk gedocumenteerd. | Lina | `app.py`, `templates/`, `static/`, technisch document | Done |
 | PB-54 | Netwerk/Ansible-beperkingen documenteren | We leggen uit wat setup1 en setup2 configureren, welke basisconfiguratie nodig is en wat bewust beperkt blijft. | Bart | `ansible/playbooks/`, setupdocumentatie, technisch document | Done |
-| PB-55 | MVP-afbakening finaliseren | We controleren of de MVP-afbakening overeenkomt met wat echt gebouwd is. | Team | `docs/mvp-afbakening.md`, technisch document | To do |
-| PB-56 | Niet-afgewerkte onderdelen verantwoorden | Alles wat niet volledig uit de opgave gebouwd is, wordt eerlijk verantwoord als MVP-keuze. | Team | technisch document | To do |
-| PB-57 | Presentatie/demo voorbereiden | We maken een vaste demo-volgorde zodat we tijdens de evaluatie niet moeten improviseren. | Team | demo-checklist, technisch document | To do |
-| PB-58 | AI-logboeken en changelogs controleren | Iedereen controleert of zijn of haar AI-logboek en changelog volledig en verdedigbaar zijn. | Team | `docs/personen/` | To do |
-| PB-96 | Code per eigenaar nalezen en kort documenteren | Iedereen leest zijn eigen bestanden na en voegt waar nodig korte commentaar toe zodat de code begrijpbaar is. | Team | projectbestanden per eigenaar | To do |
-| PB-97 | Technisch document als einddocument afwerken | Het technische document wordt ingevuld volgens de opgave en samengebracht tot 1 verhaal. | Team | `technische-documentatie.docx` | To do |
+| PB-55 | MVP-afbakening finaliseren | We controleren of de MVP-afbakening overeenkomt met wat echt gebouwd is. | Team | `docs/mvp-afbakening.md`, technisch document | Done |
+| PB-56 | Niet-afgewerkte onderdelen verantwoorden | Alles wat niet volledig uit de opgave gebouwd is, wordt eerlijk verantwoord als MVP-keuze. | Team | technisch document | Done |
+| PB-57 | Presentatie/demo voorbereiden | We maken een vaste demo-volgorde zodat we tijdens de evaluatie niet moeten improviseren. | Team | demo-checklist, technisch document | Done |
+| PB-58 | AI-logboeken en changelogs controleren | Iedereen controleert of zijn of haar AI-logboek en changelog volledig en verdedigbaar zijn. | Team | `docs/personen/` | Done |
+| PB-96 | Code per eigenaar nalezen en kort documenteren | Iedereen leest zijn eigen bestanden na en voegt waar nodig korte commentaar toe zodat de code begrijpbaar is. | Team | projectbestanden per eigenaar | Done |
+| PB-97 | Technisch document als einddocument afwerken | Het technische document wordt ingevuld volgens de opgave en samengebracht tot 1 verhaal. | Team | `technische-documentatie.docx` | Done |
 
 
-## Status Bart - Sprint 4
+## Status Sprint 4
 
-Deze Sprint 4-onderdelen zijn voor Bart afgerond:
+Deze Sprint 4-onderdelen zijn afgerond:
 
+- PB-49: de volledige demo-flow is getest met login, setupkeuze, configuratie, output, geschiedenis en backups.
+- PB-50: de gepushte versie werd opnieuw opgehaald en gestart op de Debian Docker-host.
 - PB-51: Docker Compose build/start is uitgewerkt in het technisch document.
+- PB-52: SQLite-tabellen, users, setupdata en deployment logs zijn gedocumenteerd.
+- PB-53: Flask-flow, routes, sessies, templates en dashboardwerking zijn gedocumenteerd.
 - PB-54: Netwerk- en Ansible-beperkingen zijn uitgewerkt voor setup1 en setup2.
-- PB-58: Bart zijn AI-logboek en changelog zijn nagekeken en aangevuld.
-- PB-96: Bart zijn Ansible-, Docker- en setupbestanden zijn nagelezen en kort gedocumenteerd.
-- PB-97: Bart zijn deel van het technisch document is aangevuld en afgestemd op het project.
+- PB-55: De MVP-afbakening is gecontroleerd tegenover wat effectief gebouwd werd.
+- PB-56: Niet-afgewerkte of beperkte onderdelen zijn verantwoord als MVP-keuze.
+- PB-57: De demo-flow is voorbereid zodat we tijdens de evaluatie niet moeten improviseren.
+- PB-58: AI-logboeken en changelogs zijn nagekeken.
+- PB-96: De code werd per eigenaar nagelezen en kort gedocumenteerd.
+- PB-97: Het technisch document is afgewerkt als einddocument.
 
-De teamtaken blijven pas volledig Done wanneer Lina en Joost hun deel ook bevestigd hebben.
 
 ## Documentatieverdeling
 
@@ -217,12 +223,51 @@ In dit hoofdstuk leggen we eerlijk uit:
 
 ## Daily stand-ups
 
-| Moment | Tijdstip | Medium | Korte notities |
-| --- | --- | --- | --- |
-| Maandag daily 1 | 20:00 | MS Teams | Sprint 4 opstarten, taken verdelen en documentatiestructuur bevestigen. |
-| Dinsdag daily 2 | 20:00 | MS Teams | Iedereen geeft status van zijn documentatiedeel en eventuele code-uitleg. |
-| Donderdag daily 3 | 20:00 | MS Teams | Demo-flow testen, screenshots/testbewijs verzamelen en open punten bespreken. |
-| Vrijdag daily 4 | 20:00 | MS Teams | Eindcontrole: technisch document, Scrum-documenten, changelogs, AI-logboeken en demo. |
+We plannen opnieuw 4 korte momenten via MS Teams. De focus ligt deze sprint vooral op opleveren, documenteren en demo voorbereiden.
+
+**01/06 Maandag daily 1 | 20:00 | MS Teams**
+
+Bart
+Ik heb vooral gekeken welke onderdelen van Ansible, Docker en de netwerkopstellingen nog duidelijker gedocumenteerd moesten worden. Setup1 en setup2 werken technisch, maar de uitleg moest nog beter aansluiten op wat de playbooks echt doen. Mijn volgende stap is het technisch document aanvullen met de infrastructuur, de inventories, de playbooks, Docker Compose en de beperkingen rond EVE-NG. Ik zit niet echt vast, maar we moeten opletten dat de documentatie niet afwijkt van `info.yml`.
+
+Lina
+Lina heeft gekeken naar het Flask- en frontendgedeelte. De login, dashboardpagina, geschiedenis, output en backups werken, maar moeten nog duidelijk uitgelegd worden voor de evaluatie. Haar volgende stap is de templates en de dashboardflow documenteren in mensentaal. Ze moet vooral letten op de Jinja2-stukken, zodat duidelijk is waar de data vandaan komt.
+
+Joost
+Joost heeft gekeken naar de database en installatiehandleiding. De database werkt met users, network_setups en deployment_logs, maar die tabellen moeten nog duidelijk uitgelegd worden. Zijn volgende stap is de SQLite-werking en de installatie op Debian/Docker beschrijven. Hij moet vooral controleren dat de installatiehandleiding reproduceerbaar blijft.
+
+**02/06 Dinsdag daily 2 | 20:00 | MS Teams**
+
+Bart
+Ik heb de Ansible-bestanden verder nagelezen en extra korte commentaar toegevoegd waar dat nuttig was. Vooral `ansible_tools.py`, de inventories en de playbooks moesten goed uitlegbaar zijn. Mijn volgende stap is de technische documentatie verder afstemmen met setup1 en setup2. Het aandachtspunt blijft dat setup2 in de documentatie exact dezelfde interfaces en VLANs moet tonen als in `info.yml`.
+
+Lina
+Lina heeft verder gewerkt aan de uitleg van de Flask-flow. De routes, sessies, login, dashboardweergave en history-sectie zijn besproken en gedocumenteerd. Haar volgende stap is de frontenddocumentatie aanvullen met uitleg over status, output, filters en backupdownloads. Er zijn geen grote blokkades meer, maar de uitleg moet kort genoeg blijven.
+
+Joost
+Joost heeft de databasecode verder nagelezen en commentaar toegevoegd bij de belangrijkste functies. Zijn volgende stap is uitleg voorzien over `init_database()`, `verify_user()`, `get_network_setups()` en de deployment logs. Hij moet ook duidelijk uitleggen waarom wachtwoorden gehasht worden en waarom deployment logs gekoppeld zijn aan users en setups.
+
+**04/06 Donderdag daily 3 | 20:00 | MS Teams**
+
+Bart
+Ik heb de demo-flow mee getest en gekeken of setup1 en setup2 nog overeenkomen met de technische documentatie. Ook de running-config backups werden gecontroleerd als bewijs dat Ansible effectief configuraties uitvoert. Mijn volgende stap is de laatste verbeteringen in het technisch document verwerken. Het moeilijkste blijft testen via EVE-NG, VPN of hotspot omdat het netwerk soms extra vertraging of time-outs veroorzaakt.
+
+Lina
+Lina heeft de frontend en diagrammen verder nagekeken. De bedoeling is dat de docent snel ziet welke setup gestart wordt, wat de status is en waar de technische output of backups staan. Haar volgende stap is screenshots/diagrammen en de Flask-uitleg klaarzetten voor het einddocument. Er waren geen grote codeblokkades meer.
+
+Joost
+Joost heeft de installatiehandleiding en database-uitleg verder uitgewerkt. De Debian Docker-host, Docker Compose en SQLite-initialisatie moeten reproduceerbaar uitgelegd worden. Zijn volgende stap is de uitleg nog eens controleren door de stappen te volgen. Het aandachtspunt is dat de installatie op een andere machine dezelfde flow moet opleveren.
+
+**05/06 Vrijdag daily 4 | 20:00 | MS Teams**
+
+Bart
+Ik heb de laatste eindcontrole gedaan op Ansible, Docker, setupdocumentatie, running-config bewijs, AI-logboek en changelog. Mijn volgende stap is de Sprint 4-retrospective en Scrum-documenten gelijkzetten met de echte eindstatus. Voor de evaluatie moet ik vooral kunnen uitleggen hoe Flask via `ansible_tools.py` Ansible start en hoe backups gekoppeld zijn aan een run.
+
+Lina
+Lina heeft haar frontend- en Flaskdocumentatie nagekeken. De dashboardflow, login, outputweergave, geschiedenis en backupdownloads zijn klaar om uitgelegd te worden. Haar volgende stap is de laatste versie klaarzetten en zorgen dat haar changelog en AI-logboek volledig zijn. Voor de evaluatie focust ze op de werking van de applicatie voor de gebruiker.
+
+Joost
+Joost heeft zijn databasebestanden en installatie-uitleg nagekeken. De SQLite-tabellen, testgebruikers, password hashing en logs zijn klaar om uitgelegd te worden. Zijn volgende stap is de laatste controle van zijn changelog en AI-logboek. Voor de evaluatie focust hij op hoe de data wordt opgeslagen en opnieuw getoond in de frontend.
 
 Tijdens elke daily bespreken we:
 
@@ -233,7 +278,7 @@ Tijdens elke daily bespreken we:
 
 ## Werkende eindversie
 
-Op het einde van Sprint 4 moet dit klaar zijn:
+Op het einde van Sprint 4 is dit klaar:
 
 - de MVP start opnieuw vanaf de gepushte versie;
 - demo-flow is getest;

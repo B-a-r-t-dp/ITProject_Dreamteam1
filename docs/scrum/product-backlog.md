@@ -1,4 +1,4 @@
-# Product Backlog
+﻿# Product Backlog
 
 De product backlog bevat de stappen die nodig zijn om een haalbare MVP op te leveren.
 
@@ -89,18 +89,18 @@ Na Sprint 1 hebben we gemerkt dat de basis sneller klaar was dan verwacht. Daaro
 | PB-93 | Backupbestanden logisch ordenen | Bart | Done |
 | PB-94 | Sprint 3 eindflow testen | Team | Done |
 | PB-95 | Restpunten voor Sprint 4 oplijsten | Team | Done |
-| PB-49 | Volledige demo-flow testen | Team | To do |
-| PB-50 | Testen of `main` een werkende sprintversie bevat | Team | To do |
-| PB-51 | Docker Compose build/start documenteren | Bart | To do |
-| PB-52 | SQLite-tabellen en logs documenteren | Joost | To do |
-| PB-53 | Flask-flow documenteren | Lina | To do |
-| PB-54 | Netwerk/Ansible-beperkingen documenteren | Bart | To do |
-| PB-55 | MVP-afbakening finaliseren | Team | To do |
-| PB-56 | Niet-afgewerkte onderdelen verantwoorden | Team | To do |
-| PB-57 | Presentatie/demo voorbereiden | Team | To do |
-| PB-58 | AI-logboeken en changelogs controleren | Team | To do |
-| PB-96 | Code per eigenaar nalezen en kort documenteren | Team | To do |
-| PB-97 | Technisch document als einddocument afwerken | Team | To do |
+| PB-49 | Volledige demo-flow testen | Team | Done |
+| PB-50 | Testen of `main` een werkende sprintversie bevat | Team | Done |
+| PB-51 | Docker Compose build/start documenteren | Bart | Done |
+| PB-52 | SQLite-tabellen en logs documenteren | Joost | Done |
+| PB-53 | Flask-flow documenteren | Lina | Done |
+| PB-54 | Netwerk/Ansible-beperkingen documenteren | Bart | Done |
+| PB-55 | MVP-afbakening finaliseren | Team | Done |
+| PB-56 | Niet-afgewerkte onderdelen verantwoorden | Team | Done |
+| PB-57 | Presentatie/demo voorbereiden | Team | Done |
+| PB-58 | AI-logboeken en changelogs controleren | Team | Done |
+| PB-96 | Code per eigenaar nalezen en kort documenteren | Team | Done |
+| PB-97 | Technisch document als einddocument afwerken | Team | Done |
 
 ## Could have
 
@@ -121,3 +121,4 @@ Alleen opnemen als de Must have-taken van die sprint werken.
 | Realtime Ansible-output | Bonus en technisch complexer. |
 | CI/CD | Bonus, geen kern van de demo. |
 | Uitgebreide Ansible roles | Eenvoudige playbooks zijn beter uitlegbaar. |
+

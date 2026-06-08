@@ -1,4 +1,4 @@
-# MVP-afbakening
+﻿# MVP-afbakening
 
 ## Waarom afbakenen?
 
@@ -16,7 +16,7 @@ Daarom kiezen we voor een kleine, verdedigbare MVP. We tonen de kern van de opdr
 | Ansible | Vanuit Flask startbaar via een eenvoudige helperfunctie. |
 | Router | Basisplaybook voor 1 router. |
 | Switch | Basisplaybook voor 1 switch. |
-| Setupdata | `setup1/info.yml` beschrijft de basisopstelling en bevat later ook configureerbare waarden. |
+| Setupdata | Elke setup heeft een eigen `info.yml` met technische waarden en uitleg voor de frontend. |
 | Backups | Running-config van router en switch wordt als eenvoudige tekstbackup bewaard als dit technisch haalbaar is. |
 | HTTP | Eigen Alpine-container met eenvoudige indexpagina. |
 | HTTPS | Eigen Alpine-container met eenvoudige indexpagina en TLS/SSL. |
@@ -32,11 +32,11 @@ Daarom kiezen we voor een kleine, verdedigbare MVP. We tonen de kern van de opdr
 | --- | --- | --- |
 | Routerconfiguratie | Alleen minimum: hostname, interface/IP, routing, OSPF-basis. | Genoeg om de vereiste te tonen. |
 | Switchconfiguratie | Alleen minimum: hostname, 2 VLANs, accesspoort, trunkpoort. | Genoeg om de vereiste te tonen. |
-| Netwerkopstellingen | Eerst 1 basisopstelling onder `setup1`, met centrale setupdata. | Meerdere opstellingen maken het project groter. |
+| Netwerkopstellingen | We voorzien setup1 als basisopstelling en setup2 als podopstelling Brussel. | We werken setup2 als 1 pod uit, niet als volledig rack met 4 pods. |
 | Aanpasbare setupwaarden | Eerst technisch voorbereiden via `info.yml`, daarna beperkt via frontend. | Zo blijft de demo stabiel en vermijden we te veel validatielogica ineens. |
 | Webinterface | Simpele pagina's, geen uitgebreide styling. | Functionaliteit is belangrijker dan uiterlijk. |
 | Ansible-output | Output na uitvoering tonen, niet realtime. | Realtime output is complexer en optioneel. |
-| Tweede netwerkopstelling | Alleen als de basisopstelling stabiel blijft. | Dit is nuttig voor de opgave, maar mag de demo niet onstabiel maken. |
+| Tweede netwerkopstelling | Setup2 is toegevoegd als podopstelling Brussel. | We beperken dit bewust tot 1 pod zodat het haalbaar en uitlegbaar blijft. |
 | Backups | Alleen running-config ophalen en bewaren. | Geen volledig restore-systeem in de MVP. |
 
 ## Wat bouwen we niet in de MVP of enkel als de tijd het toelaat?
@@ -44,13 +44,13 @@ Daarom kiezen we voor een kleine, verdedigbare MVP. We tonen de kern van de opdr
 | Onderdeel | Waarom niet? |
 | --- | --- |
 | Adminpagina | Extra CRUD-functionaliteit is te groot voor de basis. |
-| Meerdere uitgebreide netwerkopstellingen | Eerst 1 flow betrouwbaar maken. Een tweede eenvoudige voorbeeldopstelling kan alleen als er tijd over is. |
+| Meerdere uitgebreide netwerkopstellingen | We voorzien setup1 en setup2, maar geen onbeperkt aantal zelf aan te maken opstellingen. |
 | Realtime output | Bonus, niet nodig voor de kern. |
 | Volledig backup- en restoreplatform | We bewaren configuratiebackups, maar bouwen geen uitgebreid restorebeheer. |
 | Uitgebreide Ansible roles | Eenvoudige playbooks zijn beter uitlegbaar. |
 | CI/CD-pipeline | Bonus, geen kernvereiste voor de demo. |
 | Productie-security | We doen basisveiligheid, maar geen volledig productieplatform. |
-| Volledig lab in 1 keer configureren | Te groot; focus op 1 router, 1 switch en 3 servercontainers. |
+| Volledig lab met 4 pods in 1 keer configureren | Te groot voor de MVP; setup2 toont 1 volledige pod als bewijs van het concept. |
 
 ## Waarom is dit verdedigbaar?
 
@@ -80,6 +80,7 @@ We proberen extra aan te tonen:
 - er komt een eenvoudig netwerkschema/podschema;
 - `setup1/info.yml` wordt de centrale plaats voor setupinformatie en basisvariabelen;
 - router- en switchconfiguraties kunnen als backup bewaard worden;
-- eventueel komt er een tweede netwerkopstelling als de basis stabiel blijft.
+- setup2 is toegevoegd als tweede netwerkopstelling volgens het labo/pod-verhaal van Brussel.
 
 We voegen geen grote nieuwe modules toe. Sprint 4 blijft voor testen, documentatie en oplevering.
+
