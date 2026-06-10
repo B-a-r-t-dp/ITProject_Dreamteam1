@@ -8,95 +8,19 @@
 #
 # In plaats van SQL-query's rechtstreeks in app.py te schrijven, roept app.py
 # functies uit dit bestand aan.
-#
-# Voorbeelden:
-#
-# - app.py wil een gebruiker controleren:
-#       verify_user(username, password)
-#
-# - app.py wil alle netwerkopstellingen tonen:
-#       get_network_setups()
-#
-# - app.py wil het resultaat van een configuratierun bewaren:
-#       save_deployment_log(...)
-#
-# - app.py wil de laatste logs tonen:
-#       get_deployment_logs_for_user(...)
-#
-# WAAROM IS DIT EEN GOEDE STRUCTUUR?
-# ---------------------------------------------------------------------
-# De Flask-routes blijven eenvoudiger en leesbaarder.
-# app.py moet zich vooral bezighouden met webverkeer:
-#
-# - welke URL wordt opgevraagd;
-# - is de gebruiker ingelogd;
-# - welk template moet getoond worden;
-# - welke functie moet aangeroepen worden.
-#
-# De database-details blijven hier in database_tools.py:
-#
-# - waar staat de database;
-# - hoe maken we verbinding;
-# - welke SQL-query wordt uitgevoerd;
-# - hoe worden resultaten omgezet naar dictionaries voor Flask/templates.
-#
-# TAAKVERDELING BINNEN HET PROJECT
-# ---------------------------------------------------------------------
-# - Lina: Flask-routes, sessies en templates
-# - Joost: database, tabellen, users, setups en logs
-# - Bart: Ansible en Docker
-#
-# BELANGRIJK
-# ---------------------------------------------------------------------
-# Deze uitlegversie bevat veel commentaar om de code te kunnen verdedigen
-# tijdens de evaluatie. De werking van de code blijft hetzelfde.
-# Op het einde kunnen we hiervan een kortere definitieve versie maken.
-# =====================================================================
 
-# sqlite3 is de standaard Python-module om met SQLite-databases te werken.
-# We moeten hiervoor geen aparte databaseserver installeren.
-# SQLite bewaart alles in één bestand, in ons geval data/itproject.db.
-import sqlite3
 
-# pathlib.Path gebruiken we om bestandspaden op een nette, platformonafhankelijke
-# manier op te bouwen. Dat is beter dan manueel strings aan elkaar plakken.
-from pathlib import Path
-
-# yaml gebruiken we om info.yml-bestanden te lezen.
-# Deze bestanden bevatten extra beschrijvende info over een Ansible-setup.
-import yaml
-
-# Werkzeug levert functies om wachtwoorden veilig te hashen en te controleren.
-# generate_password_hash() maakt een hash van een wachtwoord.
-# check_password_hash() controleert later of een ingegeven wachtwoord klopt.
-from werkzeug.security import generate_password_hash, check_password_hash
-
-# datetime gebruiken we voor tijdstippen van deployment logs en backups.
-from datetime import datetime
-
-# ZoneInfo gebruiken we zodat tijdstippen in Belgische tijd kunnen worden gezet.
-# Zonder dit zouden timestamps soms in UTC of systeem-/containertijd kunnen staan.
-from zoneinfo import ZoneInfo
+import sqlite3              # sqlite3 is de standaard Python-module om met SQLite-databases te werken.
+from pathlib import Path    # pathlib.Path gebruiken we om bestandspaden op een nette manier op te bouwen.
+import yaml                 # yaml gebruiken we om info.yml-bestanden te lezen.
+from werkzeug.security import generate_password_hash, check_password_hash   # Werkzeug levert functies om wachtwoorden veilig te hashen en te controleren.
+from datetime import datetime   # datetime gebruiken we voor tijdstippen van deployment logs en backups.
+from zoneinfo import ZoneInfo   # ZoneInfo gebruiken we zodat tijdstippen in Belgische tijd kunnen worden gezet.
 
 
 # =====================================================================
 # CENTRALE PADEN
 # =====================================================================
-#
-# Waarom zetten we deze paden bovenaan?
-# ---------------------------------------------------------------------
-# Zo hoeven we paden niet overal in de code opnieuw te typen.
-# Als de projectstructuur later verandert, moeten we dit maar op één plaats
-# aanpassen.
-#
-# Path(__file__) verwijst naar dit bestand zelf:
-#
-#     modules/database_tools.py
-#
-# .resolve() maakt daar een absoluut pad van.
-# .parent gaat één map omhoog naar modules/.
-# .parent.parent gaat nog één map omhoog naar de projectroot.
-#
 # BASE_DIR wordt dus de hoofdmap van het project.
 # =====================================================================
 
@@ -124,38 +48,18 @@ def get_connection():
     Deze functie wordt door bijna alle andere databasefuncties gebruikt.
     Het is dus de centrale toegangspoort tot SQLite.
 
-    Wat gebeurt hier stap voor stap?
-
-    1. We zorgen dat de map data/ bestaat.
-    2. We openen of maken het databasebestand data/itproject.db.
-    3. We stellen row_factory in op sqlite3.Row.
-    4. We zetten foreign key-controle aan.
-    5. We geven de databaseverbinding terug.
-
-    Waarom is deze functie nuttig?
-
-    app.py en de andere functies moeten niet weten waar de database exact staat
-    of welke instellingen nodig zijn. Ze vragen gewoon een verbinding via
-    get_connection().
     """
 
     # DATABASE_PATH.parent is de map data/.
-    # mkdir(exist_ok=True) maakt de map aan als ze nog niet bestaat.
-    # Als de map al bestaat, geeft dit geen fout.
     DATABASE_PATH.parent.mkdir(exist_ok=True)
 
     # sqlite3.connect() opent de database.
-    # Als data/itproject.db nog niet bestaat, maakt SQLite dit bestand aan.
     connection = sqlite3.connect(DATABASE_PATH)
 
     # row_factory = sqlite3.Row zorgt ervoor dat we kolommen kunnen opvragen
-    # via hun naam, bijvoorbeeld row["username"], in plaats van enkel via indexen
-    # zoals row[1]. Dat maakt de code veel leesbaarder.
     connection.row_factory = sqlite3.Row
 
     # SQLite controleert foreign keys niet altijd automatisch.
-    # Daarom zetten we dit bewust aan per verbinding.
-    # Zo kan deployment_logs.user_id enkel verwijzen naar een bestaande user.
     connection.execute("PRAGMA foreign_keys = ON")
 
     # De verbinding wordt teruggegeven aan de functie die ze nodig heeft.
@@ -166,24 +70,8 @@ def get_connection():
 # FUNCTIE: init_database()
 # =====================================================================
 def init_database():
-    """
-    Initialiseert de database.
-
-    Deze functie wordt typisch aangeroepen bij het opstarten van de Flask-app.
-    Ze zorgt ervoor dat de database klaar is om te gebruiken.
-
-    Concreet doet deze functie vier grote dingen:
-
-    1. Ze opent een verbinding met SQLite.
-    2. Ze leest database/schema.sql en voert dat schema uit.
-    3. Ze voegt standaardgebruikers toe voor de MVP/testomgeving.
-    4. Ze voegt standaard netwerkopstellingen toe voor het dashboard.
-
-    Belangrijk:
-    De SQL gebruikt CREATE TABLE IF NOT EXISTS en INSERT OR IGNORE.
-    Daardoor kan init_database() meerdere keren uitgevoerd worden zonder dat
-    de app telkens crasht op bestaande tabellen of dubbele records.
-    """
+    
+    # Initialiseert de database.
 
     # Open een verbinding met de database.
     connection = get_connection()
@@ -199,40 +87,15 @@ def init_database():
     connection.executescript(schema_sql)
 
     # Deze try/except is bedoeld voor bestaande databases.
-    #
-    # Waarom is dit nodig?
-    # -----------------------------------------------------------------
-    # Als je schema.sql aanpast en een nieuwe kolom toevoegt, dan krijgen
-    # bestaande databases die kolom niet automatisch zolang de tabel al bestaat.
-    # CREATE TABLE IF NOT EXISTS maakt de tabel namelijk niet opnieuw aan.
-    #
-    # Daarom proberen we run_reference apart toe te voegen met ALTER TABLE.
-    # Als de kolom al bestaat, geeft SQLite een OperationalError.
-    # Die fout negeren we bewust, omdat dat betekent dat alles al in orde is.
     try:
         connection.execute("ALTER TABLE deployment_logs ADD COLUMN run_reference TEXT")
     except sqlite3.OperationalError:
         pass
 
     # We maken een hash van het testwachtwoord.
-    #
-    # Het echte wachtwoord is hier "docent123".
-    # In de database bewaren we niet "docent123" zelf, maar een hash.
-    # Dat is veiliger dan wachtwoorden in platte tekst bewaren.
     password_hash = generate_password_hash("docent123")
 
     # Voeg standaardgebruikers toe.
-    #
-    # executemany() voert dezelfde SQL-query meerdere keren uit,
-    # telkens met andere waarden.
-    #
-    # INSERT OR IGNORE betekent:
-    # - bestaat deze username nog niet, voeg hem toe;
-    # - bestaat hij al, doe niets en geef geen fout.
-    #
-    # De vraagtekens (?) zijn placeholders.
-    # De echte waarden worden apart meegegeven.
-    # Dat is veiliger en properder dan waarden rechtstreeks in SQL-strings plakken.
     connection.executemany(
         """
         INSERT OR IGNORE INTO users (username, password_hash, role)
@@ -245,13 +108,6 @@ def init_database():
     )
 
     # Lijst met standaard netwerkopstellingen voor de MVP.
-    #
-    # Elk tuple bevat:
-    #
-    #   (id, name, description, playbook_data)
-    #
-    # playbook_data verwijst naar de map onder ansible/playbooks/.
-    # Bijvoorbeeld setup2 verwijst naar ansible/playbooks/setup2/.
     network_setups = [
         (
             1,
@@ -268,9 +124,6 @@ def init_database():
     ]
 
     # Voeg de netwerkopstellingen toe als ze nog niet bestaan.
-    #
-    # INSERT OR IGNORE voorkomt dubbele records wanneer init_database()
-    # meerdere keren wordt uitgevoerd.
     connection.executemany(
         """
         INSERT OR IGNORE INTO network_setups
@@ -281,13 +134,6 @@ def init_database():
     )
 
     # Werk bestaande netwerkopstellingen bij.
-    #
-    # Waarom doen we na INSERT OR IGNORE ook nog UPDATE?
-    # -----------------------------------------------------------------
-    # Stel dat setup2 al bestaat, maar de description later aangepast werd.
-    # INSERT OR IGNORE zou dan niets wijzigen omdat het record al bestaat.
-    # Met deze UPDATE zorgen we dat naam, beschrijving en playbook_data toch
-    # actueel blijven.
     connection.executemany(
         """
         UPDATE network_setups
@@ -296,19 +142,15 @@ def init_database():
         """,
         [
             # Hier herschikken we de volgorde van het tuple.
-            # Origineel is setup = (id, name, description, playbook_data).
-            # Voor de UPDATE willen we (name, description, playbook_data, id).
             (setup[1], setup[2], setup[3], setup[0])
             for setup in network_setups
         ],
     )
 
     # commit() schrijft alle wijzigingen definitief weg naar de database.
-    # Zonder commit kunnen INSERT/UPDATE-wijzigingen verloren gaan.
     connection.commit()
 
     # Sluit de verbinding netjes af.
-    # Dit voorkomt dat databaseverbindingen onnodig open blijven.
     connection.close()
 
 
@@ -353,12 +195,6 @@ def verify_user(username, password):
     connection = get_connection()
 
     # Zoek de gebruiker op basis van username.
-    #
-    # We selecteren ook password_hash, want die hebben we nodig om het
-    # ingegeven wachtwoord te controleren.
-    #
-    # De placeholder (?) voorkomt dat gebruikers invoer rechtstreeks in de
-    # SQL-query terechtkomt. Dat helpt tegen SQL-injectie.
     user = connection.execute(
         """
         SELECT id, username, password_hash, role
@@ -376,12 +212,10 @@ def verify_user(username, password):
         return None
 
     # Controleer het ingegeven wachtwoord tegenover de hash uit de database.
-    # We vergelijken dus niet met een gewoon tekstwachtwoord.
     if not check_password_hash(user["password_hash"], password):
         return None
 
     # Als alles correct is, geven we alleen de nodige userinformatie terug.
-    # We geven de password_hash bewust niet terug aan app.py of templates.
     return {
         "id": user["id"],
         "username": user["username"],
@@ -412,14 +246,13 @@ def get_network_setups():
     connection = get_connection()
 
     # Haal alle netwerkopstellingen uit de database.
-    # ORDER BY id zorgt voor een voorspelbare volgorde op het dashboard.
     rows = connection.execute(
         """
         SELECT id, name, description, playbook_data
         FROM network_setups
         ORDER BY id
         """
-    ).fetchall()
+     ).fetchall()
 
     connection.close()
 
@@ -428,7 +261,6 @@ def get_network_setups():
 
     for row in rows:
         # playbook_data bevat bijvoorbeeld "setup1" of "setup2".
-        # Daarmee zoeken we extra uitleg in ansible/playbooks/setupX/info.yml.
         setup_info = get_setup_info(row["playbook_data"])
 
         # Voeg één setup toe als dictionary.
@@ -458,75 +290,18 @@ def get_setup_info(setup_folder):
 
         ansible/playbooks/<setup_folder>/info.yml
 
-    Voorbeeld:
-
-        ansible/playbooks/setup2/info.yml
-
-    Waarom gebruiken we info.yml?
-    -----------------------------------------------------------------
-    De playbooks zelf zijn technisch en voeren de configuratie uit.
-    info.yml kan in mensentaal beschrijven wat de setup doet.
-    Daardoor kan het dashboard extra uitleg tonen zonder dat die uitleg
-    hardcoded in HTML of Python moet staan.
     """
 
     # Bouw het pad naar info.yml op.
     info_path = PLAYBOOK_DIR / setup_folder / "info.yml"
 
     # Als het info.yml-bestand niet bestaat, geven we None terug.
-    # Zo crasht de app niet wanneer een setup nog geen info.yml heeft.
     if not info_path.exists():
         return None
 
     # Lees het YAML-bestand en zet het om naar Python-data.
-    # yaml.safe_load() is veiliger dan yaml.load(), omdat het geen willekeurige
-    # Python-objecten probeert te maken.
     with open(info_path, "r", encoding="utf-8") as info_file:
         return yaml.safe_load(info_file)
-
-
-# =====================================================================
-# OUDE VERSIE VAN save_deployment_log() - NIET ACTIEF
-# =====================================================================
-#
-# Dit blok is uitgecommentarieerd en wordt dus niet uitgevoerd.
-# Het toont waarschijnlijk een eerdere versie van de functie.
-#
-# Verschil met de huidige actieve versie:
-# - de oude versie had geen run_reference;
-# - de oude versie liet SQLite zelf de timestamp invullen;
-# - de nieuwe versie bewaart bewust Belgische tijd;
-# - de nieuwe versie koppelt logs aan backupmappen via run_reference.
-#
-# We laten dit voorlopig staan als historiek/vergelijking in de uitlegversie.
-# In een definitieve propere codeversie kan dit eventueel verwijderd worden.
-# =====================================================================
-
-# def save_deployment_log(user_id, setup_id, status, output):
-#     """
-#     Slaat het resultaat van een Ansible-uitvoering op.
-
-#     status moet overeenkomen met de koppelafspraken:
-#     - success
-#     - failed
-#     """
-
-#     if status not in ("success", "failed"):
-#         raise ValueError("status moet 'success' of 'failed' zijn")
-
-#     connection = get_connection()
-
-#     connection.execute(
-#     """
-#     INSERT INTO deployment_logs (user_id, setup_id, status, output)
-#     VALUES (?, ?, ?, ?)
-#     """,
-#     (user_id, setup_id, status, output),
-# )
-
-#     connection.commit()
-#     connection.close()
-
 
 # =====================================================================
 # FUNCTIE: save_deployment_log(...)
@@ -556,30 +331,18 @@ def save_deployment_log(user_id, setup_id, status, output, run_reference=None):
       Een unieke referentie voor deze configuratierun.
       Die wordt gebruikt om de juiste backupmap te koppelen aan deze log.
 
-    Waarom Belgische tijd?
-    -----------------------------------------------------------------
-    In containers, Linux-systemen of servers kan de systeemklok soms op UTC
-    staan. Door Europe/Brussels expliciet te gebruiken, is het tijdstip duidelijk
-    voor ons tijdens de test en presentatie.
     """
 
     # Controleer dat status alleen success of failed mag zijn.
-    # Dit komt overeen met de CHECK constraint in schema.sql.
-    # Zo vangen we fouten al op in Python voordat ze in de database komen.
     if status not in ("success", "failed"):
         raise ValueError("status moet 'success' of 'failed' zijn")
 
     # Maak een timestamp in Belgische tijd.
-    # strftime() zet het datetime-object om naar een leesbare tekstvorm.
     belgian_time = datetime.now(ZoneInfo("Europe/Brussels")).strftime("%Y-%m-%d %H:%M:%S")
 
     connection = get_connection()
 
     # Voeg één nieuwe logregel toe.
-    #
-    # Let op de volgorde:
-    # De kolommen in INSERT moeten overeenkomen met de volgorde van de waarden
-    # in de tuple onderaan.
     connection.execute(
         """
         INSERT INTO deployment_logs (user_id, setup_id, timestamp, status, output, run_reference)
@@ -607,24 +370,11 @@ def split_deployment_output(output):
 
     2. technical_output
        De meer technische output voor wie details nodig heeft.
-
-    Waarom doen we dit?
-    -----------------------------------------------------------------
-    Ansible-output kan lang en technisch zijn.
-    Voor een docent/gebruiker is het handiger om eerst een duidelijke
-    samenvatting te zien, met eventueel daaronder technische details.
-
-    ansible_tools.py zet bewust een marker in de output:
-
-        TECHNISCHE OUTPUT
-
-    Deze functie gebruikt die marker om de tekst op te splitsen.
     """
 
     marker = "TECHNISCHE OUTPUT"
 
     # Als output leeg is of de marker ontbreekt, kunnen we niet splitsen.
-    # Dan zetten we alles in summary en laten we technical_output leeg.
     if not output or marker not in output:
         return {
             "summary": output,
@@ -632,8 +382,6 @@ def split_deployment_output(output):
         }
 
     # split(marker, 1) splitst maar één keer.
-    # Daardoor blijft eventuele extra tekst met dezelfde woorden in het tweede
-    # deel gewoon behouden.
     summary, technical_output = output.split(marker, 1)
 
     # Verwijder de titel uit de samenvatting zodat het dashboard properder toont.
@@ -666,10 +414,6 @@ def get_last_deployment_log(user_id=None):
     deployment_logs bevat vooral id's:
     - user_id
     - setup_id
-
-    Voor het dashboard willen we niet enkel die nummers tonen.
-    We willen ook de username en setup_name tonen.
-    Daarom joinen we deployment_logs met users en network_setups.
     """
 
     connection = get_connection()
@@ -705,7 +449,6 @@ def get_last_deployment_log(user_id=None):
     connection.close()
 
     # Als er nog geen logs bestaan, geven we None terug.
-    # app.py of dashboard.html kan dan beslissen om niets of een melding te tonen.
     if row is None:
         return None
 
@@ -713,8 +456,6 @@ def get_last_deployment_log(user_id=None):
     split_output = split_deployment_output(row["output"])
 
     # Bouw een dictionary voor app.py/templates.
-    # We voegen ook backups toe door run_reference door te geven aan
-    # get_backup_files_for_run().
     return {
         "id": row["id"],
         "user_id": row["user_id"],
@@ -823,17 +564,6 @@ def get_backup_files_for_run(run_reference):
 
         backups/<run_reference>/
 
-    Voorbeeld:
-
-        backups/20260603_143012_setup2/
-
-    Waarom gebruiken we run_reference?
-    -----------------------------------------------------------------
-    Eén configuratierun kan meerdere backups opleveren, bijvoorbeeld van
-    verschillende routers of switches.
-
-    Door alle bestanden onder backups/<run_reference>/ te plaatsen, kunnen we
-    exact tonen welke backups bij welke deployment log horen.
     """
 
     # Als er geen run_reference is, kunnen we geen backupmap bepalen.
