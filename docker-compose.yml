@@ -1,52 +1,25 @@
 # Docker Compose configuratie
 # Verantwoordelijke: Bart
 #
-# Dit bestand beschrijft welke containers samen bij onze MVP horen.
-#
-# Met Docker Compose kunnen we alle onderdelen van het project samen bouwen
-# en starten met 1 commando:
-#
-# docker compose up --build
-#
-# Services in deze MVP:
+# Services in deze setup:
 # - flask: centrale webapplicatie voor login/dashboard
 # - http: eenvoudige HTTP-server op poort 80
 # - https: eenvoudige HTTPS-server op poort 443
 # - ftp: FTP-server op poort 20/21 en passive poorten 30000-30010
-#
-# De router en switch zitten hier niet in.
-# Die worden later via EVE-NG geëmuleerd en via Ansible aangesproken.
 
 name: itproject     # naam van het gehele project
 
 services:
   # Centrale Flask-applicatie.
-  # Deze container wordt gebouwd met de Dockerfile in de projectroot.
-  # De docent gebruikt deze webapp om in te loggen en later configuraties te starten.
   flask:
     build: .
     container_name: itproject_flask   # Naam van Container
     ports:
       - "5000:5000"
-
-    # data:
-    # - bevat later de SQLite-database.
-    #
-    # backups:
-    # - kan later gebruikt worden om exports/logs/backups te bewaren.
-    #
-    # Door deze mappen als volume te koppelen blijven gegevens zichtbaar
-    # buiten de container en gaan ze niet verloren bij een rebuild.
-    #
-    # docker.sock:
-    # - laat de Flask-container Docker Compose aanroepen.
-    # - nodig zodat servers.yml HTTP/HTTPS/FTP kan starten of controleren
-    #   vanuit de configuratieflow.
-    # - dit is enkel bedoeld voor de labo/MVP-opstelling.
     volumes:
-      - ./data:/app/data
-      - ./backups:/app/backups
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/app/data                                      # - bevat later de SQLite-database.
+      - ./backups:/app/backups                                # - word gebruikt om /backups te bewaren.
+      - /var/run/docker.sock:/var/run/docker.sock             # - laat de Flask-container Docker Compose aanroepen.
 
   # HTTP-servercontainer.
   # Wordt gebouwd vanuit servers/http.

@@ -30,16 +30,15 @@ PLAYBOOK_DIR = os.path.join(ANSIBLE_DIR, "playbooks")
 #                         Functies validatie setupwaarden                      #
 ###############################################################################
 
-def validate_custom_variables(setup_id, custom_variables):
-    """
-    Controleert de formulierwaarden voordat info.yml aangepast wordt.
-    """
+"""
+- Deze functie controleert de waarden die de gebruiker in het dashboard invult.
+"""
+def validate_custom_variables(setup_id, custom_variables):  # custom_variables zijn de frontend variabelen.
 
     fouten = []
 
-    def controleer_op_lege_velden(veldnaam, label):
-        # .get() voorkomt dat de applicatie crasht als een formulierwaarde ontbreekt.
-        variabele = custom_variables.get(veldnaam, "").strip()
+    def controleer_op_lege_velden(veldnaam, label):     
+        variabele = custom_variables.get(veldnaam, "").strip()                                           # .get() voorkomt dat de applicatie crasht als een formulierwaarde ontbreekt.
 
         if variabele == "":
             fouten.append(label + " mag niet leeg zijn.")
@@ -72,9 +71,7 @@ def validate_custom_variables(setup_id, custom_variables):
         if vlan_id < 1 or vlan_id > 4094:
             fouten.append(label + " moet tussen 1 en 4094 liggen.")
 
-    def controleer_vlan_lijst(veldnaam, label):
-        # Sommige velden bevatten meerdere VLANs in 1 tekstveld.
-        # Bijvoorbeeld: 10,20,30
+    def controleer_vlan_lijst(veldnaam, label):                                                             # Sommige velden bevatten meerdere VLANs in 1 tekstveld, Bijvoorbeeld: 10,20,30
         variabele = controleer_op_lege_velden(veldnaam, label)
 
         if variabele == "":
@@ -83,7 +80,7 @@ def validate_custom_variables(setup_id, custom_variables):
         vlan_variabelen = variabele.split(",")
 
         for vlan in vlan_variabelen:
-            vlan = vlan.strip()              # Spaties rond elk VLAN-nummer verwijderen.
+            vlan = vlan.strip()                                                                             # Spaties rond elk VLAN-nummer verwijderen.
 
             if not vlan.isdigit():
                 fouten.append(label + " mag alleen VLAN-nummers bevatten, gescheiden door komma's.")
@@ -95,8 +92,7 @@ def validate_custom_variables(setup_id, custom_variables):
                 fouten.append(label + " bevat een VLAN buiten bereik 1-4094.")
                 return
 
-    def controleer_interface(veldnaam, label):
-        # Een interfacenaam zoals GigabitEthernet0/1 mag geen spaties bevatten.
+    def controleer_interface(veldnaam, label):                                                              # Een interfacenaam zoals GigabitEthernet0/1 mag geen spaties bevatten.
         variabele = controleer_op_lege_velden(veldnaam, label)
 
         if variabele == "":
@@ -105,9 +101,7 @@ def validate_custom_variables(setup_id, custom_variables):
         if " " in variabele:
             fouten.append(label + " mag geen spaties bevatten.")
 
-    def controleer_getal(veldnaam, label, minimum, maximum):
-        # Deze functie gebruiken we voor velden die een getal met een minimum en maximum nodig hebben.
-        # Bijvoorbeeld OSPF process of port-channel nummer.
+    def controleer_getal(veldnaam, label, minimum, maximum):                                                # Deze functie gebruiken we voor velden die een getal met een minimum en maximum nodig hebben, Bijvoorbeeld OSPF process of port-channel nummer.
         variabele = controleer_op_lege_velden(veldnaam, label)
 
         if variabele == "":
@@ -127,7 +121,7 @@ def validate_custom_variables(setup_id, custom_variables):
         Controleert alle velden van de technische documentatie.
         Deze velden beginnen in het formulier altijd met technical_documentation_.
         """
-
+        # gaat gewoon technische documentatie checken dat title en intro is ingevuld om te zorgen dat de documentatie leesbaar blijft.
         for veldnaam in sorted(custom_variables.keys()):                                                    # Doorloop alle variabelen op naam.
             is_technische_documentatie = veldnaam.startswith("technical_documentation_")
 
@@ -144,7 +138,7 @@ def validate_custom_variables(setup_id, custom_variables):
     if setup_id == "1":
         # Setup1 heeft 1 router, 1 switch en servercontainers.
         # Hieronder controleren we alleen de velden die in het formulier aanpasbaar zijn.
-        controleer_op_lege_velden("router_hostname", "Router hostname")
+        controleer_op_lege_velden("router_hostname", "Router hostname") # (variabel die nagekeken wordt, tekst bij die variabel die gegeven wordt bij de foutmeldingen)
         controleer_ip("router_management_ip", "Router management-IP")
         controleer_interface("router_lab_interface", "Router labinterface")
         controleer_op_lege_velden("router_lab_description", "Router labinterface beschrijving")
@@ -165,11 +159,12 @@ def validate_custom_variables(setup_id, custom_variables):
         controleer_op_lege_velden("switch_trunk_description", "Switch trunk beschrijving")
         controleer_vlan_lijst("switch_trunk_allowed_vlans", "Toegelaten VLANs op trunk")
 
-        for veldnaam in sorted(custom_variables.keys()):                                      # Doorloop alle variabelen op naam.
+        # gaat vlannummer uit variabel_id halen en controlleren of het nummer klopt.
+        for veldnaam in sorted(custom_variables.keys()):
             if veldnaam.startswith("setup1_vlan_") and veldnaam.endswith("_id"):              # Zoek setup1 VLAN-velden die een VLAN-nummer bevatten.
                 vlan_index = veldnaam.replace("setup1_vlan_", "").replace("_id", "")          # Haal de index uit de veldnaam, bijvoorbeeld 0 of 1.
                 controleer_vlan(veldnaam, "VLAN " + vlan_index + " nummer")                   # Controleer of het VLAN-nummer geldig is.
-
+            # gaat vlan naam uit variabel_id halen om te controlleren of die is ingevuld.
             if veldnaam.startswith("setup1_vlan_") and veldnaam.endswith("_name"):            # Zoek setup1 VLAN-velden die een VLAN-naam bevatten.
                 vlan_index = veldnaam.replace("setup1_vlan_", "").replace("_name", "")        # Haal de index uit de veldnaam, bijvoorbeeld 0 of 1.
                 controleer_op_lege_velden(veldnaam, "VLAN " + vlan_index + " naam")           # Controleer of de VLAN-naam ingevuld is.
@@ -252,192 +247,35 @@ def validate_custom_variables(setup_id, custom_variables):
     return fouten
 
 ###############################################################################
-#                         Functies opstart Ansible                            #
-###############################################################################
-
-
-def run_setup(setup_id, logged_user=None, run_reference=None):
-    """
-    Start de Ansible-flow voor een gekozen netwerkopstelling.
-
-    logged_user is de username van de ingelogde docent.
-    Die naam gebruiken we in de backupbestanden van router en switch.
-
-    run_reference is de unieke naam van deze configuratierun.
-    Die gebruiken we als backupmap.
-    """
-
-    setup_info = get_setup_info(setup_id)        # Setupinfo opvragen volgens setup_id.
-
-    if setup_info == None:
-        # Als de setupmap of inventory ontbreekt, kunnen we niet starten.
-        setup_info_status = {
-            "status": "failed",
-            "output": "Geen geldige setup gevonden voor setup_id " + str(setup_id),
-        }
-        return setup_info_status
-
-    playbooks = get_playbooks_for_setup(setup_info)  # Playbooks opvragen volgens de setupinfo.
-
-    # We lezen info.yml en maken daarna een tijdelijke inventory.
-    # Zo gebruikt Ansible altijd de management-IP's die op dat moment in info.yml staan.
-    setup_data = build_runtime_variables(setup_info)
-    runtime_inventory = maak_runtime_inventory(setup_info, setup_data, run_reference)
-
-    if not playbooks:
-        # Dit vangt op dat de setupmap wel bestaat, maar geen bruikbare playbooks bevat.
-        playbooks_status = {
-            "status": "failed",
-            "output": "Geen Ansible-playbooks gevonden voor setup_id " + str(setup_id),
-        }
-        return playbooks_status
-
-    samenvatting_regels = []
-    technische_output = []
-
-    # Deze variabele onthoudt of minstens 1 playbook gefaald is.
-    # Zo kan de volledige setup op failed gezet worden.
-    er_is_een_fout = False
-
-    for playbook_pad in playbooks:
-        playbook_naam = os.path.basename(playbook_pad)  # Haalt enkel de bestandsnaam uit het volledige pad.
-
-        ansible_resultaat = run_playbook(
-            playbook_pad,
-            runtime_inventory,
-            logged_user,
-            run_reference,
-        )
-
-        if ansible_resultaat["status"] == "success":
-            samenvatting_regels.append("[OK] " + playbook_naam + " is succesvol uitgevoerd.")
-
-        else:
-            er_is_een_fout = True
-            samenvatting_regels.append("[FOUT] " + playbook_naam + " is mislukt.")
-            samenvatting_regels.append("Mogelijke oorzaak: " + explain_ansible_error(ansible_resultaat["output"]))
-
-        # De technische output bewaren we apart.
-        # Die wordt later openklapbaar getoond op het dashboard.
-        technische_output.append("--- " + playbook_naam + " ---")
-        technische_output.append(ansible_resultaat["output"])
-
-    if er_is_een_fout:
-        ansible_status = "failed"
-    else:
-        ansible_status = "success"
-
-    ansible_output = maak_volledige_output(samenvatting_regels, technische_output)
-
-    ansible_log = {
-        "status": ansible_status,
-        "output": ansible_output,
-    }
-
-    return ansible_log
-
-
-def get_setup_info(setup_id):
-    """
-    Zoekt welke setupmap en inventory bij een setup horen.
-
-    setup_id 1 is gelinkt aan map setup1.
-    setup_id 2 is gelinkt aan map setup2.
-
-    Elke setup moet een eigen inventory.ini hebben.
-    Zo blijven de IP-adressen per netwerkopstelling duidelijk gescheiden.
-    """
-
-    setup_map_naam = "setup" + str(setup_id)  # Bijvoorbeeld setup1 of setup2.
-
-    # Volledig pad naar de setupmap.
-    # Bijvoorbeeld: ansible/playbooks/setup1
-    setup_pad = os.path.join(PLAYBOOK_DIR, setup_map_naam)
-
-    # Als de setupmap niet bestaat, kan deze setup niet uitgevoerd worden.
-    if not os.path.isdir(setup_pad):
-        return None
-
-    # Elke setup heeft bewust een eigen inventory.
-    # Als die ontbreekt, voeren we de setup niet uit.
-    inventory_pad = os.path.join(setup_pad, "inventory.ini")
-
-    if not os.path.exists(inventory_pad):
-        return None
-
-    setup_info = {
-        "id": setup_id,
-        "map_naam": setup_map_naam,
-        "pad": setup_pad,
-        "inventory": inventory_pad,
-    }
-
-    return setup_info
-
-
-def get_playbooks_for_setup(setup_info):
-    """
-    Geeft de playbooks terug die bij een setup horen.
-    Alleen playbooks die echt bestaan worden uitgevoerd.
-    """
-
-    setup_pad = setup_info["pad"]  # Dit is de map waar de playbooks van deze setup staan.
-
-    # Dit zijn de playbooks die we verwachten in elke setupmap.
-    # In de MVP houden we dit bewust hardcoded.
-    mogelijke_playbooks = [
-        os.path.join(setup_pad, "router.yml"),
-        os.path.join(setup_pad, "switch.yml"),
-        os.path.join(setup_pad, "servers.yml"),
-    ]
-
-    bestaande_playbooks = []  # Hierin komen alleen playbooks die echt bestaan.
-
-    for playbook_pad in mogelijke_playbooks:
-        if os.path.exists(playbook_pad):
-            bestaande_playbooks.append(playbook_pad)
-
-    return bestaande_playbooks
-
-
-###############################################################################
 #                         Functies info.yml verwerken                         #
 ###############################################################################
 
-
+"""
+- Deze functie zet formulierwaarden om naar een structuur die past bij `info.yml`.
+"""
 def build_runtime_variables(setup_info, custom_variables=None):
-    """
-    Bouwt de variabelen op die naar Ansible gestuurd worden.
 
-    We vertrekken altijd van info.yml.
-    Daarna overschrijven we de waarden die de docent in het formulier invult.
-
-    Deze functie schrijft zelf nog niets weg.
-    update_setup_info_file() gebruikt deze data om info.yml te bewaren.
-    """
-
-    info_pad = os.path.join(setup_info["pad"], "info.yml")  # Pad naar info.yml van de gekozen setup.
+    info_pad = os.path.join(setup_info["pad"], "info.yml")                                                  # Pad naar info.yml van de gekozen setup.
 
     with open(info_pad, "r", encoding="utf-8") as info_file:
-        info_data = yaml.safe_load(info_file)  # Leest YAML om naar gewone Python-data.
+        info_data = yaml.safe_load(info_file)                                                               # Leest YAML om naar gewone Python-data.
 
-    # We maken bewust een kopie van info.yml.
-    # Zo kunnen we waarden aanpassen zonder de originele data per ongeluk te wijzigen.
-    setup_data = copy.deepcopy(info_data)
+    setup_data = copy.deepcopy(info_data)                                                                   # We maken bewust een kopie van info.yml, Zo kunnen we waarden aanpassen zonder de originele data per ongeluk te wijzigen.
 
-    if not custom_variables:
-        # Als er geen formulierwaarden zijn, gebruiken we info.yml zoals die nu is.
+    if not custom_variables:                                                                                # Als er geen formulierwaarden zijn, gebruiken we info.yml zoals die nu is.
         return setup_data
 
+    # Als er frontendwaarden zijn, passen we die aan in de kopie van info.yml.
+    # De originele info.yml wordt pas later overschreven als alles gevalideerd is.
     setup_id = str(setup_info["id"])
-    variabelen = setup_data.get("variables", {})  # Alle technische setupwaarden staan onder variables.
+    variabelen = setup_data.get("variables", {})  # Alle technische setupwaarden staan onder variables en worden opgehaald om dan aangepast te worden indien nodig..
 
     if setup_id == "1":
         router = variabelen.get("router", {})    # Routerblok uit info.yml.
         switch = variabelen.get("switch", {})    # Switchblok uit info.yml.
 
         # Routerwaarden van setup1 bijwerken met de formulierwaarden.
-        router["hostname"] = custom_variables.get("router_hostname", router.get("hostname"))
+        router["hostname"] = custom_variables.get("router_hostname", router.get("hostname"))                            # nieuwe waarde uit frontend bestaat? -> gebruik die geen nieuwe waarde? -> behoud oude waarde uit info.yml
         router["management_ip"] = custom_variables.get("router_management_ip", router.get("management_ip"))
         router["lab_interface"] = custom_variables.get("router_lab_interface", router.get("lab_interface"))
         router["lab_description"] = custom_variables.get("router_lab_description", router.get("lab_description"))
@@ -479,7 +317,7 @@ def build_runtime_variables(setup_info, custom_variables=None):
 
         subinterfaces = router.get("subinterfaces", [])  # Subinterfaces van de router-on-a-stick configuratie.
 
-        # Subinterfaces worden via index verwerkt omdat het formulier dezelfde volgorde gebruikt.
+        # Subinterfaces worden via index verwerkt omdat het formulier dezelfde volgorde gebruikt. dus elke subinterface krijgt een indexnummer die dan gebruikt wordt om de variabelen aan te passen.
         for index, subinterface in enumerate(subinterfaces):
             subinterface["vlan"] = custom_variables.get("setup2_subinterface_" + str(index) + "_vlan", subinterface.get("vlan"))
             subinterface["description"] = custom_variables.get("setup2_subinterface_" + str(index) + "_description", subinterface.get("description"))
@@ -487,7 +325,7 @@ def build_runtime_variables(setup_info, custom_variables=None):
             subinterface["mask"] = custom_variables.get("setup2_subinterface_" + str(index) + "_mask", subinterface.get("mask"))
 
         # Algemene VLAN-lijst van setup2 bijwerken.
-        for index, vlan in enumerate(vlans):
+        for index, vlan in enumerate(vlans): # gaat een index maken van de hoeveelheid vlans; index = 0, index = 1 omdat er 2vlans zijn.
             vlan["id"] = custom_variables.get("setup2_vlan_" + str(index) + "_id", vlan.get("id"))
             vlan["name"] = custom_variables.get("setup2_vlan_" + str(index) + "_name", vlan.get("name"))
 
@@ -540,6 +378,10 @@ def build_runtime_variables(setup_info, custom_variables=None):
     return setup_data
 
 
+
+"""
+- Deze functie zet formulierwaarden om naar een structuur die past bij `info.yml`.
+"""
 def update_technical_documentation(setup_data, custom_variables):
     """
     Werkt de technische documentatie in info.yml bij.
@@ -589,13 +431,11 @@ def update_technical_documentation(setup_data, custom_variables):
             regels[regel_index] = custom_variables.get(veldnaam, regel)
 
 
-def update_setup_info_file(setup_id, custom_variables):
-    """
-    Slaat aangepaste setupwaarden op in info.yml.
 
-    Deze functie wordt pas gebruikt nadat de formulierwaarden gevalideerd zijn.
-    Zo vermijden we dat foute IP's, VLANs of interfaces in info.yml terechtkomen.
-    """
+"""
+- Deze functie past `info.yml` effectief aan.
+"""
+def update_setup_info_file(setup_id, custom_variables):
 
     setup_info = get_setup_info(setup_id)
 
@@ -633,59 +473,128 @@ def update_setup_info_file(setup_id, custom_variables):
         "output": "info.yml is bijgewerkt.",
     }
 
+###############################################################################
+#                  Functies setup en inventory voorbereiden                    #
+###############################################################################
+
+"""
+- Deze functie zoekt de map van een setup.
+"""
+def get_setup_info(setup_id):
+    """
+    Zoekt welke setupmap en inventory bij een setup horen.
+    setup_id 1 is gelinkt aan map setup1.
+    setup_id 2 is gelinkt aan map setup2.
+    """
+
+    setup_map_naam = "setup" + str(setup_id)  # Bijvoorbeeld setup1 of setup2.
+
+    # Volledig pad naar de setupmap.
+    # Bijvoorbeeld: ansible/playbooks/setup1
+    setup_pad = os.path.join(PLAYBOOK_DIR, setup_map_naam)
+
+    # Als de setupmap niet bestaat, kan deze setup niet uitgevoerd worden.
+    if not os.path.isdir(setup_pad):
+        return None
+
+    # Elke setup heeft bewust een eigen inventory.
+    # Als die ontbreekt, voeren we de setup niet uit.
+    inventory_pad = os.path.join(setup_pad, "inventory.ini")
+
+    if not os.path.exists(inventory_pad):
+        return None
+
+    setup_info = {
+        "id": setup_id,
+        "map_naam": setup_map_naam,
+        "pad": setup_pad,
+        "inventory": inventory_pad,
+    }
+
+    return setup_info
+
+"""
+- Deze functie bepaalt welke playbooks bij een setup horen.
+"""
+def get_playbooks_for_setup(setup_info):
+
+    setup_pad = setup_info["pad"]  # Dit is de map waar de playbooks van deze setup staan.
+
+    # Dit zijn de playbooks die we verwachten in elke setupmap.
+    # In de MVP houden we dit bewust hardcoded.
+    mogelijke_playbooks = [
+        os.path.join(setup_pad, "router.yml"),
+        os.path.join(setup_pad, "switch.yml"),
+        os.path.join(setup_pad, "servers.yml"),
+    ]
+
+    bestaande_playbooks = []  # Hierin komen alleen playbooks die echt bestaan.
+
+    for playbook_pad in mogelijke_playbooks:
+        if os.path.exists(playbook_pad):
+            bestaande_playbooks.append(playbook_pad)
+
+    return bestaande_playbooks
 
 ###############################################################################
 #                         Functies tijdelijke inventory                        #
 ###############################################################################
 
-
+"""
+- Deze functie maakt per run een tijdelijke inventory in `data/runtime_inventories`.
+"""
 def maak_runtime_inventory(setup_info, setup_data, run_reference=None):
     """
-    Maakt een tijdelijke inventory voor 1 configuratierun.
-
     Waarom?
     - de management-IP's staan in info.yml;
     - inventory.ini blijft een basisbestand;
     - Ansible moet verbinden met de IP's die nu in info.yml staan.
     """
 
-    originele_inventory = setup_info["inventory"]  # Basisinventory van de setup.
-    runtime_inventory_map = os.path.join(BASE_DIR, "data", "runtime_inventories")
-    os.makedirs(runtime_inventory_map, exist_ok=True)  # Map maken als ze nog niet bestaat.
+    originele_inventory = setup_info["inventory"]  
 
+    # plaats waar runtime_inventorys worden opgeslaan.
+    runtime_inventory_map = os.path.join(BASE_DIR, "data", "runtime_inventories")
+    os.makedirs(runtime_inventory_map, exist_ok=True) 
+
+    # hier bepalen we de naam van de tijdelijke inventory
     if run_reference:
-        # Bij een echte configuratierun gebruiken we dezelfde naam als de backupmap.
         inventory_naam = run_reference + "-inventory.ini"
     else:
-        # Fallbacknaam voor wanneer er geen run_reference werd meegegeven.
         inventory_naam = "setup" + str(setup_info["id"]) + "-runtime-inventory.ini"
 
     runtime_inventory_pad = os.path.join(runtime_inventory_map, inventory_naam)  # Volledig pad naar tijdelijke inventory.
 
-    variabelen = setup_data.get("variables", {})  # Technische waarden uit info.yml.
-    management_ips = {}                           # Hierin verzamelen we toestelnaam + management-IP.
+    # Hier halen we de technische variabelen uit info.yml.
+    # Daarna maken we een lege dictionary waarin we per toestel het juiste management-IP verzamelen.
+    variabelen = setup_data.get("variables", {}) 
+    management_ips = {}
 
-    router = variabelen.get("router", {})
+    # routerblok zoeken in info.yml
+        router = variabelen.get("router", {})
 
+    # Als de router een management-IP heeft, bewaren we dat IP onder de inventorynaam r1.
     if router.get("management_ip"):
-        # In onze playbooks heet de router in de inventory r1.
         management_ips["r1"] = str(router.get("management_ip"))
 
+    # Hier zoeken we het switchblok van setup 1.
     switch = variabelen.get("switch", {})
 
     if switch.get("management_ip"):
-        # Setup1 heeft 1 switch met inventorynaam sw1.
         management_ips["sw1"] = str(switch.get("management_ip"))
 
     switches = variabelen.get("switches", {})
 
+    # Setup2 heeft meerdere switches, bijvoorbeeld sw11, sw12, distsw en classsw.
     for switch_naam, switch_data in switches.items():
-        # Setup2 heeft meerdere switches, bijvoorbeeld sw11, sw12, distsw en classsw.
+
+        # Hier controleren we of het echt een switchblok is en of er een management-IP instaat. Als dat zo is, bewaren we dat IP onder de juiste switchnaam.
         if isinstance(switch_data, dict) and switch_data.get("management_ip"):
             management_ips[switch_naam] = str(switch_data.get("management_ip"))
 
+    # Hier lezen we de gewone inventory regel per regel in.
     with open(originele_inventory, "r", encoding="utf-8") as inventory_file:
-        inventory_regels = inventory_file.readlines()  # Inventory regel per regel lezen.
+        inventory_regels = inventory_file.readlines()
 
     nieuwe_regels = []  # Hierin bouwen we de aangepaste inventory op.
 
@@ -695,36 +604,111 @@ def maak_runtime_inventory(setup_info, setup_data, run_reference=None):
         nieuwe_regel = regel
         regel_zonder_spaties = regel.strip()  # Nodig om makkelijker te controleren waarmee de regel start.
 
+        # Hier lopen we door alle toestellen waarvan we een management-IP hebben verzameld.
         for toestelnaam, management_ip in management_ips.items():
-            # We zoeken de regel van het toestel.
             # Bijvoorbeeld: r1 ansible_host=192.168.0.215
             if regel_zonder_spaties.startswith(toestelnaam + " ") and "ansible_host=" in regel_zonder_spaties:
                 delen = regel_zonder_spaties.split()  # Regel opdelen in losse stukken.
+                
                 nieuwe_delen = []                     # Hier komt dezelfde regel terug, maar met nieuw IP.
 
                 for deel in delen:
+                    # Als het stukje het IP-adres bevat, vervangen we het door het management-IP uit info.yml.
                     if deel.startswith("ansible_host="):
-                        # Alleen het IP-adres vervangen.
                         nieuwe_delen.append("ansible_host=" + management_ip)
                     else:
-                        # Alle andere instellingen blijven hetzelfde.
                         nieuwe_delen.append(deel)
 
                 nieuwe_regel = " ".join(nieuwe_delen) + "\n"
 
         nieuwe_regels.append(nieuwe_regel)
 
+    # Hier schrijven we de tijdelijke inventory effectief weg naar een bestand.
     with open(runtime_inventory_pad, "w", encoding="utf-8") as inventory_file:
         inventory_file.writelines(nieuwe_regels)  # Tijdelijke inventory wegschrijven.
 
     return runtime_inventory_pad
 
+###############################################################################
+#                         Functies opstart Ansible                            #
+###############################################################################
 
+"""
+- Deze functie start de volledige Ansible-flow voor 1 setup.
+"""
+def run_setup(setup_id, logged_user=None, run_reference=None):
+    ## VOORBEREIDINGSFASE ##
+    setup_info = get_setup_info(setup_id)                                                           # Setupinfo opvragen volgens setup_id.
+
+    if setup_info == None:
+        # Als de setupmap of inventory ontbreekt, kunnen we niet starten.
+        setup_info_status = {
+            "status": "failed",
+            "output": "Geen geldige setup gevonden voor setup_id " + str(setup_id),
+        }
+        return setup_info_status
+
+    playbooks = get_playbooks_for_setup(setup_info)                                                 # Playbooks opvragen volgens de setupinfo.
+
+    # variabelen voorbereiden
+    setup_data = build_runtime_variables(setup_info)
+    runtime_inventory = maak_runtime_inventory(setup_info, setup_data, run_reference)               # We lezen info.yml en maken daarna een tijdelijke inventory, Zo gebruikt Ansible altijd de management-IP's die op dat moment in info.yml staan.
+
+    if not playbooks:                                                                               
+        playbooks_status = {
+            "status": "failed",
+            "output": "Geen Ansible-playbooks gevonden voor setup_id " + str(setup_id),
+        }
+        return playbooks_status
+
+
+    ## PLAYBOOKS WORDEN 1VOOR1 UITGEVOERD ##
+    samenvatting_regels = []
+    technische_output = []
+
+    er_is_een_fout = False                                                                          # Deze variabele onthoudt of minstens 1 playbook gefaald is, Zo kan de volledige setup op failed gezet worden.
+
+    for playbook_pad in playbooks:
+        playbook_naam = os.path.basename(playbook_pad)                                              #  Haalt enkel de bestandsnaam uit het volledige pad.
+
+        ansible_resultaat = run_playbook(
+            playbook_pad,
+            runtime_inventory,
+            logged_user,
+            run_reference,                                                                          # Wordt meegegeven vanuit de sqllitedb.
+        )
+
+        if ansible_resultaat["status"] == "success":
+            samenvatting_regels.append("[OK] " + playbook_naam + " is succesvol uitgevoerd.")
+
+        else:
+            er_is_een_fout = True
+            samenvatting_regels.append("[FOUT] " + playbook_naam + " is mislukt.")
+            samenvatting_regels.append("Mogelijke oorzaak: " + explain_ansible_error(ansible_resultaat["output"]))
+
+        # De technische output bewaren we apart.
+        # Die wordt later openklapbaar getoond op het dashboard.
+        technische_output.append("--- " + playbook_naam + " ---")
+        technische_output.append(ansible_resultaat["output"])
+
+    if er_is_een_fout:
+        ansible_status = "failed"
+    else:
+        ansible_status = "success"
+
+    ansible_output = maak_volledige_output(samenvatting_regels, technische_output)
+
+    ansible_log = {                 
+        "status": ansible_status,                               # True/False
+        "output": ansible_output,                               # de output van de run.
+    }
+
+    return ansible_log
+
+'''
+- Deze functie start 1 Ansible-playbook.
+'''
 def run_playbook(playbook_pad, inventory_pad, logged_user=None, run_reference=None):
-    """
-    Start 1 Ansible-playbook.
-    Deze functie wordt per playbook opgeroepen vanuit run_setup().
-    """
 
     if not os.path.exists(playbook_pad):
         playbook_status = {
@@ -802,17 +786,15 @@ def run_playbook(playbook_pad, inventory_pad, logged_user=None, run_reference=No
 
     return ansible_log
 
-
-
 ###############################################################################
 #                         Functies output Ansible                             #
 ###############################################################################
 
-
+"""
+- Deze functie combineert stdout en stderr van Ansible tot 1 tekstblok.
+"""
 def maak_technische_output(uitgevoerd_proces):
     """
-    Zet stdout en stderr van Ansible om naar tekst.
-
     stdout = gewone Ansible-output
     stderr = waarschuwingen of foutdetails
     """
@@ -820,7 +802,7 @@ def maak_technische_output(uitgevoerd_proces):
     output_delen = []  # Hier verzamelen we stdout en stderr in 1 leesbare tekst.
 
     if uitgevoerd_proces.stdout:
-        output_delen.append("ANSIBLE OUTPUT")
+        outelen.append("ANSIBLE OUTPUT")put_d
         output_delen.append("")
         output_delen.append(uitgevoerd_proces.stdout)
 
@@ -829,7 +811,7 @@ def maak_technische_output(uitgevoerd_proces):
         output_delen.append("")
         output_delen.append(uitgevoerd_proces.stderr)
 
-    output = "\n".join(output_delen).strip()  # Alle delen samenvoegen met nieuwe regels ertussen.
+    output = "\n".join(output_delen).strip()  # Alle delen samenvoegen en zet de tekst onder elkaar..
 
     if output == "":
         output = "Ansible gaf geen output terug."
@@ -837,14 +819,11 @@ def maak_technische_output(uitgevoerd_proces):
     return output
 
 
-def maak_volledige_output(samenvatting_regels, technische_output):
-    """
-    Maakt de volledige output die opgeslagen wordt in SQLite.
 
-    database_tools.py gebruikt de tekst 'TECHNISCHE OUTPUT'
-    om de samenvatting en technische output later te splitsen.
-    Die tekst dus niet zomaar aanpassen.
-    """
+"""
+- Deze functie maakt de volledige tekst die in SQLite opgeslagen wordt.
+"""
+def maak_volledige_output(samenvatting_regels, technische_output):
 
     volledige_output = []  # Eerst samenvatting, daarna technische output.
 
@@ -859,13 +838,10 @@ def maak_volledige_output(samenvatting_regels, technische_output):
     return "\n\n".join(volledige_output)
 
 
+"""
+- Deze functie probeert technische Ansible-fouten om te zetten naar mensentaal.
+"""
 def explain_ansible_error(output):
-    """
-    Geeft een korte uitleg bij bekende Ansible-fouten.
-
-    We gebruiken bewust gewone if-statements.
-    Dat is makkelijker te lezen en uit te leggen dan regex.
-    """
 
     output_lower = output.lower()  # Alles naar kleine letters zetten zodat zoeken makkelijker wordt.
 
@@ -900,3 +876,4 @@ def explain_ansible_error(output):
         return "Docker Compose gaf een fout terug bij het starten of controleren van een container."
 
     return "bekijk de technische output hieronder voor de exacte fout."
+

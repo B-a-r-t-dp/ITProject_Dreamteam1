@@ -17,7 +17,6 @@ We bouwen bewust een haalbare MVP:
 
 | Document | Doel |
 | --- | --- |
-| [Opstartdocument](docs/opstartdocument.md) | Uitleg over opdracht, MVP, taakverdeling en werkwijze. |
 | [MVP-afbakening](docs/mvp-afbakening.md) | Wat we bouwen, beperkt bouwen en bewust niet bouwen. |
 | [Koppelafspraken](docs/koppelafspraken.md) | Vaste functies, tabellen en outputformaten zodat de delen samenwerken. |
 
@@ -47,7 +46,7 @@ We bouwen bewust een haalbare MVP:
 Iedereen werkt aan een eigen deel, maar spreekt vaste afspraken af voor hoe de delen samenkomen.
 
 Belangrijk: we helpen elkaar indien nodig. Volgens Scrum is iedereen mee verantwoordelijk voor de sprint, maar de aangeduide eigenaar zorgt dat zijn of haar deel begrijpbaar, getest en gedocumenteerd is. Zo kunnen we op korte tijd een duidelijke MVP afleveren.
-
+zo kan ieder van ons werken aan de sprint taken zonder heletijd afhankelijk te zijn van elkaar.
 ## Projectstructuur
 
 ```text

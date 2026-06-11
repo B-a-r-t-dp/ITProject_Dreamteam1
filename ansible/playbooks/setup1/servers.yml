@@ -40,9 +40,9 @@
           - "FTP-container: FTP-service op poort {{ variables.servers.ftp.ports }}"
 
 
-###############################################################################
-#                              HTTP Configuratie                              #
-###############################################################################
+  ###############################################################################
+  #                              HTTP Configuratie                              #
+  ###############################################################################
 
 
     - name: HTTP-container starten via Docker Compose
@@ -51,7 +51,7 @@
         chdir: "{{ project_root }}"                                                              # Voert het commando uit in de projectmap, waar docker-compose.yml staat.
       register: http_start_result                                                                # Bewaart de output van het Docker Compose-commando.
       
-      # Alleen als Docker echt iets start of aanmaakt, tonen we dit als changed.
+      # gaat de output nakijken of de service effectief is aangemaakt of opgestart
       changed_when: >
         'Started' in http_start_result.stdout or
         'Created' in http_start_result.stdout or
@@ -117,7 +117,7 @@
         chdir: "{{ project_root }}"                                                             
       register: ftp_start_result                                                                
       
-      # Alleen als Docker echt iets start of aanmaakt, tonen we dit als changed.
+      # Alleen als Docker echt iets start of aanmaakt, tonen we dit als changed.   
       changed_when: >
         'Started' in ftp_start_result.stdout or
         'Created' in ftp_start_result.stdout or

@@ -59,8 +59,8 @@
 ###############################################################################
 
 
-    - name: Backupmetadata voorbereiden
-      ansible.builtin.set_fact:                                                                                                   # Maakt tijdelijke variabelen tijdens het uitvoeren van het playbook.
+    - name: Backupmetadata voorbereiden   # Maakt tijdelijke variabelen tijdens het uitvoeren van het playbook.
+      ansible.builtin.set_fact:               
         backup_timestamp: "{{ lookup('pipe', 'TZ=Europe/Brussels date +%Y%m%d-%H%M%S') }}"                                        # lookup('pipe', ...) voert een lokaal commando uit in de Ansible-container en zorgt dat elke backup een uniek tijdstip krijgt.
         backup_created_by: "{{ logged_user | default('unknown') }}"                                                               # we geven ingelogde user zijn naam mee, tot zolang dat niet het geval is geven we unknown mee.
 
