@@ -10,12 +10,12 @@
 # functies uit dit bestand aan.
 
 
-import sqlite3                  # sqlite3 is de standaard Python-module om met SQLite-databases te werken.
-from pathlib import Path        # pathlib.Path gebruiken we om bestandspaden op een nette manier op te bouwen.
-import yaml                     # yaml gebruiken we om info.yml-bestanden te lezen.
+import sqlite3                                                              # sqlite3 is de standaard Python-module om met SQLite-databases te werken.
+from pathlib import Path                                                    # pathlib.Path gebruiken we om bestandspaden op een nette manier op te bouwen.
+import yaml                                                                 # yaml gebruiken we om info.yml-bestanden te lezen.
 from werkzeug.security import generate_password_hash, check_password_hash   # Werkzeug levert functies om wachtwoorden veilig te hashen en te controleren.
-from datetime import datetime   # datetime gebruiken we voor tijdstippen van deployment logs en backups.
-from zoneinfo import ZoneInfo   # ZoneInfo gebruiken we zodat tijdstippen in Belgische tijd kunnen worden gezet.
+from datetime import datetime                                               # datetime gebruiken we voor tijdstippen van deployment logs en backups.
+from zoneinfo import ZoneInfo                                               # ZoneInfo gebruiken we zodat tijdstippen in Belgische tijd kunnen worden gezet.
 
 
 # =====================================================================
@@ -24,9 +24,9 @@ from zoneinfo import ZoneInfo   # ZoneInfo gebruiken we zodat tijdstippen in Bel
 # BASE_DIR wordt dus de hoofdmap van het project.
 # =====================================================================
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent                           #Bouwt het absolute pad naar de projectroot op,vertrekkend vanuit database_tools.py
 
-# Pad naar het SQLite-databasebestand.
+
 # De database wordt bewust in de map data/ geplaatst.
 DATABASE_PATH = BASE_DIR / "data" / "itproject.db"
 
@@ -52,7 +52,7 @@ def get_connection():
     # sqlite3.connect() opent de database.
     connection = sqlite3.connect(DATABASE_PATH)
 
-    # row_factory = sqlite3.Row zorgt ervoor dat we kolommen kunnen opvragen
+    # row_factory = sqlite3.Row zorgt ervoor zorgt ervoor dat we de resultaten uit de database kunnen opvragen via de kolomnamen.
     connection.row_factory = sqlite3.Row
 
     # SQLite controleert foreign keys niet altijd automatisch.
@@ -360,12 +360,6 @@ def save_deployment_log(user_id, setup_id, status, output, run_reference=None):
 def split_deployment_output(output):
     """
     Splitst de Ansible-output in twee delen:
-
-    1. summary
-       Een korte, leesbare samenvatting voor het dashboard.
-
-    2. technical_output
-       De meer technische output voor wie details nodig heeft.
     """
 
     marker = "TECHNISCHE OUTPUT"
@@ -399,17 +393,6 @@ def get_last_deployment_log(user_id=None):
     """
     Geeft de laatste deployment log terug.
 
-    Als user_id wordt meegegeven:
-        Toon enkel de laatste log van die gebruiker.
-
-    Als user_id None is:
-        Toon de laatste log van alle gebruikers samen.
-
-    Waarom JOINs?
-    -----------------------------------------------------------------
-    deployment_logs bevat vooral id's:
-    - user_id
-    - setup_id
     """
 
     connection = get_connection()
@@ -474,21 +457,6 @@ def get_last_deployment_log(user_id=None):
 def get_deployment_logs_for_user(user_id=None, limit=10):
     """
     Geeft de laatste deployment logs terug.
-
-    Deze functie lijkt op get_last_deployment_log(), maar geeft meerdere logs
-    terug in plaats van één enkele log.
-
-    Parameters:
-    - user_id:
-      Als dit ingevuld is, tonen we enkel logs van die gebruiker.
-      Als dit None is, tonen we logs van alle gebruikers.
-
-    - limit:
-      Maximum aantal logs dat we willen tonen.
-      Standaard is dit 10, zodat het dashboard niet meteen een enorme lijst toont.
-
-    Return:
-    Een lijst van dictionaries. Elke dictionary stelt één logregel voor.
     """
 
     connection = get_connection()
