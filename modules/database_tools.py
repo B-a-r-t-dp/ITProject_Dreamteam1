@@ -23,8 +23,8 @@ from zoneinfo import ZoneInfo                                               # Zo
 # =====================================================================
 # BASE_DIR wordt dus de hoofdmap van het project.
 # =====================================================================
-
-BASE_DIR = Path(__file__).resolve().parent.parent                           #Bouwt het absolute pad naar de projectroot op,vertrekkend vanuit database_tools.py
+#Bouwt het absolute pad naar de projectroot op,vertrekkend vanuit database_tools.py
+BASE_DIR = Path(__file__).resolve().parent.parent                           
 
 
 # De database wordt bewust in de map data/ geplaatst.
@@ -305,27 +305,6 @@ def get_setup_info(setup_folder):
 def save_deployment_log(user_id, setup_id, status, output, run_reference=None):
     """
     Slaat het resultaat van een Ansible-uitvoering op.
-
-    Deze functie wordt aangeroepen nadat een configuratie via Ansible
-    uitgevoerd werd.
-
-    Input:
-    - user_id:
-      De gebruiker die de configuratie gestart heeft.
-
-    - setup_id:
-      De netwerkopstelling die gekozen werd.
-
-    - status:
-      Het resultaat van de configuratie.
-      Toegelaten waarden zijn "success" en "failed".
-
-    - output:
-      De tekstuele output van Ansible of van onze eigen samenvatting.
-
-    - run_reference:
-      Een unieke referentie voor deze configuratierun.
-      Die wordt gebruikt om de juiste backupmap te koppelen aan deze log.
 
     """
 
