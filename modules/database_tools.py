@@ -10,9 +10,9 @@
 # functies uit dit bestand aan.
 
 
-import sqlite3              # sqlite3 is de standaard Python-module om met SQLite-databases te werken.
-from pathlib import Path    # pathlib.Path gebruiken we om bestandspaden op een nette manier op te bouwen.
-import yaml                 # yaml gebruiken we om info.yml-bestanden te lezen.
+import sqlite3                  # sqlite3 is de standaard Python-module om met SQLite-databases te werken.
+from pathlib import Path        # pathlib.Path gebruiken we om bestandspaden op een nette manier op te bouwen.
+import yaml                     # yaml gebruiken we om info.yml-bestanden te lezen.
 from werkzeug.security import generate_password_hash, check_password_hash   # Werkzeug levert functies om wachtwoorden veilig te hashen en te controleren.
 from datetime import datetime   # datetime gebruiken we voor tijdstippen van deployment logs en backups.
 from zoneinfo import ZoneInfo   # ZoneInfo gebruiken we zodat tijdstippen in Belgische tijd kunnen worden gezet.
@@ -44,10 +44,6 @@ PLAYBOOK_DIR = BASE_DIR / "ansible" / "playbooks"
 def get_connection():
     """
     Maakt verbinding met de SQLite-database.
-
-    Deze functie wordt door bijna alle andere databasefuncties gebruikt.
-    Het is dus de centrale toegangspoort tot SQLite.
-
     """
 
     # DATABASE_PATH.parent is de map data/.
@@ -70,9 +66,9 @@ def get_connection():
 # FUNCTIE: init_database()
 # =====================================================================
 def init_database():
-    
-    # Initialiseert de database.
-
+    """
+    Initialiseert de database.
+    """
     # Open een verbinding met de database.
     connection = get_connection()
 
