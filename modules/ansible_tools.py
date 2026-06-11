@@ -571,7 +571,7 @@ def maak_runtime_inventory(setup_info, setup_data, run_reference=None):
     management_ips = {}
 
     # routerblok zoeken in info.yml
-        router = variabelen.get("router", {})
+    router = variabelen.get("router", {})
 
     # Als de router een management-IP heeft, bewaren we dat IP onder de inventorynaam r1.
     if router.get("management_ip"):
@@ -802,7 +802,7 @@ def maak_technische_output(uitgevoerd_proces):
     output_delen = []  # Hier verzamelen we stdout en stderr in 1 leesbare tekst.
 
     if uitgevoerd_proces.stdout:
-        outelen.append("ANSIBLE OUTPUT")put_d
+        output_delen.append("ANSIBLE OUTPUT")
         output_delen.append("")
         output_delen.append(uitgevoerd_proces.stdout)
 
